@@ -5,8 +5,11 @@ import asyncio
 import sys
 import time
 
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import create_async_engine
+from contextlib import AsyncExitStack
+from datetime import UTC, datetime
+
+from sqlalchemy import select, text
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from telethon import TelegramClient
 
 from prophet_checker.config import Settings
@@ -16,6 +19,8 @@ from prophet_checker.llm.prompts import (
     build_extraction_prompt,
     parse_extraction_response,
 )
+from prophet_checker.factory import build_orchestrator
+from prophet_checker.models.db import PersonDB, PersonSourceDB
 
 
 EXPECTED_ALEMBIC_HEAD = "edb2e385f26b"
@@ -25,6 +30,10 @@ SAMPLE_TEXT = (
     "з гарантіями безпеки до кінця року."
 )
 SAMPLE_CLAIM = "Контрнаступ почнеться влітку 2024 року"
+
+SMOKE_PS_ID = "smoke-test"
+SMOKE_PERSON_ID = "smoke-test-person"
+EPOCH = datetime(1970, 1, 1, tzinfo=UTC)
 
 
 CHECKS = ["postgres", "telegram", "gemini", "openai", "e2e"]
@@ -135,6 +144,102 @@ async def check_openai(settings: Settings) -> tuple[bool, str]:
     return True, f"1536-dim vector returned"
 
 
+async def _ensure_smoke_person_source(
+    session_factory: async_sessionmaker, channel: str, reset: bool
+) -> None:
+    async with session_factory() as session:
+        if reset:
+            await session.execute(
+                text("DELETE FROM predictions WHERE person_id = :pid"),
+                {"pid": SMOKE_PERSON_ID},
+            )
+            await session.execute(
+                text("DELETE FROM raw_documents WHERE person_id = :pid"),
+                {"pid": SMOKE_PERSON_ID},
+            )
+            await session.execute(
+                text("DELETE FROM person_sources WHERE id = :id"),
+                {"id": SMOKE_PS_ID},
+            )
+            await session.execute(
+                text("DELETE FROM persons WHERE id = :pid"),
+                {"pid": SMOKE_PERSON_ID},
+            )
+            await session.commit()
+
+        existing = await session.execute(
+            select(PersonSourceDB).where(PersonSourceDB.id == SMOKE_PS_ID)
+        )
+        if existing.scalar_one_or_none() is not None:
+            return
+
+        session.add(PersonDB(id=SMOKE_PERSON_ID, name="Smoke Test"))
+        session.add(
+            PersonSourceDB(
+                id=SMOKE_PS_ID,
+                person_id=SMOKE_PERSON_ID,
+                source_type="telegram",
+                source_identifier=channel,
+                enabled=True,
+                last_collected_at=EPOCH,
+            )
+        )
+        await session.commit()
+
+
+def _patch_telegram_with_limit(orchestrator, limit: int) -> None:
+    from prophet_checker.models.domain import SourceType
+
+    tg_source = orchestrator._sources[SourceType.TELEGRAM]
+    original_collect = tg_source.collect
+
+    async def limited_collect(person_source, since=None):
+        count = 0
+        async for doc in original_collect(person_source, since=since):
+            if count >= limit:
+                break
+            yield doc
+            count += 1
+
+    tg_source.collect = limited_collect
+
+
+async def check_e2e(
+    settings: Settings, channel: str, limit: int, reset: bool
+) -> tuple[bool, str]:
+    engine = create_async_engine(settings.database_url, echo=False)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    try:
+        await _ensure_smoke_person_source(session_factory, channel, reset)
+
+        async with AsyncExitStack() as stack:
+            orchestrator = await build_orchestrator(settings, stack)
+            _patch_telegram_with_limit(orchestrator, limit)
+            report = await orchestrator.run_cycle()
+
+        if not report.channels_processed:
+            return False, "report.channels_processed is empty"
+
+        smoke_channel = next(
+            (ch for ch in report.channels_processed if ch.person_source_id == SMOKE_PS_ID),
+            None,
+        )
+        if smoke_channel is None:
+            return False, f"no channel report for {SMOKE_PS_ID}"
+        if smoke_channel.error is not None:
+            return False, f"halted: {smoke_channel.error}"
+
+        return True, (
+            f"posts={smoke_channel.posts_seen} "
+            f"with_predictions={smoke_channel.posts_with_predictions} "
+            f"saved={smoke_channel.predictions_extracted} "
+            f"cursor→{smoke_channel.cursor_advanced_to}"
+        )
+    finally:
+        await engine.dispose()
+
+
 async def main() -> int:
     args = parse_args()
     settings = Settings()
@@ -181,6 +286,17 @@ async def main() -> int:
         print(f"[4/5] openai ... {marker} ({elapsed:.2f}s)  {msg}")
         if not ok:
             failures.append("openai")
+            if not args.keep_going:
+                return 1
+
+    if args.component in (None, "e2e"):
+        t0 = time.perf_counter()
+        ok, msg = await check_e2e(settings, args.channel, args.limit, args.reset_db)
+        elapsed = time.perf_counter() - t0
+        marker = "✓" if ok else "✗"
+        print(f"[5/5] e2e (limit={args.limit}) ... {marker} ({elapsed:.2f}s)  {msg}")
+        if not ok:
+            failures.append("e2e")
             if not args.keep_going:
                 return 1
 
