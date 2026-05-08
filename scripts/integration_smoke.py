@@ -122,6 +122,19 @@ async def check_gemini(settings: Settings) -> tuple[bool, str]:
     return True, f"response parsed to list[{len(parsed)} predictions]"
 
 
+async def check_openai(settings: Settings) -> tuple[bool, str]:
+    embedder = EmbeddingClient(
+        model=settings.embedding_model,
+        api_key=settings.openai_api_key,
+    )
+    vector = await embedder.embed(SAMPLE_CLAIM)
+    if not isinstance(vector, list):
+        return False, f"got {type(vector).__name__}, expected list"
+    if len(vector) != 1536:
+        return False, f"vector dim {len(vector)}, expected 1536"
+    return True, f"1536-dim vector returned"
+
+
 async def main() -> int:
     args = parse_args()
     settings = Settings()
@@ -157,6 +170,17 @@ async def main() -> int:
         print(f"[3/5] gemini ... {marker} ({elapsed:.2f}s)  {msg}")
         if not ok:
             failures.append("gemini")
+            if not args.keep_going:
+                return 1
+
+    if args.component in (None, "openai"):
+        t0 = time.perf_counter()
+        ok, msg = await check_openai(settings)
+        elapsed = time.perf_counter() - t0
+        marker = "✓" if ok else "✗"
+        print(f"[4/5] openai ... {marker} ({elapsed:.2f}s)  {msg}")
+        if not ok:
+            failures.append("openai")
             if not args.keep_going:
                 return 1
 
