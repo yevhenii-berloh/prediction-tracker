@@ -200,3 +200,49 @@ def test_parse_v2_raises_terminal_without_evidence():
     }"""
     with pytest.raises(ValueError, match="confirmed requires evidence"):
         parse_verification_response_v2(response)
+
+
+def test_parse_v2_drops_extraneous_retry_after_on_terminal():
+    from prophet_checker.llm.prompts import parse_verification_response_v2
+    response = """{
+        "status": "confirmed",
+        "confidence": 0.9,
+        "prediction_strength": "high",
+        "reasoning": "Event occurred.",
+        "evidence": "concrete fact",
+        "retry_after": "2025-06-01"
+    }"""
+    result = parse_verification_response_v2(response)
+    assert result["status"] == "confirmed"
+    assert result["retry_after"] is None
+    assert result["evidence"] == "concrete fact"
+
+
+def test_parse_v2_drops_extraneous_retry_after_on_unresolved():
+    from prophet_checker.llm.prompts import parse_verification_response_v2
+    response = """{
+        "status": "unresolved",
+        "confidence": 0.4,
+        "prediction_strength": "low",
+        "reasoning": "Too vague.",
+        "evidence": null,
+        "retry_after": "2025-06-01"
+    }"""
+    result = parse_verification_response_v2(response)
+    assert result["status"] == "unresolved"
+    assert result["retry_after"] is None
+
+
+def test_parse_v2_drops_extraneous_max_horizon_on_non_premature():
+    from prophet_checker.llm.prompts import parse_verification_response_v2
+    response = """{
+        "status": "confirmed",
+        "confidence": 0.9,
+        "prediction_strength": "high",
+        "reasoning": "Event occurred.",
+        "evidence": "concrete fact",
+        "max_horizon": "2028-01-01"
+    }"""
+    result = parse_verification_response_v2(response)
+    assert result["status"] == "confirmed"
+    assert result["max_horizon"] is None
