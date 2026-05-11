@@ -1,4 +1,5 @@
 import json
+import pytest
 from prophet_checker.llm.prompts import (
     build_extraction_prompt,
     build_rag_prompt,
@@ -133,3 +134,69 @@ def test_parse_verification_response_v2_premature():
     assert result["status"] == "premature"
     assert result["retry_after"] == "2025-06-01"
     assert result["max_horizon"] == "2028-01-01"
+
+
+def test_parse_v2_raises_on_invalid_json():
+    from prophet_checker.llm.prompts import parse_verification_response_v2
+    with pytest.raises(json.JSONDecodeError):
+        parse_verification_response_v2("not valid json")
+
+
+def test_parse_v2_raises_on_missing_required_field():
+    from prophet_checker.llm.prompts import parse_verification_response_v2
+    response = '{"status": "confirmed", "confidence": 0.9, "evidence": "fact"}'
+    with pytest.raises(ValueError, match="missing required field"):
+        parse_verification_response_v2(response)
+
+
+def test_parse_v2_raises_on_invalid_status():
+    from prophet_checker.llm.prompts import parse_verification_response_v2
+    response = """{
+        "status": "verified",
+        "confidence": 0.9,
+        "prediction_strength": "high",
+        "reasoning": "...",
+        "evidence": "fact"
+    }"""
+    with pytest.raises(ValueError, match="invalid status"):
+        parse_verification_response_v2(response)
+
+
+def test_parse_v2_raises_on_invalid_prediction_strength():
+    from prophet_checker.llm.prompts import parse_verification_response_v2
+    response = """{
+        "status": "confirmed",
+        "confidence": 0.9,
+        "prediction_strength": "strong",
+        "reasoning": "...",
+        "evidence": "fact"
+    }"""
+    with pytest.raises(ValueError, match="invalid prediction_strength"):
+        parse_verification_response_v2(response)
+
+
+def test_parse_v2_raises_premature_without_retry_after():
+    from prophet_checker.llm.prompts import parse_verification_response_v2
+    response = """{
+        "status": "premature",
+        "confidence": 0.5,
+        "prediction_strength": "medium",
+        "reasoning": "...",
+        "evidence": null,
+        "retry_after": null
+    }"""
+    with pytest.raises(ValueError, match="premature requires retry_after"):
+        parse_verification_response_v2(response)
+
+
+def test_parse_v2_raises_terminal_without_evidence():
+    from prophet_checker.llm.prompts import parse_verification_response_v2
+    response = """{
+        "status": "confirmed",
+        "confidence": 0.9,
+        "prediction_strength": "high",
+        "reasoning": "...",
+        "evidence": null
+    }"""
+    with pytest.raises(ValueError, match="confirmed requires evidence"):
+        parse_verification_response_v2(response)
