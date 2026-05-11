@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
+
+logger = logging.getLogger(__name__)
 
 # Models often wrap JSON in markdown code fences: ```json ... ``` or ``` ... ```.
 # This regex captures the JSON body between fences (optional language tag).
@@ -244,3 +247,50 @@ def get_extraction_system() -> str:
 
 def get_rag_system() -> str:
     return RAG_SYSTEM
+
+
+def parse_verification_response_v2(response: str) -> dict:
+    data = json.loads(_strip_code_fence(response))
+
+    required = {"status", "confidence", "prediction_strength", "reasoning"}
+    missing = required - set(data.keys())
+    if missing:
+        raise ValueError(f"missing required field: {sorted(missing)[0]}")
+
+    if data["status"] not in {"confirmed", "refuted", "unresolved", "premature"}:
+        raise ValueError(
+            f"invalid status: {data['status']!r} "
+            f"(expected confirmed/refuted/unresolved/premature)"
+        )
+
+    if data["prediction_strength"] not in {"low", "medium", "high"}:
+        raise ValueError(
+            f"invalid prediction_strength: {data['prediction_strength']!r} "
+            f"(expected low/medium/high)"
+        )
+
+    status = data["status"]
+    retry_after = data.get("retry_after")
+    max_horizon = data.get("max_horizon")
+    evidence = data.get("evidence") or None
+
+    if status == "premature" and retry_after is None:
+        raise ValueError("status=premature requires retry_after")
+
+    if status in {"confirmed", "refuted"} and not evidence:
+        raise ValueError(f"status={status} requires evidence")
+
+    if status != "premature" and retry_after is not None:
+        logger.warning(
+            "soft-normalize: dropping extraneous retry_after on status=%s", status
+        )
+        data["retry_after"] = None
+
+    if status != "premature" and max_horizon is not None:
+        logger.warning(
+            "soft-normalize: dropping extraneous max_horizon on status=%s", status
+        )
+        data["max_horizon"] = None
+
+    data["evidence"] = evidence
+    return data

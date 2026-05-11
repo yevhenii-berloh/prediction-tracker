@@ -97,3 +97,39 @@ def test_build_verification_prompt_v2_substitutes_all_fields():
     assert "2024-12-31" in prompt
     assert "2025-01-15" in prompt
     assert "Original post text" in prompt
+
+
+def test_parse_verification_response_v2_terminal_confirmed():
+    from prophet_checker.llm.prompts import parse_verification_response_v2
+
+    response = """{
+        "status": "confirmed",
+        "confidence": 0.9,
+        "prediction_strength": "high",
+        "reasoning": "Event occurred as predicted in June 2023.",
+        "evidence": "Counteroffensive started June 2023 per Reuters.",
+        "retry_after": null,
+        "max_horizon": null
+    }"""
+    result = parse_verification_response_v2(response)
+    assert result["status"] == "confirmed"
+    assert result["prediction_strength"] == "high"
+    assert result["evidence"] == "Counteroffensive started June 2023 per Reuters."
+
+
+def test_parse_verification_response_v2_premature():
+    from prophet_checker.llm.prompts import parse_verification_response_v2
+
+    response = """{
+        "status": "premature",
+        "confidence": 0.5,
+        "prediction_strength": "medium",
+        "reasoning": "Trump's term started recently — too early to assess.",
+        "evidence": null,
+        "retry_after": "2025-06-01",
+        "max_horizon": "2028-01-01"
+    }"""
+    result = parse_verification_response_v2(response)
+    assert result["status"] == "premature"
+    assert result["retry_after"] == "2025-06-01"
+    assert result["max_horizon"] == "2028-01-01"
