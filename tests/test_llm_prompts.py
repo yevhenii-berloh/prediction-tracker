@@ -1,10 +1,8 @@
 import json
 from prophet_checker.llm.prompts import (
     build_extraction_prompt,
-    build_verification_prompt,
     build_rag_prompt,
     parse_extraction_response,
-    parse_verification_response,
 )
 
 
@@ -68,33 +66,6 @@ def test_parse_extraction_response_handles_leading_trailing_whitespace():
     response = '\n\n  {"predictions": [{"claim_text": "test", "prediction_date": "2024-01-01", "target_date": null, "topic": ""}]}  \n\n'
     predictions = parse_extraction_response(response)
     assert len(predictions) == 1
-
-
-def test_build_verification_prompt():
-    prompt = build_verification_prompt(
-        claim="Контрнаступ почнеться влітку 2023",
-        prediction_date="2023-01-15",
-        target_date="2023-06-01",
-    )
-    assert "Контрнаступ почнеться влітку 2023" in prompt
-    assert "JSON" in prompt
-
-
-def test_parse_verification_response_valid():
-    response = json.dumps({
-        "status": "confirmed",
-        "confidence": 0.85,
-        "evidence_url": "https://news.com/article",
-        "evidence_text": "The counteroffensive began in June 2023",
-    })
-    result = parse_verification_response(response)
-    assert result["status"] == "confirmed"
-    assert result["confidence"] == 0.85
-
-
-def test_parse_verification_response_invalid_json():
-    result = parse_verification_response("broken json")
-    assert result is None
 
 
 def test_build_rag_prompt():

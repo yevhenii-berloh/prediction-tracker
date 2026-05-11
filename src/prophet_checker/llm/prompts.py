@@ -87,27 +87,6 @@ Respond with JSON:
 If no predictions found, respond: {{"predictions": []}}"""
 
 
-VERIFICATION_SYSTEM = """You are a fact-checker who verifies predictions against known events.
-You must provide evidence for your verdict. If you cannot find clear evidence, mark as unresolved.
-Respond ONLY with raw JSON — do NOT wrap in markdown code fences (no ```json, no ``` wrappers)."""
-
-VERIFICATION_TEMPLATE = """Verify the following prediction:
-
-Claim: "{claim}"
-Made on: {prediction_date}
-Expected by: {target_date}
-
-Determine if this prediction came true based on known events.
-
-Respond with JSON:
-{{
-  "status": "confirmed" | "refuted" | "unresolved",
-  "confidence": 0.0 to 1.0,
-  "evidence_url": "URL to supporting evidence or null",
-  "evidence_text": "Brief explanation of why this status was assigned"
-}}"""
-
-
 RAG_SYSTEM = """You are Prophet Checker, an AI assistant that analyzes predictions made by Ukrainian public figures.
 Answer questions based on the provided prediction data. Always cite sources and confidence scores.
 Always add a disclaimer that analysis is automated and may contain inaccuracies.
@@ -133,13 +112,6 @@ def build_extraction_prompt(text: str, person_name: str, published_date: str) ->
     )
 
 
-def build_verification_prompt(claim: str, prediction_date: str, target_date: str | None) -> str:
-    return VERIFICATION_TEMPLATE.format(
-        claim=claim, prediction_date=prediction_date,
-        target_date=target_date or "not specified",
-    )
-
-
 def build_rag_prompt(question: str, predictions_context: list[dict]) -> str:
     context_str = "\n".join(
         f"- {p['claim_text']} [status: {p['status']}, confidence: {p['confidence']}]"
@@ -156,22 +128,8 @@ def parse_extraction_response(response: str) -> list[dict]:
         return []
 
 
-def parse_verification_response(response: str) -> dict | None:
-    try:
-        data = json.loads(_strip_code_fence(response))
-        if "status" in data and "confidence" in data:
-            return data
-        return None
-    except (json.JSONDecodeError, AttributeError, TypeError):
-        return None
-
-
 def get_extraction_system() -> str:
     return EXTRACTION_SYSTEM
-
-
-def get_verification_system() -> str:
-    return VERIFICATION_SYSTEM
 
 
 def get_rag_system() -> str:
