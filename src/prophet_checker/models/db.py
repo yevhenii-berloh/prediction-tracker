@@ -86,6 +86,7 @@ class PredictionDB(Base):
     verified_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     embedding = mapped_column(Vector(1536), nullable=True)
     prediction_strength: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    prediction_value: Mapped[str | None] = mapped_column(String(10), nullable=True)
     max_horizon: Mapped[date | None] = mapped_column(Date, nullable=True)
     next_check_at: Mapped[date | None] = mapped_column(Date, nullable=True)
     verify_attempts: Mapped[int] = mapped_column(
