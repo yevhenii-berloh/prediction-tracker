@@ -107,6 +107,7 @@ def test_parse_verification_response_v2_terminal_confirmed():
         "status": "confirmed",
         "confidence": 0.9,
         "prediction_strength": "high",
+        "prediction_value": "high",
         "reasoning": "Event occurred as predicted in June 2023.",
         "evidence": "Counteroffensive started June 2023 per Reuters.",
         "retry_after": null,
@@ -115,6 +116,7 @@ def test_parse_verification_response_v2_terminal_confirmed():
     result = parse_verification_response_v2(response)
     assert result["status"] == "confirmed"
     assert result["prediction_strength"] == "high"
+    assert result["prediction_value"] == "high"
     assert result["evidence"] == "Counteroffensive started June 2023 per Reuters."
 
 
@@ -125,6 +127,7 @@ def test_parse_verification_response_v2_premature():
         "status": "premature",
         "confidence": 0.5,
         "prediction_strength": "medium",
+        "prediction_value": "medium",
         "reasoning": "Trump's term started recently — too early to assess.",
         "evidence": null,
         "retry_after": "2025-06-01",
@@ -155,6 +158,7 @@ def test_parse_v2_raises_on_invalid_status():
         "status": "verified",
         "confidence": 0.9,
         "prediction_strength": "high",
+        "prediction_value": "high",
         "reasoning": "...",
         "evidence": "fact"
     }"""
@@ -168,10 +172,25 @@ def test_parse_v2_raises_on_invalid_prediction_strength():
         "status": "confirmed",
         "confidence": 0.9,
         "prediction_strength": "strong",
+        "prediction_value": "high",
         "reasoning": "...",
         "evidence": "fact"
     }"""
     with pytest.raises(ValueError, match="invalid prediction_strength"):
+        parse_verification_response_v2(response)
+
+
+def test_parse_v2_raises_on_invalid_prediction_value():
+    from prophet_checker.llm.prompts import parse_verification_response_v2
+    response = """{
+        "status": "confirmed",
+        "confidence": 0.9,
+        "prediction_strength": "high",
+        "prediction_value": "huge",
+        "reasoning": "...",
+        "evidence": "fact"
+    }"""
+    with pytest.raises(ValueError, match="invalid prediction_value"):
         parse_verification_response_v2(response)
 
 
@@ -181,6 +200,7 @@ def test_parse_v2_raises_premature_without_retry_after():
         "status": "premature",
         "confidence": 0.5,
         "prediction_strength": "medium",
+        "prediction_value": "medium",
         "reasoning": "...",
         "evidence": null,
         "retry_after": null
@@ -195,6 +215,7 @@ def test_parse_v2_raises_terminal_without_evidence():
         "status": "confirmed",
         "confidence": 0.9,
         "prediction_strength": "high",
+        "prediction_value": "high",
         "reasoning": "...",
         "evidence": null
     }"""
@@ -208,6 +229,7 @@ def test_parse_v2_drops_extraneous_retry_after_on_terminal():
         "status": "confirmed",
         "confidence": 0.9,
         "prediction_strength": "high",
+        "prediction_value": "high",
         "reasoning": "Event occurred.",
         "evidence": "concrete fact",
         "retry_after": "2025-06-01"
@@ -224,6 +246,7 @@ def test_parse_v2_drops_extraneous_retry_after_on_unresolved():
         "status": "unresolved",
         "confidence": 0.4,
         "prediction_strength": "low",
+        "prediction_value": "low",
         "reasoning": "Too vague.",
         "evidence": null,
         "retry_after": "2025-06-01"
@@ -239,6 +262,7 @@ def test_parse_v2_drops_extraneous_max_horizon_on_non_premature():
         "status": "confirmed",
         "confidence": 0.9,
         "prediction_strength": "high",
+        "prediction_value": "high",
         "reasoning": "Event occurred.",
         "evidence": "concrete fact",
         "max_horizon": "2028-01-01"

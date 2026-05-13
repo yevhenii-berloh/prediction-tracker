@@ -114,7 +114,7 @@ and global events. Today's date is {today}. The prediction was made on a past
 date — your job is to assess whether it can be evaluated NOW, and if so, what
 the verdict is.
 
-Determine SEVEN outputs (all required in JSON response):
+Determine EIGHT outputs (all required in JSON response):
 
 ═══════════════════════════════════════════════════════════════════
 1) status — exactly one of:
@@ -145,21 +145,32 @@ Determine SEVEN outputs (all required in JSON response):
    "medium" — probabilistic but substantive claim with clear outcome.
    "low"    — vague hedge, possibility statement, or non-substantive forecast.
 
-4) reasoning — 1-3 sentences
-   Explain the verdict and strength assessment.
+4) prediction_value — assess the IMPORTANCE/RESONANCE of the predicted event
+   (INDEPENDENT of prediction_strength — judge the OUTCOME's real-world
+   significance, NOT the claim's formulation quality):
 
-5) evidence — concrete fact text or null
+   "high"   — major strategic/political/economic shift; widely consequential.
+              Example: "війна закінчиться у 2026" — outcome reshapes a region.
+   "medium" — moderate consequence; affects a sector, region, or institution.
+              Example: "новий уряд буде сформований до травня".
+   "low"    — minor or routine event; limited real-world resonance.
+              Example: "дипломати зустрінуться наступного тижня".
+
+5) reasoning — 1-3 sentences
+   Explain the verdict, strength, and value assessment.
+
+6) evidence — concrete fact text or null
    REQUIRED when status=confirmed/refuted (verdict needs justification).
    May be null when status=premature/unresolved.
    Do NOT include URLs (you have no web access).
 
-6) retry_after — YYYY-MM-DD or null
+7) retry_after — YYYY-MM-DD or null
    REQUIRED when status=premature. Null for all other statuses.
    Heuristics: for conditional predictions today + 3-6 months;
    for target_date in future, use target_date itself;
    for vague open-ended, today + 6 months.
 
-7) max_horizon — YYYY-MM-DD or null
+8) max_horizon — YYYY-MM-DD or null
    Latest reasonable date to keep checking this prediction.
    Set ONLY if status="premature" AND target_date is null. Otherwise null.
    Heuristics: conditional ~3 years; open-ended political ~5 years;
@@ -178,7 +189,8 @@ Respond ONLY with raw JSON, no markdown fences:
   "status": "confirmed" | "refuted" | "unresolved" | "premature",
   "confidence": 0.0 to 1.0,
   "prediction_strength": "low" | "medium" | "high",
-  "reasoning": "1-3 sentences explaining the verdict and strength",
+  "prediction_value": "low" | "medium" | "high",
+  "reasoning": "1-3 sentences explaining the verdict, strength, and value",
   "evidence": "concrete fact text or null. Do NOT include URLs (you have no web access).",
   "retry_after": "YYYY-MM-DD or null",
   "max_horizon": "YYYY-MM-DD or null"
@@ -252,7 +264,7 @@ def get_rag_system() -> str:
 def parse_verification_response_v2(response: str) -> dict:
     data = json.loads(_strip_code_fence(response))
 
-    required = {"status", "confidence", "prediction_strength", "reasoning"}
+    required = {"status", "confidence", "prediction_strength", "prediction_value", "reasoning"}
     missing = required - set(data.keys())
     if missing:
         raise ValueError(f"missing required field: {sorted(missing)[0]}")
@@ -266,6 +278,12 @@ def parse_verification_response_v2(response: str) -> dict:
     if data["prediction_strength"] not in {"low", "medium", "high"}:
         raise ValueError(
             f"invalid prediction_strength: {data['prediction_strength']!r} "
+            f"(expected low/medium/high)"
+        )
+
+    if data["prediction_value"] not in {"low", "medium", "high"}:
+        raise ValueError(
+            f"invalid prediction_value: {data['prediction_value']!r} "
             f"(expected low/medium/high)"
         )
 
