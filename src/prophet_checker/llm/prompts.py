@@ -83,9 +83,14 @@ For each prediction, extract:
 - prediction_date: when the prediction was made (YYYY-MM-DD)
 - target_date: when the predicted event should happen (YYYY-MM-DD or null if unclear)
 - topic: category (e.g., "війна", "економіка", "політика", "міжнародні відносини")
+- context: VERBATIM quote from the post (~300 chars max) that
+  shows what the claim refers to. Pick the sentence(s) immediately
+  surrounding the claim that explain the situation, persons, or
+  preceding events. Must be EXACT text from the post (we validate
+  programmatically that this is a substring).
 
 Respond with JSON:
-{{"predictions": [{{"claim_text": "...", "prediction_date": "...", "target_date": "...", "topic": "..."}}]}}
+{{"predictions": [{{"claim_text": "...", "prediction_date": "...", "target_date": "...", "topic": "...", "context": "..."}}]}}
 
 If no predictions found, respond: {{"predictions": []}}"""
 

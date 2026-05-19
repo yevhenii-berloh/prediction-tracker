@@ -299,3 +299,28 @@ def test_validate_context_in_post_rejects_empty_or_whitespace():
     assert validate_context_in_post("", post) is False
     assert validate_context_in_post("   \n\t  ", post) is False
     assert validate_context_in_post("Реальний", "") is False
+
+
+def test_extraction_template_includes_context_field():
+    from prophet_checker.llm.prompts import EXTRACTION_TEMPLATE
+    assert "context: VERBATIM quote" in EXTRACTION_TEMPLATE
+    assert '"context": "..."' in EXTRACTION_TEMPLATE
+
+
+def test_parse_extraction_response_extracts_context():
+    import json
+    from prophet_checker.llm.prompts import parse_extraction_response
+    response = json.dumps({
+        "predictions": [
+            {
+                "claim_text": "Війна закінчиться у 2026",
+                "prediction_date": "2024-01-15",
+                "target_date": "2026-12-31",
+                "topic": "війна",
+                "context": "Я думаю що війна закінчиться у 2026",
+            }
+        ]
+    })
+    predictions = parse_extraction_response(response)
+    assert len(predictions) == 1
+    assert predictions[0]["context"] == "Я думаю що війна закінчиться у 2026"
