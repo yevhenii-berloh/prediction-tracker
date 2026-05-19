@@ -245,6 +245,16 @@ def get_verification_system_v2(today: str) -> str:
     return VERIFICATION_SYSTEM_V2.format(today=today)
 
 
+def validate_context_in_post(context: str, raw_post: str) -> bool:
+    if not context or not raw_post:
+        return False
+    norm_ctx = " ".join(context.split())
+    if not norm_ctx:
+        return False
+    norm_post = " ".join(raw_post.split())
+    return norm_ctx in norm_post
+
+
 def parse_extraction_response(response: str) -> list[dict]:
     try:
         data = json.loads(_strip_code_fence(response))

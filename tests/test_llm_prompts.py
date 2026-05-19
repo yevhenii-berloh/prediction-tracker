@@ -270,3 +270,32 @@ def test_parse_v2_drops_extraneous_max_horizon_on_non_premature():
     result = parse_verification_response_v2(response)
     assert result["status"] == "confirmed"
     assert result["max_horizon"] is None
+
+
+def test_validate_context_in_post_success():
+    from prophet_checker.llm.prompts import validate_context_in_post
+    post = "Сьогодні я думаю що війна закінчиться скоро. Це моя думка."
+    ctx = "війна закінчиться скоро"
+    assert validate_context_in_post(ctx, post) is True
+
+
+def test_validate_context_in_post_normalizes_whitespace():
+    from prophet_checker.llm.prompts import validate_context_in_post
+    post = "Перше речення.\n\n   Друге  речення\tз багатьма пробілами."
+    ctx = "Друге речення з багатьма пробілами"
+    assert validate_context_in_post(ctx, post) is True
+
+
+def test_validate_context_in_post_fails_on_hallucination():
+    from prophet_checker.llm.prompts import validate_context_in_post
+    post = "Реальний текст посту про економіку."
+    ctx = "Цей текст модель вигадала і його у пості немає"
+    assert validate_context_in_post(ctx, post) is False
+
+
+def test_validate_context_in_post_rejects_empty_or_whitespace():
+    from prophet_checker.llm.prompts import validate_context_in_post
+    post = "Реальний текст посту."
+    assert validate_context_in_post("", post) is False
+    assert validate_context_in_post("   \n\t  ", post) is False
+    assert validate_context_in_post("Реальний", "") is False
