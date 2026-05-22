@@ -22,6 +22,7 @@ LLM_RESPONSE_ONE = json.dumps({
             "prediction_date": "2023-01-15",
             "target_date": "2023-06-01",
             "topic": "війна",
+            "context": "Контрнаступ почнеться влітку 2023 року",
         }
     ]
 })
@@ -50,6 +51,7 @@ async def test_extract_returns_predictions():
     assert p.person_id == "person-1"
     assert p.document_id == "doc-10"
     assert p.topic == "війна"
+    assert p.context == "Контрнаступ почнеться влітку 2023 року"
     assert p.id is not None  # UUID generated
     assert p.embedding is None
 
@@ -82,4 +84,35 @@ async def test_extract_llm_error_returns_empty():
         published_date="2023-01-15",
     )
 
+    assert predictions == []
+
+
+async def test_extract_drops_prediction_with_hallucinated_context():
+    response = json.dumps({"predictions": [{
+        "claim_text": "Війна закінчиться скоро",
+        "prediction_date": "2023-01-15", "target_date": None, "topic": "війна",
+        "context": "цього тексту немає в оригінальному пості взагалі",
+    }]})
+    llm = make_llm(response)
+    extractor = PredictionExtractor(llm)
+    predictions = await extractor.extract(
+        text="Реальний пост: Війна закінчиться скоро, я впевнений.",
+        person_id="p1", document_id="d1", person_name="Арестович",
+        published_date="2023-01-15",
+    )
+    assert predictions == []
+
+
+async def test_extract_drops_prediction_with_missing_context():
+    response = json.dumps({"predictions": [{
+        "claim_text": "Щось станеться",
+        "prediction_date": "2023-01-15", "target_date": None, "topic": "війна",
+    }]})
+    llm = make_llm(response)
+    extractor = PredictionExtractor(llm)
+    predictions = await extractor.extract(
+        text="Реальний пост без потрібного context.",
+        person_id="p1", document_id="d1", person_name="Арестович",
+        published_date="2023-01-15",
+    )
     assert predictions == []
