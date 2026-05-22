@@ -1,7 +1,7 @@
 # Verifier-v2 — Project Status
 
 **Last updated:** 2026-05-14
-**You are here:** 🎯 19.8a IMPLEMENTED (7 commits, 150 tests pass) — далі 19.8b operational run
+**You are here:** 🎯 19.8a + 19.8c LANDED (152 tests pass) — далі 19.8b operational run
 
 ---
 
@@ -11,7 +11,8 @@
 - ✅ **PredictionValue extension** — 8-й output verifier (importance/resonance). **Landed.**
 - ✅ **Gold v1 (19.7a)** — 35 Arestovich predictions, V2 schema **без context**. **Landed → стане `_legacy/` після 19.8b.**
 - ✅ **19.8a** — schema/prompt для нового `context` field. **Landed (7 commits, 150 tests pass).**
-- 📋 **19.8b Design** — V2 extraction re-run + quality re-eval + fresh gold v2. **Spec committed.**
+- ✅ **19.8c** — wire context у PredictionExtractor + drop on invalid. **Landed (2 commits, 152 tests pass).**
+- 📋 **19.8b Plan** — V2 extraction re-run + quality re-eval + fresh gold v2. **Plan committed (revised post-19.8c).**
 - 🔜 **19.7b** — Verification model eval (потребує fresh gold). **Brainstorm pending.**
 - 🔜 **Task 20** — VerificationOrchestrator + production wiring. **Pending all above.**
 
@@ -25,6 +26,7 @@ flowchart TD
     PV[("PredictionValue<br/>extension")]:::done
     T197A[("Task 19.7a<br/>Gold v1")]:::done
     T198A[("Task 19.8a<br/>Schema + prompt")]:::done
+    T198C[("Task 19.8c<br/>Extractor wiring")]:::done
     T198B[("Task 19.8b<br/>V2 run + quality + new gold")]:::specReady
     T197B[("Task 19.7b<br/>Verifier eval")]:::pending
     T20[("Task 20<br/>Orchestrator + wiring")]:::pending
@@ -33,7 +35,8 @@ flowchart TD
     T195 --> T197A
     PV --> T197A
     T197A -.archive baseline.-> T198B
-    T198A --> T198B
+    T198A --> T198C
+    T198C --> T198B
     PV --> T198A
     T198B --> T197B
     T197B --> T20
