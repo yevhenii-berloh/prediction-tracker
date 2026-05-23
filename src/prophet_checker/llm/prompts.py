@@ -83,14 +83,15 @@ For each prediction, extract:
 - prediction_date: when the prediction was made (YYYY-MM-DD)
 - target_date: when the predicted event should happen (YYYY-MM-DD or null if unclear)
 - topic: category (e.g., "війна", "економіка", "політика", "міжнародні відносини")
-- context: VERBATIM quote from the post (~300 chars max) that
-  shows what the claim refers to. Pick the sentence(s) immediately
-  surrounding the claim that explain the situation, persons, or
-  preceding events. Must be EXACT text from the post (we validate
-  programmatically that this is a substring).
+- situation: 1-2 sentences (in the post's language) summarizing the
+  events or circumstances the author was responding to when making
+  this prediction. Answer "in response to what situation was this
+  forecast made?". Synthesize from the whole post — capture preceding
+  setup, triggering events, persons involved. This is YOUR summary,
+  NOT a verbatim quote.
 
 Respond with JSON:
-{{"predictions": [{{"claim_text": "...", "prediction_date": "...", "target_date": "...", "topic": "...", "context": "..."}}]}}
+{{"predictions": [{{"claim_text": "...", "prediction_date": "...", "target_date": "...", "topic": "...", "situation": "..."}}]}}
 
 If no predictions found, respond: {{"predictions": []}}"""
 
@@ -206,9 +207,9 @@ VERIFICATION_TEMPLATE_V2 = """Claim: "{claim}"
 Made on: {prediction_date}
 Expected by: {target_date}
 
-Original post excerpt (for context):
+Situation that prompted the claim:
 ---
-{post_excerpt}
+{situation}
 ---
 
 Today: {today}.
@@ -235,14 +236,14 @@ def build_verification_prompt_v2(
     prediction_date: str,
     target_date: str | None,
     today: str,
-    context: str,
+    situation: str,
 ) -> str:
     return VERIFICATION_TEMPLATE_V2.format(
         claim=claim,
         prediction_date=prediction_date,
         target_date=target_date or "not specified",
         today=today,
-        post_excerpt=context,
+        situation=situation,
     )
 
 
@@ -250,14 +251,8 @@ def get_verification_system_v2(today: str) -> str:
     return VERIFICATION_SYSTEM_V2.format(today=today)
 
 
-def validate_context_in_post(context: str, raw_post: str) -> bool:
-    if not context or not raw_post:
-        return False
-    norm_ctx = " ".join(context.split())
-    if not norm_ctx:
-        return False
-    norm_post = " ".join(raw_post.split())
-    return norm_ctx in norm_post
+def validate_situation(situation: str | None) -> bool:
+    return bool(situation and situation.strip())
 
 
 def parse_extraction_response(response: str) -> list[dict]:

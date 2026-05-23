@@ -91,7 +91,7 @@ def test_build_verification_prompt_v2_substitutes_all_fields():
         prediction_date="2024-01-01",
         target_date="2024-12-31",
         today="2025-01-15",
-        context="Original post text",
+        situation="Original post text",
     )
     assert "Test claim" in prompt
     assert "2024-01-01" in prompt
@@ -272,39 +272,26 @@ def test_parse_v2_drops_extraneous_max_horizon_on_non_premature():
     assert result["max_horizon"] is None
 
 
-def test_validate_context_in_post_success():
-    from prophet_checker.llm.prompts import validate_context_in_post
-    post = "Сьогодні я думаю що війна закінчиться скоро. Це моя думка."
-    ctx = "війна закінчиться скоро"
-    assert validate_context_in_post(ctx, post) is True
+def test_validate_situation_accepts_non_empty():
+    from prophet_checker.llm.prompts import validate_situation
+    assert validate_situation("У відповідь на іранські погрози") is True
 
 
-def test_validate_context_in_post_normalizes_whitespace():
-    from prophet_checker.llm.prompts import validate_context_in_post
-    post = "Перше речення.\n\n   Друге  речення\tз багатьма пробілами."
-    ctx = "Друге речення з багатьма пробілами"
-    assert validate_context_in_post(ctx, post) is True
+def test_validate_situation_rejects_empty_and_none():
+    from prophet_checker.llm.prompts import validate_situation
+    assert validate_situation("") is False
+    assert validate_situation(None) is False
 
 
-def test_validate_context_in_post_fails_on_hallucination():
-    from prophet_checker.llm.prompts import validate_context_in_post
-    post = "Реальний текст посту про економіку."
-    ctx = "Цей текст модель вигадала і його у пості немає"
-    assert validate_context_in_post(ctx, post) is False
+def test_validate_situation_rejects_whitespace_only():
+    from prophet_checker.llm.prompts import validate_situation
+    assert validate_situation("   \n\t  ") is False
 
 
-def test_validate_context_in_post_rejects_empty_or_whitespace():
-    from prophet_checker.llm.prompts import validate_context_in_post
-    post = "Реальний текст посту."
-    assert validate_context_in_post("", post) is False
-    assert validate_context_in_post("   \n\t  ", post) is False
-    assert validate_context_in_post("Реальний", "") is False
-
-
-def test_extraction_template_includes_context_field():
+def test_extraction_template_includes_situation_field():
     from prophet_checker.llm.prompts import EXTRACTION_TEMPLATE
-    assert "context: VERBATIM quote" in EXTRACTION_TEMPLATE
-    assert '"context": "..."' in EXTRACTION_TEMPLATE
+    assert "situation: 1-2 sentences" in EXTRACTION_TEMPLATE
+    assert '"situation": "..."' in EXTRACTION_TEMPLATE
 
 
 def test_parse_extraction_response_extracts_context():
@@ -326,7 +313,7 @@ def test_parse_extraction_response_extracts_context():
     assert predictions[0]["context"] == "Я думаю що війна закінчиться у 2026"
 
 
-def test_build_verification_prompt_v2_accepts_context_kwarg():
+def test_build_verification_prompt_v2_accepts_situation_kwarg():
     import pytest
     from prophet_checker.llm.prompts import build_verification_prompt_v2
 
@@ -335,7 +322,7 @@ def test_build_verification_prompt_v2_accepts_context_kwarg():
         prediction_date="2024-01-01",
         target_date=None,
         today="2026-05-14",
-        context="Verbatim quote",
+        situation="Verbatim quote",
     )
     assert "Verbatim quote" in prompt
 
@@ -345,5 +332,5 @@ def test_build_verification_prompt_v2_accepts_context_kwarg():
             prediction_date="2024-01-01",
             target_date=None,
             today="2026-05-14",
-            post_excerpt="should fail under new signature",
+            context="should fail under new signature",
         )
