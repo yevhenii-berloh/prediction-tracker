@@ -1,7 +1,7 @@
 # Verifier-v2 — Project Status
 
 **Last updated:** 2026-05-14
-**You are here:** 🎯 19.8a + 19.8c LANDED (152 tests pass) — далі 19.8b operational run
+**You are here:** 🎯 19.8a/c/d LANDED (situation field, 154 tests) — далі re-run 19.8b extraction
 
 ---
 
@@ -12,7 +12,8 @@
 - ✅ **Gold v1 (19.7a)** — 35 Arestovich predictions, V2 schema **без context**. **Landed → стане `_legacy/` після 19.8b.**
 - ✅ **19.8a** — schema/prompt для нового `context` field. **Landed (7 commits, 150 tests pass).**
 - ✅ **19.8c** — wire context у PredictionExtractor + drop on invalid. **Landed (2 commits, 152 tests pass).**
-- 📋 **19.8b Plan** — V2 extraction re-run + quality re-eval + fresh gold v2. **Plan committed (revised post-19.8c).**
+- ✅ **19.8d** — `situation` field замінює verbatim context (model-paraphrase, presence-validated). **Landed (7 commits, 154 tests pass).** Емпіричне review показало verbatim context низькоцінний (TOC рядки, non-contiguous setup).
+- 📋 **19.8b Plan** — V2 extraction re-run + quality re-eval + fresh gold v2. **Plan committed (потребує 2-го touch: serialize вже на situation; re-run з situation field).**
 - 🔜 **19.7b** — Verification model eval (потребує fresh gold). **Brainstorm pending.**
 - 🔜 **Task 20** — VerificationOrchestrator + production wiring. **Pending all above.**
 
