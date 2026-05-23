@@ -8,7 +8,7 @@ from prophet_checker.llm.prompts import (
     build_extraction_prompt,
     get_extraction_system,
     parse_extraction_response,
-    validate_context_in_post,
+    validate_situation,
 )
 from prophet_checker.models.domain import Prediction, PredictionStatus
 
@@ -50,10 +50,10 @@ class PredictionExtractor:
             if not claim:
                 continue
 
-            context = raw.get("context")
-            if not validate_context_in_post(context, text):
+            situation = raw.get("situation")
+            if not validate_situation(situation):
                 logger.warning(
-                    "Drop prediction — invalid/missing context: %r", claim[:60]
+                    "Drop prediction — missing/empty situation: %r", claim[:60]
                 )
                 continue
 
@@ -79,7 +79,7 @@ class PredictionExtractor:
                     person_id=person_id,
                     document_id=document_id,
                     claim_text=claim,
-                    context=context,
+                    situation=situation,
                     prediction_date=prediction_date,
                     target_date=target_date,
                     topic=raw.get("topic", ""),
