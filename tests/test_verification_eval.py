@@ -234,3 +234,59 @@ def test_list_existing_per_model_files_missing_dir(tmp_path):
     from verification_eval import list_existing_per_model_files
     missing = tmp_path / "does_not_exist"
     assert list_existing_per_model_files(missing) == []
+
+
+import asyncio
+import json as json_mod
+from unittest.mock import AsyncMock, MagicMock
+
+
+def test_run_for_model_smoke_with_mock(tmp_path):
+    from verification_eval import run_for_model, save_per_model_artifact
+
+    valid_response = json_mod.dumps({
+        "status": "premature",
+        "confidence": 0.5,
+        "prediction_strength": "medium",
+        "prediction_value": "medium",
+        "reasoning": "test",
+        "evidence": None,
+        "retry_after": "2027-01-01",
+        "max_horizon": "2030-01-01",
+    })
+
+    gold_entries = [
+        {
+            "id": "test:1",
+            "claim_text": "Test claim",
+            "situation": "Test situation",
+            "prediction_date": "2024-01-01",
+            "target_date": None,
+        }
+    ]
+
+    class FakeLLM:
+        async def complete(self, prompt, system):
+            return valid_response
+
+    import verification_eval
+    original = verification_eval.build_llm_client
+    verification_eval.build_llm_client = lambda mid: FakeLLM()
+    try:
+        artifact = asyncio.run(run_for_model("anthropic/claude-haiku-4-5", gold_entries, "2026-05-23", 0.0))
+    finally:
+        verification_eval.build_llm_client = original
+
+    assert artifact["metadata"]["model"] == "anthropic/claude-haiku-4-5"
+    assert artifact["metadata"]["n_predictions"] == 1
+    assert "test:1" in artifact["results"]
+    r = artifact["results"]["test:1"]
+    assert r["parsed"]["status"] == "premature"
+    assert r["parse_error"] is None
+    assert r["latency_seconds"] >= 0
+    assert r["cost_usd"] == 0.001
+
+    saved = save_per_model_artifact("anthropic/claude-haiku-4-5", artifact, tmp_path)
+    assert saved.name == "anthropic_claude-haiku-4-5.json"
+    reloaded = json_mod.loads(saved.read_text())
+    assert reloaded["metadata"]["model"] == "anthropic/claude-haiku-4-5"

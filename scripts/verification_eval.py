@@ -186,3 +186,82 @@ def list_existing_per_model_files(per_model_dir: Path) -> list[str]:
         if provider in PROVIDER_API_KEY_ENV:
             found.append(f"{provider}/{model}")
     return found
+
+
+def build_llm_client(model_id: str) -> LLMClient:
+    if "/" not in model_id:
+        raise ValueError(f"model_id must be 'provider/model', got {model_id!r}")
+    provider, model = model_id.split("/", 1)
+    env_var = PROVIDER_API_KEY_ENV.get(provider)
+    if not env_var:
+        raise ValueError(f"Unknown provider {provider!r}")
+    api_key = os.environ.get(env_var)
+    if not api_key:
+        raise RuntimeError(f"Missing API key for {provider!r}: set {env_var}")
+    return LLMClient(provider=provider, model=model, api_key=api_key, temperature=0.0)
+
+
+def build_prompt_for_gold_entry(entry: dict, today: str) -> tuple[str, str]:
+    prompt = build_verification_prompt_v2(
+        claim=entry["claim_text"],
+        prediction_date=entry["prediction_date"],
+        target_date=entry["target_date"],
+        today=today,
+        situation=entry["situation"],
+    )
+    system = get_verification_system_v2(today=today)
+    return prompt, system
+
+
+async def run_one_prediction(
+    llm: LLMClient, entry: dict, today: str, model_id: str
+) -> dict:
+    prompt, system = build_prompt_for_gold_entry(entry, today)
+    raw = None
+    parsed = None
+    parse_error = None
+    start = monotonic()
+    try:
+        raw = await llm.complete(prompt, system=system)
+        try:
+            parsed = parse_verification_response_v2(raw)
+        except (ValueError, json.JSONDecodeError) as e:
+            parse_error = str(e)
+    except Exception as e:
+        parse_error = f"infra: {type(e).__name__}: {e}"
+    latency = monotonic() - start
+    return {
+        "raw_response": raw,
+        "parsed": parsed,
+        "parse_error": parse_error,
+        "latency_seconds": latency,
+        "cost_usd": COST_PER_CALL_USD.get(model_id, 0.0),
+    }
+
+
+async def run_for_model(
+    model_id: str, gold_entries: list[dict], today: str, min_interval: float
+) -> dict:
+    llm = build_llm_client(model_id)
+    results: dict[str, dict] = {}
+    for i, entry in enumerate(gold_entries, 1):
+        results[entry["id"]] = await run_one_prediction(llm, entry, today, model_id)
+        print(f"  [{model_id}] {i}/{len(gold_entries)} done", flush=True)
+        if min_interval > 0:
+            await asyncio.sleep(min_interval)
+    return {
+        "metadata": {
+            "model": model_id,
+            "run_at": datetime.now(timezone.utc).isoformat(),
+            "today": today,
+            "n_predictions": len(gold_entries),
+        },
+        "results": results,
+    }
+
+
+def save_per_model_artifact(model_id: str, artifact: dict, per_model_dir: Path) -> Path:
+    per_model_dir.mkdir(parents=True, exist_ok=True)
+    out_path = per_model_dir / filename_for_model(model_id)
+    out_path.write_text(json.dumps(artifact, ensure_ascii=False, indent=2), encoding="utf-8")
+    return out_path
