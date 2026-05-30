@@ -265,3 +265,176 @@ def save_per_model_artifact(model_id: str, artifact: dict, per_model_dir: Path) 
     out_path = per_model_dir / filename_for_model(model_id)
     out_path.write_text(json.dumps(artifact, ensure_ascii=False, indent=2), encoding="utf-8")
     return out_path
+
+
+def metrics_for_model(per_model_artifact: dict, gold_index: dict[str, dict]) -> dict:
+    results = per_model_artifact["results"]
+    status_pairs: list[tuple] = []
+    strength_pairs: list[tuple] = []
+    value_pairs: list[tuple] = []
+    calibration_items: list[dict] = []
+    parser_rejects = 0
+    cost_total = 0.0
+    latencies: list[float] = []
+
+    for entry_id, r in results.items():
+        gold = gold_index.get(entry_id)
+        if gold is None:
+            continue
+        cost_total += r.get("cost_usd", 0.0)
+        latency = r.get("latency_seconds")
+        if latency is not None:
+            latencies.append(latency)
+        if r.get("parse_error") is not None or r.get("parsed") is None:
+            parser_rejects += 1
+            continue
+        parsed = r["parsed"]
+        status_pairs.append((gold["expected_status"], parsed.get("status")))
+        strength_pairs.append((gold["expected_strength"], parsed.get("prediction_strength")))
+        value_pairs.append((gold["expected_value"], parsed.get("prediction_value")))
+        is_correct = (gold["expected_status"] == parsed.get("status"))
+        confidence = parsed.get("confidence")
+        if confidence is not None:
+            calibration_items.append({"confidence": confidence, "is_correct": is_correct})
+
+    n_total = len(results)
+    reject_rate = parser_rejects / n_total if n_total > 0 else 0.0
+    return {
+        "parsed_ok": len(status_pairs),
+        "parser_rejects": parser_rejects,
+        "parser_reject_rate": reject_rate,
+        "status": {
+            "accuracy": compute_accuracy(status_pairs),
+            "confusion": compute_confusion_matrix(status_pairs, STATUS_LABELS),
+        },
+        "prediction_strength": {
+            "accuracy": compute_accuracy(strength_pairs),
+            "confusion": compute_confusion_matrix(strength_pairs, STRENGTH_LABELS),
+        },
+        "prediction_value": {
+            "accuracy": compute_accuracy(value_pairs),
+            "confusion": compute_confusion_matrix(value_pairs, VALUE_LABELS),
+        },
+        "calibration": calibration_stats(calibration_items),
+        "cost_total_usd": cost_total,
+        "latency_mean_seconds": (sum(latencies) / len(latencies)) if latencies else 0.0,
+    }
+
+
+def load_gold(gold_path: Path) -> tuple[dict[str, dict], dict]:
+    data = json.loads(gold_path.read_text(encoding="utf-8"))
+    gold_index = {e["id"]: e for e in data["predictions"]}
+    return gold_index, data["metadata"]
+
+
+def aggregate_all_models(per_model_dir: Path, gold_index: dict) -> dict:
+    per_model_metrics: dict[str, dict] = {}
+    for path in sorted(per_model_dir.glob("*.json")):
+        artifact = json.loads(path.read_text(encoding="utf-8"))
+        model_id = artifact["metadata"]["model"]
+        per_model_metrics[model_id] = metrics_for_model(artifact, gold_index)
+    return per_model_metrics
+
+
+def gather_disagreements(
+    winner_model: str, per_model_dir: Path, gold_index: dict, limit: int = 5
+) -> list[dict]:
+    if winner_model is None:
+        return []
+    path = per_model_dir / filename_for_model(winner_model)
+    if not path.exists():
+        return []
+    artifact = json.loads(path.read_text(encoding="utf-8"))
+    disagreements: list[dict] = []
+    for entry_id, r in artifact["results"].items():
+        gold = gold_index.get(entry_id)
+        if gold is None or r.get("parsed") is None:
+            continue
+        gold_status = gold["expected_status"]
+        model_status = r["parsed"].get("status")
+        if gold_status != model_status:
+            disagreements.append({
+                "id": entry_id,
+                "gold_status": gold_status,
+                "model_status": model_status,
+                "claim": gold["claim_text"][:160],
+            })
+        if len(disagreements) >= limit:
+            break
+    return disagreements
+
+
+def render_report(per_model: dict, decision: dict, disagreements: list[dict], total_cost: float) -> str:
+    lines: list[str] = []
+    lines.append("# Verification Model Evaluation Report")
+    lines.append("")
+    lines.append(f"**Date:** {datetime.now(timezone.utc).strftime('%Y-%m-%d')}")
+    lines.append(f"**Models processed:** {len(per_model)}")
+    lines.append(f"**Total cost:** ${total_cost:.2f}")
+    lines.append("")
+    lines.append(f"## Decision: PRODUCTION VERIFIER = `{decision['step3_winner']}`")
+    lines.append("")
+    lines.append(decision["step3_rationale"])
+    lines.append("")
+    if decision["step1_filtered_out"]:
+        lines.append("**Filtered (blockers):**")
+        for f in decision["step1_filtered_out"]:
+            lines.append(f"- `{f['model']}` — {f['reason']}")
+        lines.append("")
+    lines.append("## Ranking")
+    lines.append("")
+    lines.append("| Model | Status acc | Strength acc | Value acc | Reject % | Cost | Latency |")
+    lines.append("|---|---|---|---|---|---|---|")
+    sorted_models = sorted(per_model.items(), key=lambda kv: kv[1]["status"]["accuracy"], reverse=True)
+    for model, m in sorted_models:
+        marker = " (WINNER)" if model == decision["step3_winner"] else ""
+        lines.append(
+            f"| `{model}`{marker} "
+            f"| {m['status']['accuracy']:.3f} "
+            f"| {m['prediction_strength']['accuracy']:.3f} "
+            f"| {m['prediction_value']['accuracy']:.3f} "
+            f"| {m['parser_reject_rate']*100:.1f}% "
+            f"| ${m['cost_total_usd']:.3f} "
+            f"| {m['latency_mean_seconds']:.2f}s |"
+        )
+    lines.append("")
+    if disagreements:
+        lines.append("## Sanity check: 5 disagreements (winner vs gold)")
+        lines.append("")
+        for i, d in enumerate(disagreements, 1):
+            lines.append(f"{i}. `{d['id']}`")
+            lines.append(f"   - Gold status: `{d['gold_status']}`")
+            lines.append(f"   - Model status: `{d['model_status']}`")
+            lines.append(f"   - Claim: {d['claim']}")
+            lines.append("")
+    return "\n".join(lines)
+
+
+def run_aggregation(output_dir: Path, gold_path: Path) -> None:
+    per_model_dir = output_dir / PER_MODEL_SUBDIR
+    gold_index, gold_metadata = load_gold(gold_path)
+    per_model = aggregate_all_models(per_model_dir, gold_index)
+    decision = apply_decision_framework(per_model)
+    total_cost = sum(m["cost_total_usd"] for m in per_model.values())
+    disagreements = gather_disagreements(decision["step3_winner"], per_model_dir, gold_index)
+    metrics_artifact = {
+        "metadata": {
+            "computed_at": datetime.now(timezone.utc).isoformat(),
+            "n_gold": len(gold_index),
+            "n_models_processed": len(per_model),
+        },
+        "per_model": per_model,
+        "decision_framework": {
+            **decision,
+            "step4_disagreements_for_review": disagreements,
+        },
+    }
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / METRICS_FILENAME).write_text(
+        json.dumps(metrics_artifact, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    (output_dir / REPORT_FILENAME).write_text(
+        render_report(per_model, decision, disagreements, total_cost), encoding="utf-8"
+    )
+    print(f"\nDECISION: {decision['step3_winner']}")
+    print(f"RATIONALE: {decision['step3_rationale']}")

@@ -290,3 +290,39 @@ def test_run_for_model_smoke_with_mock(tmp_path):
     assert saved.name == "anthropic_claude-haiku-4-5.json"
     reloaded = json_mod.loads(saved.read_text())
     assert reloaded["metadata"]["model"] == "anthropic/claude-haiku-4-5"
+
+
+def test_render_report_includes_winner_and_table():
+    from verification_eval import render_report
+    per_model = {
+        "anthropic/claude-sonnet-4-6": {
+            "status": {"accuracy": 0.81},
+            "prediction_strength": {"accuracy": 0.74},
+            "prediction_value": {"accuracy": 0.66},
+            "parser_reject_rate": 0.0,
+            "cost_total_usd": 0.15,
+            "latency_mean_seconds": 2.8,
+        },
+        "anthropic/claude-opus-4-6": {
+            "status": {"accuracy": 0.86},
+            "prediction_strength": {"accuracy": 0.71},
+            "prediction_value": {"accuracy": 0.69},
+            "parser_reject_rate": 0.0,
+            "cost_total_usd": 0.50,
+            "latency_mean_seconds": 4.2,
+        },
+    }
+    decision = {
+        "step1_filtered_out": [],
+        "step2_max_status_acc": 0.86,
+        "step2_quality_tier": ["anthropic/claude-opus-4-6", "anthropic/claude-sonnet-4-6"],
+        "step3_winner": "anthropic/claude-sonnet-4-6",
+        "step3_rationale": "Tier-1 winner: lowest cost",
+    }
+    md = render_report(per_model, decision, [], 0.65)
+    assert "PRODUCTION VERIFIER = `anthropic/claude-sonnet-4-6`" in md
+    assert "Tier-1 winner" in md
+    assert "(WINNER)" in md
+    assert "0.86" in md
+    assert "0.81" in md
+    assert "Total cost:** $0.65" in md
