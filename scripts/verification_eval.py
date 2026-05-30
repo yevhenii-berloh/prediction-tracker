@@ -438,3 +438,83 @@ def run_aggregation(output_dir: Path, gold_path: Path) -> None:
     )
     print(f"\nDECISION: {decision['step3_winner']}")
     print(f"RATIONALE: {decision['step3_rationale']}")
+
+
+def resolve_models_to_run(
+    requested: list[str], skip_existing: bool, force: bool, per_model_dir: Path
+) -> list[str]:
+    if skip_existing and force:
+        raise ValueError("--skip-existing and --force are mutually exclusive")
+    existing = set(list_existing_per_model_files(per_model_dir)) if skip_existing else set()
+    return [m for m in requested if m not in existing]
+
+
+def parse_models_arg(arg: str | None) -> list[str]:
+    if not arg:
+        return list(MODELS)
+    return [m.strip() for m in arg.split(",") if m.strip()]
+
+
+def estimate_run_cost(models_to_run: list[str], n_predictions: int) -> float:
+    return sum(COST_PER_CALL_USD.get(m, 0.0) * n_predictions for m in models_to_run)
+
+
+def confirm_cost(estimate: float, n_calls: int, yes: bool) -> bool:
+    print(f"\nPlan: {n_calls} calls, estimated cost ${estimate:.2f}")
+    if yes:
+        return True
+    answer = input("Proceed? [y/N]: ").strip().lower()
+    return answer == "y"
+
+
+async def run_stage1(
+    models: list[str], gold_entries: list[dict], today: str, output_dir: Path
+) -> None:
+    per_model_dir = output_dir / PER_MODEL_SUBDIR
+    for model_id in models:
+        min_interval = MIN_CALL_INTERVAL_SECONDS.get(model_id, 0.0)
+        if min_interval > 0:
+            est_min = len(gold_entries) * min_interval / 60
+            print(f"  [{model_id}] throttle {min_interval}s/call → ~{est_min:.1f} min")
+        print(f"\n=== {model_id} ===")
+        artifact = await run_for_model(model_id, gold_entries, today, min_interval)
+        path = save_per_model_artifact(model_id, artifact, per_model_dir)
+        print(f"  Saved → {path}")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Verification model evaluation (Task 19.7b)")
+    parser.add_argument("--model", default=None, help="comma-separated model ids (default: all)")
+    parser.add_argument("--skip-existing", action="store_true", help="skip models that already have output file")
+    parser.add_argument("--force", action="store_true", help="overwrite existing output (re-run model)")
+    parser.add_argument("--aggregate-only", action="store_true", help="skip Stage 1, only Stage 2")
+    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument("--gold", type=Path, default=DEFAULT_GOLD_PATH)
+    parser.add_argument("--yes", action="store_true", help="skip cost confirm prompt")
+    args = parser.parse_args()
+    logging.basicConfig(level=logging.WARNING)
+
+    gold_index, gold_metadata = load_gold(args.gold)
+    today = gold_metadata.get("today", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+    gold_entries = list(gold_index.values())
+
+    if not args.aggregate_only:
+        requested = parse_models_arg(args.model)
+        per_model_dir = args.output_dir / PER_MODEL_SUBDIR
+        models_to_run = resolve_models_to_run(requested, args.skip_existing, args.force, per_model_dir)
+        if not models_to_run:
+            print("No models to run (all skipped). Use --force to override.")
+        else:
+            estimate = estimate_run_cost(models_to_run, len(gold_entries))
+            n_calls = len(models_to_run) * len(gold_entries)
+            if not confirm_cost(estimate, n_calls, args.yes):
+                print("Aborted.")
+                return
+            asyncio.run(run_stage1(models_to_run, gold_entries, today, args.output_dir))
+
+    print("\nRunning aggregation...")
+    run_aggregation(args.output_dir, args.gold)
+
+
+if __name__ == "__main__":
+    main()
