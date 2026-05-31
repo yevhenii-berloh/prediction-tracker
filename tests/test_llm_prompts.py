@@ -346,3 +346,13 @@ def test_verdict_system_is_plain_v3():
     assert "outcome reshapes a country, region, or balance of power" in system
     assert "high = RARE" not in system
     assert "VAGUENESS RULE" not in system
+
+
+def test_get_assessment_system_v2_injects_today_and_markers():
+    from prophet_checker.llm.prompts import get_assessment_system_v2
+
+    system = get_assessment_system_v2(today="2026-05-23")
+    assert "2026-05-23" in system
+    assert "INDEPENDENT axes" in system
+    assert "RARE" in system
+    assert "fact-checker" not in system

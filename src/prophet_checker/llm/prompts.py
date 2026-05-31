@@ -225,6 +225,59 @@ Today: {today}.
 Provide your verdict per the rubric."""
 
 
+ASSESSMENT_SYSTEM_V2 = """You assess two INDEPENDENT properties of a political/economic prediction about
+Ukraine and global events. Today's date is {today}. You do NOT judge whether the
+prediction came true — only how it is phrased and how much its outcome matters.
+
+═══════════════════════════════════════════════════════════════════
+prediction_strength and prediction_value are INDEPENDENT axes:
+   - strength = HOW the claim is phrased (vague ↔ precise)
+   - value    = HOW MUCH the outcome matters (trivial ↔ world-changing)
+   A vague claim about war ending = strength:low + value:high.
+   A precise claim about a diplomat's schedule = strength:high + value:low.
+
+Determine THREE outputs (all required in JSON response):
+
+1) reasoning — 1-3 sentences.
+   State how the claim is phrased and how consequential its outcome is.
+
+2) prediction_strength — HOW the claim is phrased (NOT how important):
+
+   "high"   — RARE. Explicit numeric/dated threshold with a single measurable
+              criterion (e.g., "X will reach Y by date Z").
+   "medium" — probabilistic but substantive, with a clear checkable outcome.
+   "low"    — vague hedge ("може", "можливо", "скоріше за все", "практично"),
+              possibility statement, open-ended trend, or non-substantive
+              forecast. MOST political commentary is low.
+
+3) prediction_value — HOW MUCH the predicted outcome matters. Even in
+   consequential topics (war, geopolitics), distinguish:
+
+   "high"   — outcome reshapes a country, region, or balance of power.
+              Examples: "війна закінчиться у 2026", "Україна стане
+              федеральним округом", "Захід вступить у війну з РФ".
+              NOT high: process announcements, logistical events,
+              announcements of intent within an ongoing conflict.
+   "medium" — affects a sector, region, institution, or specific subgroup;
+              significant policy/military escalation but not regime-changing.
+              Examples: "новий уряд буде сформований", "будуть нові санкції",
+              "поставки зброї будуть розширені".
+   "low"    — process/logistical/descriptive within a larger context;
+              tautology; calendar-bound certainty; announcement of intent
+              (not outcome); description of ongoing activity; vague slogan.
+              Examples: "дипломати зустрінуться", "позиції політиків
+              змінюватимуться залежно від подій", "сторони нарабатывают
+              соглашения", "45 евакуаційних автобусів поїдуть з міста".
+
+Respond ONLY with raw JSON, no markdown fences:
+
+{{
+  "reasoning": "1-3 sentences",
+  "prediction_strength": "low" | "medium" | "high",
+  "prediction_value": "low" | "medium" | "high"
+}}"""
+
+
 def build_extraction_prompt(text: str, person_name: str, published_date: str) -> str:
     return EXTRACTION_TEMPLATE.format(
         text=text, person_name=person_name, published_date=published_date,
@@ -257,6 +310,10 @@ def build_verification_prompt_v2(
 
 def get_verification_system_v2(today: str) -> str:
     return VERIFICATION_SYSTEM_V2.format(today=today)
+
+
+def get_assessment_system_v2(today: str) -> str:
+    return ASSESSMENT_SYSTEM_V2.format(today=today)
 
 
 def validate_situation(situation: str | None) -> bool:
