@@ -150,7 +150,6 @@ Determine EIGHT outputs (all required in JSON response):
    "high"   — concrete falsifiable claim with measurable outcome.
    "medium" — probabilistic but substantive claim with clear outcome.
    "low"    — vague hedge, possibility statement, or non-substantive forecast.
-
 4) prediction_value — assess the IMPORTANCE/RESONANCE of the predicted outcome.
    Even in consequential topics (war, geopolitics), distinguish:
 
@@ -169,31 +168,23 @@ Determine EIGHT outputs (all required in JSON response):
               Examples: "дипломати зустрінуться", "позиції політиків
               змінюватимуться залежно від подій", "сторони нарабатывают
               соглашения", "45 евакуаційних автобусів поїдуть з міста".
-
 5) reasoning — 1-3 sentences
    Explain the verdict, strength, and value assessment.
 
 6) evidence — concrete fact text or null
-   REQUIRED when status=confirmed/refuted (verdict needs justification).
-   May be null when status=premature/unresolved.
+   REQUIRED when status=confirmed/refuted. May be null when premature/unresolved.
    Do NOT include URLs (you have no web access).
 
 7) retry_after — YYYY-MM-DD or null
    REQUIRED when status=premature. Null for all other statuses.
-   Heuristics: for conditional predictions today + 3-6 months;
-   for target_date in future, use target_date itself;
-   for vague open-ended, today + 6 months.
 
 8) max_horizon — YYYY-MM-DD or null
-   Latest reasonable date to keep checking this prediction.
    Set ONLY if status="premature" AND target_date is null. Otherwise null.
-   Heuristics: conditional ~3 years; open-ended political ~5 years;
-   "soon"/"coming months" → prediction_date + 1-2 years.
 
 ═══════════════════════════════════════════════════════════════════
 MUTUAL EXCLUSION RULES (strictly enforce):
 - status=confirmed/refuted → evidence MUST be a concrete fact, retry_after=null
-- status=unresolved → retry_after=null (recheck won't help)
+- status=unresolved → retry_after=null
 - status=premature → retry_after MUST be a date, evidence may be null
 - max_horizon set ONLY when status=premature AND target_date=null
 
@@ -204,8 +195,8 @@ Respond ONLY with raw JSON, no markdown fences:
   "confidence": 0.0 to 1.0,
   "prediction_strength": "low" | "medium" | "high",
   "prediction_value": "low" | "medium" | "high",
-  "reasoning": "1-3 sentences explaining the verdict, strength, and value",
-  "evidence": "concrete fact text or null. Do NOT include URLs (you have no web access).",
+  "reasoning": "1-3 sentences",
+  "evidence": "concrete fact text or null. Do NOT include URLs.",
   "retry_after": "YYYY-MM-DD or null",
   "max_horizon": "YYYY-MM-DD or null"
 }}"""
