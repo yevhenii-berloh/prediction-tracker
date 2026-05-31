@@ -334,3 +334,15 @@ def test_build_verification_prompt_v2_accepts_situation_kwarg():
             today="2026-05-14",
             context="should fail under new signature",
         )
+
+
+def test_verdict_system_is_plain_v3():
+    from prophet_checker.llm.prompts import get_verification_system_v2
+
+    system = get_verification_system_v2(today="2026-05-23")
+    assert "2026-05-23" in system
+    assert "fact-checker" in system
+    assert "concrete falsifiable claim with measurable outcome" in system
+    assert "outcome reshapes a country, region, or balance of power" in system
+    assert "high = RARE" not in system
+    assert "VAGUENESS RULE" not in system

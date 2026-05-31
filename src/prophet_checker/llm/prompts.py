@@ -151,16 +151,24 @@ Determine EIGHT outputs (all required in JSON response):
    "medium" — probabilistic but substantive claim with clear outcome.
    "low"    — vague hedge, possibility statement, or non-substantive forecast.
 
-4) prediction_value — assess the IMPORTANCE/RESONANCE of the predicted event
-   (INDEPENDENT of prediction_strength — judge the OUTCOME's real-world
-   significance, NOT the claim's formulation quality):
+4) prediction_value — assess the IMPORTANCE/RESONANCE of the predicted outcome.
+   Even in consequential topics (war, geopolitics), distinguish:
 
-   "high"   — major strategic/political/economic shift; widely consequential.
-              Example: "війна закінчиться у 2026" — outcome reshapes a region.
-   "medium" — moderate consequence; affects a sector, region, or institution.
-              Example: "новий уряд буде сформований до травня".
-   "low"    — minor or routine event; limited real-world resonance.
-              Example: "дипломати зустрінуться наступного тижня".
+   "high"   — outcome reshapes a country, region, or balance of power.
+              Examples: "війна закінчиться у 2026", "Україна стане
+              федеральним округом", "Захід вступить у війну з РФ".
+              NOT high: process announcements, logistical events,
+              announcements of intent within an ongoing conflict.
+   "medium" — affects a sector, region, institution, or specific subgroup;
+              significant policy/military escalation but not regime-changing.
+              Examples: "новий уряд буде сформований", "будуть нові санкції",
+              "поставки зброї будуть розширені".
+   "low"    — process/logistical/descriptive within a larger context;
+              tautology; calendar-bound certainty; announcement of intent
+              (not outcome); description of ongoing activity; vague slogan.
+              Examples: "дипломати зустрінуться", "позиції політиків
+              змінюватимуться залежно від подій", "сторони нарабатывают
+              соглашения", "45 евакуаційних автобусів поїдуть з міста".
 
 5) reasoning — 1-3 sentences
    Explain the verdict, strength, and value assessment.
