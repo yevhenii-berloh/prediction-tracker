@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     llm_provider: str = "openai"
     llm_model: str = "gpt-4o-mini"
     llm_api_key: str = ""
+    gemini_api_key: str = ""
     telegram_bot_token: str = ""
     telegram_api_id: int = 0
     telegram_api_hash: str = ""

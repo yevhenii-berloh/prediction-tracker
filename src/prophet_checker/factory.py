@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from telethon import TelegramClient
 
 from prophet_checker.analysis.extractor import PredictionExtractor
+from prophet_checker.analysis.verifier import Verifier
 from prophet_checker.config import Settings
 from prophet_checker.ingestion import IngestionOrchestrator
 from prophet_checker.llm import EmbeddingClient, LLMClient
@@ -15,6 +16,7 @@ from prophet_checker.storage.postgres import (
     PostgresPredictionRepository,
     PostgresSourceRepository,
 )
+from prophet_checker.verification import VerificationOrchestrator
 
 
 async def build_orchestrator(
@@ -55,3 +57,21 @@ async def build_orchestrator(
         embedder=embedder,
         sources={SourceType.TELEGRAM: telegram_source},
     )
+
+
+async def build_verification_orchestrator(
+    settings: Settings, stack: AsyncExitStack
+) -> VerificationOrchestrator:
+    engine = create_async_engine(settings.database_url, echo=False)
+    stack.push_async_callback(engine.dispose)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    prediction_repo = PostgresPredictionRepository(session_factory)
+    llm = LLMClient(
+        provider="gemini",
+        model="gemini-3.1-flash-lite-preview",
+        api_key=settings.gemini_api_key,
+    )
+    verifier = Verifier(llm)
+
+    return VerificationOrchestrator(prediction_repo, verifier)
