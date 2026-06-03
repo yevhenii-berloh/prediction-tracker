@@ -254,6 +254,17 @@ class PostgresPredictionRepository:
                 db_obj.confidence = prediction.confidence
                 db_obj.evidence_url = prediction.evidence_url
                 db_obj.evidence_text = prediction.evidence_text
+                db_obj.prediction_strength = (
+                    prediction.prediction_strength.value if prediction.prediction_strength else None
+                )
+                db_obj.prediction_value = (
+                    prediction.prediction_value.value if prediction.prediction_value else None
+                )
+                db_obj.max_horizon = prediction.max_horizon
+                db_obj.next_check_at = prediction.next_check_at
+                db_obj.verify_attempts = prediction.verify_attempts
+                db_obj.last_verify_error = prediction.last_verify_error
+                db_obj.last_verify_error_at = prediction.last_verify_error_at
                 db_obj.verified_at = prediction.verified_at
                 await session.commit()
             return prediction

@@ -178,3 +178,41 @@ def test_prediction_db_to_domain_includes_situation():
     )
     pred = prediction_db_to_domain(db)
     assert pred.situation == "У відповідь на ситуацію X"
+
+
+async def test_update_persists_v2_fields():
+    from datetime import UTC, date, datetime
+    from unittest.mock import AsyncMock, MagicMock
+
+    from prophet_checker.models.domain import (
+        Prediction, PredictionStatus, PredictionStrength, PredictionValue,
+    )
+    from prophet_checker.storage.postgres import PostgresPredictionRepository
+
+    db_obj = MagicMock()
+    session = MagicMock()
+    session.__aenter__ = AsyncMock(return_value=session)
+    session.__aexit__ = AsyncMock(return_value=None)
+    session.get = AsyncMock(return_value=db_obj)
+    session.commit = AsyncMock()
+    factory = MagicMock(return_value=session)
+
+    repo = PostgresPredictionRepository(factory)
+    pred = Prediction(
+        id="p1", document_id="d1", person_id="arestovich", claim_text="c",
+        prediction_date=date(2022, 1, 1), status=PredictionStatus.PREMATURE, confidence=0.6,
+        prediction_strength=PredictionStrength.MEDIUM, prediction_value=PredictionValue.HIGH,
+        next_check_at=date(2026, 9, 1), max_horizon=date(2027, 1, 1), verify_attempts=2,
+        verified_at=datetime(2026, 5, 31, tzinfo=UTC),
+    )
+
+    await repo.update(pred)
+
+    assert db_obj.status == "premature"
+    assert db_obj.prediction_strength == "medium"
+    assert db_obj.prediction_value == "high"
+    assert db_obj.next_check_at == date(2026, 9, 1)
+    assert db_obj.max_horizon == date(2027, 1, 1)
+    assert db_obj.verify_attempts == 2
+    assert db_obj.verified_at == datetime(2026, 5, 31, tzinfo=UTC)
+    session.commit.assert_awaited()
