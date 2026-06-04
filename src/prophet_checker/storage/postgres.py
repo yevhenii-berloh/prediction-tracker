@@ -149,11 +149,16 @@ class PostgresSourceRepository:
             result = await session.execute(stmt)
             return [person_source_db_to_domain(row) for row in result.scalars().all()]
 
-    async def save_document(self, doc: RawDocument) -> RawDocument:
-        async with self._session_factory() as session:
-            db_obj = domain_to_raw_document_db(doc)
-            session.add(db_obj)
-            await session.commit()
+    async def save_document(
+        self, doc: RawDocument, session: AsyncSession | None = None
+    ) -> RawDocument:
+        db_obj = domain_to_raw_document_db(doc)
+        if session is not None:
+            await session.merge(db_obj)
+            return doc
+        async with self._session_factory() as own_session:
+            own_session.add(db_obj)
+            await own_session.commit()
             return doc
 
     async def get_document_by_url(self, url: str) -> RawDocument | None:

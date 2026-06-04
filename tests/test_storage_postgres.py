@@ -216,3 +216,28 @@ async def test_update_persists_v2_fields():
     assert db_obj.verify_attempts == 2
     assert db_obj.verified_at == datetime(2026, 5, 31, tzinfo=UTC)
     session.commit.assert_awaited()
+
+
+async def test_save_document_with_session_merges_without_commit():
+    from datetime import UTC, datetime
+    from unittest.mock import AsyncMock, MagicMock
+
+    from prophet_checker.models.domain import RawDocument, SourceType
+    from prophet_checker.storage.postgres import PostgresSourceRepository
+
+    session = MagicMock()
+    session.merge = AsyncMock()
+    session.commit = AsyncMock()
+    factory = MagicMock()
+
+    repo = PostgresSourceRepository(factory)
+    doc = RawDocument(
+        id="d1", person_id="p1", source_type=SourceType.TELEGRAM,
+        url="u", published_at=datetime(2022, 1, 1, tzinfo=UTC), raw_text="t",
+    )
+
+    await repo.save_document(doc, session=session)
+
+    session.merge.assert_awaited_once()
+    session.commit.assert_not_called()
+    factory.assert_not_called()

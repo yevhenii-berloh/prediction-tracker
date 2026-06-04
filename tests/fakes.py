@@ -54,7 +54,9 @@ class FakeSourceRepo(SourceRepository):
             if s.person_id == person_id and (source_type is None or s.source_type == source_type)
         ]
 
-    async def save_document(self, doc: RawDocument) -> RawDocument:
+    async def save_document(
+        self, doc: RawDocument, session: "AsyncSession | None" = None
+    ) -> RawDocument:
         self._documents.append(doc)
         return doc
 
