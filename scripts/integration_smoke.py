@@ -23,7 +23,7 @@ from prophet_checker.factory import build_orchestrator
 from prophet_checker.models.db import PersonDB, PersonSourceDB
 
 
-EXPECTED_ALEMBIC_HEAD = "edb2e385f26b"
+EXPECTED_ALEMBIC_HEAD = "cef3b9130690"
 
 SAMPLE_TEXT = (
     "15 жовтня закінчиться війна, до Києва прибуде делегація НАТО "
@@ -187,23 +187,6 @@ async def _ensure_smoke_person_source(
         await session.commit()
 
 
-def _patch_telegram_with_limit(orchestrator, limit: int) -> None:
-    from prophet_checker.models.domain import SourceType
-
-    tg_source = orchestrator._sources[SourceType.TELEGRAM]
-    original_collect = tg_source.collect
-
-    async def limited_collect(person_source, since=None):
-        count = 0
-        async for doc in original_collect(person_source, since=since):
-            if count >= limit:
-                break
-            yield doc
-            count += 1
-
-    tg_source.collect = limited_collect
-
-
 async def check_e2e(
     settings: Settings, channel: str, limit: int, reset: bool
 ) -> tuple[bool, str]:
@@ -215,8 +198,7 @@ async def check_e2e(
 
         async with AsyncExitStack() as stack:
             orchestrator = await build_orchestrator(settings, stack)
-            _patch_telegram_with_limit(orchestrator, limit)
-            report = await orchestrator.run_cycle()
+            report = await orchestrator.run_cycle(limit=limit)
 
         if not report.channels_processed:
             return False, "report.channels_processed is empty"
