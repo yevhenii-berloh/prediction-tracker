@@ -52,6 +52,10 @@ cd /Users/evgenijberlog/Claude/Brain/Brain/prediction-tracker && .venv/bin/pytho
 Очікувано: рядок `ps:@arestovich: seen=... with_predictions=... extracted=N error=-`
 (N прогнозів збережено, status=`unresolved`, verified_at=NULL). Зберігаються лише пости з прогнозами.
 
+> Embeddings за замовчуванням вимкнені (`EMBEDDINGS_ENABLED=False`) — `OPENAI_API_KEY` не потрібен,
+> лише `GEMINI_API_KEY` + Postgres. Прогнози просто не будуть RAG-searchable. Щоб увімкнути —
+> `EMBEDDINGS_ENABLED=true` у `.env`.
+
 ### Варіант B — seed без Telegram (мінімальний)
 
 - [ ] Створити person → raw_document → prediction через реальні repo (правильні FK + мапери):
