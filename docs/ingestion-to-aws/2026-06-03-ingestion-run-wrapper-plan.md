@@ -189,7 +189,7 @@ async def test_run_cycle_persists_raw_documents():
 
     saved = {d.id for d in source_repo._documents}
     assert "tg:arestovich:0" in saved
-    assert "tg:arestovich:1" in saved
+    assert "tg:arestovich:1" not in saved
 ```
 
 - [ ] **Step 2: Run test, expect FAIL**
@@ -199,7 +199,7 @@ Expected: FAIL — `source_repo._documents` is empty (orchestrator never saves d
 
 - [ ] **Step 3: Implement**
 
-In `src/prophet_checker/ingestion/orchestrator.py`, in `_process_channel`, the persist blocks become (add `save_document` first in both branches):
+In `src/prophet_checker/ingestion/orchestrator.py`, in `_process_channel`, persist `raw_doc` **only in the predictions branch** (no prediction → nothing references the doc, and the cursor already prevents re-collection). The blocks become:
 
 ```python
                 if predictions:
@@ -218,7 +218,6 @@ In `src/prophet_checker/ingestion/orchestrator.py`, in `_process_channel`, the p
                 else:
                     async with self._session_factory() as session:
                         async with session.begin():
-                            await self._source_repo.save_document(raw_doc, session=session)
                             await self._source_repo.update_source_cursor(
                                 ps.id, raw_doc.published_at, session=session
                             )
