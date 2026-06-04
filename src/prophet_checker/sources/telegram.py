@@ -25,6 +25,7 @@ class TelegramSource:
         self,
         person_source: PersonSource,
         since: datetime | None = None,
+        limit: int | None = None,
     ) -> AsyncIterator[RawDocument]:
         if person_source.source_type != SourceType.TELEGRAM:
             return
@@ -32,11 +33,14 @@ class TelegramSource:
         channel = person_source.source_identifier
         entity = await self._client.get_entity(channel)
 
+        count = 0
         async for msg in self._client.iter_messages(
             entity, reverse=True, offset_date=since
         ):
             if not msg.text or len(msg.text.strip()) < self._min_text_length:
                 continue
+            if limit is not None and count >= limit:
+                return
 
             yield RawDocument(
                 id=f"tg:{channel}:{msg.id}",
@@ -46,3 +50,4 @@ class TelegramSource:
                 published_at=msg.date,
                 raw_text=msg.text.strip(),
             )
+            count += 1

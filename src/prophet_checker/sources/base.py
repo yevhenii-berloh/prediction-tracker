@@ -12,5 +12,6 @@ class Source(Protocol):
         self,
         person_source: PersonSource,
         since: datetime | None = None,
+        limit: int | None = None,
     ) -> AsyncIterator[RawDocument]:
         ...

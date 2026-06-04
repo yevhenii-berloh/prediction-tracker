@@ -497,3 +497,47 @@ async def test_run_cycle_persists_raw_documents():
     saved = {d.id for d in source_repo._documents}
     assert "tg:arestovich:0" in saved
     assert "tg:arestovich:1" not in saved
+
+
+async def test_mock_source_collect_honors_limit():
+    person_source = PersonSource(
+        id="ps1", person_id="p1", source_type=SourceType.TELEGRAM,
+        source_identifier="@arestovich",
+        last_collected_at=datetime(2024, 1, 1, tzinfo=UTC),
+    )
+    docs = [
+        RawDocument(
+            id=f"d{i}", person_id="p1", source_type=SourceType.TELEGRAM,
+            url=f"u{i}", published_at=datetime(2024, 1, 2 + i, tzinfo=UTC), raw_text="t",
+        )
+        for i in range(5)
+    ]
+    collected = [d async for d in MockSource(docs).collect(person_source, limit=2)]
+    assert len(collected) == 2
+
+
+async def test_run_cycle_passes_limit_to_collect():
+    person_source = PersonSource(
+        id="ps1", person_id="p1", source_type=SourceType.TELEGRAM,
+        source_identifier="@arestovich",
+        last_collected_at=datetime(2024, 1, 1, tzinfo=UTC),
+    )
+    docs = [
+        RawDocument(
+            id=f"d{i}", person_id="p1", source_type=SourceType.TELEGRAM,
+            url=f"u{i}", published_at=datetime(2024, 1, 2 + i, tzinfo=UTC), raw_text="t",
+        )
+        for i in range(5)
+    ]
+    source_repo = FakeSourceRepo()
+    await source_repo.save_person_source(person_source)
+    factory, _ = _stub_session_factory()
+    orchestrator = IngestionOrchestrator(
+        session_factory=factory, source_repo=source_repo,
+        prediction_repo=FakePredictionRepo(), extractor=_make_extractor([]),
+        embedder=_make_embedder(), sources={SourceType.TELEGRAM: MockSource(docs)},
+    )
+
+    report = await orchestrator.run_cycle(limit=1)
+
+    assert report.channels_processed[0].posts_seen == 1

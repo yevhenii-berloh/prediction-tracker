@@ -31,12 +31,12 @@ class IngestionOrchestrator:
         self._embedder = embedder
         self._sources = sources
 
-    async def run_cycle(self) -> CycleReport:
+    async def run_cycle(self, limit: int | None = None) -> CycleReport:
         started_at = datetime.now(UTC)
         active = await self._source_repo.list_active_sources()
         channels: list[ChannelReport] = []
         for ps in active:
-            report = await self._process_channel(ps)
+            report = await self._process_channel(ps, limit)
             channels.append(report)
         finished_at = datetime.now(UTC)
         return CycleReport(
@@ -45,7 +45,7 @@ class IngestionOrchestrator:
             channels_processed=channels,
         )
 
-    async def _process_channel(self, ps: PersonSource) -> ChannelReport:
+    async def _process_channel(self, ps: PersonSource, limit: int | None = None) -> ChannelReport:
         report = ChannelReport(
             person_source_id=ps.id,
             cursor_advanced_to=ps.last_collected_at,
@@ -56,7 +56,7 @@ class IngestionOrchestrator:
             return report
 
         try:
-            async for raw_doc in source.collect(ps, since=ps.last_collected_at):
+            async for raw_doc in source.collect(ps, since=ps.last_collected_at, limit=limit):
                 report.posts_seen += 1
                 predictions = await self._extractor.extract(
                     text=raw_doc.raw_text,
