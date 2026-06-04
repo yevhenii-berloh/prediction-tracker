@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     telegram_api_hash: str = ""
     embedding_model: str = "text-embedding-3-small"
     openai_api_key: str = ""
+    embeddings_enabled: bool = False
     tg_session_path: str = "tg_session"
     verification_confidence_threshold: float = 0.6
 

@@ -67,8 +67,9 @@ class IngestionOrchestrator:
                 )
                 if predictions:
                     report.posts_with_predictions += 1
-                    for p in predictions:
-                        p.embedding = await self._embedder.embed(p.claim_text)
+                    if self._embedder is not None:
+                        for p in predictions:
+                            p.embedding = await self._embedder.embed(p.claim_text)
                     async with self._session_factory() as session:
                         async with session.begin():
                             await self._source_repo.save_document(raw_doc, session=session)

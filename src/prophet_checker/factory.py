@@ -34,10 +34,12 @@ async def build_orchestrator(
         model=settings.llm_model,
         api_key=settings.llm_api_key,
     )
-    embedder = EmbeddingClient(
-        model=settings.embedding_model,
-        api_key=settings.openai_api_key,
-    )
+    embedder = None
+    if settings.embeddings_enabled:
+        embedder = EmbeddingClient(
+            model=settings.embedding_model,
+            api_key=settings.openai_api_key,
+        )
     extractor = PredictionExtractor(llm)
 
     tg_client = TelegramClient(

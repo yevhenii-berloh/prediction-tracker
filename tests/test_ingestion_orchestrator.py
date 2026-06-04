@@ -541,3 +541,37 @@ async def test_run_cycle_passes_limit_to_collect():
     report = await orchestrator.run_cycle(limit=1)
 
     assert report.channels_processed[0].posts_seen == 1
+
+
+async def test_run_cycle_skips_embedding_when_no_embedder():
+    person_source = PersonSource(
+        id="ps1", person_id="p1", source_type=SourceType.TELEGRAM,
+        source_identifier="@arestovich",
+        last_collected_at=datetime(2024, 1, 1, tzinfo=UTC),
+    )
+    doc = RawDocument(
+        id="tg:arestovich:1", person_id="p1", source_type=SourceType.TELEGRAM,
+        url="https://t.me/arestovich/1",
+        published_at=datetime(2024, 1, 5, tzinfo=UTC), raw_text="Post",
+    )
+    source_repo = FakeSourceRepo()
+    await source_repo.save_person_source(person_source)
+    prediction_repo = FakePredictionRepo()
+    pred = Prediction(
+        id="pred-1", document_id="tg:arestovich:1", person_id="p1",
+        claim_text="claim", prediction_date=date(2024, 1, 1),
+    )
+    extractor = MagicMock()
+    extractor.extract = AsyncMock(side_effect=[[pred]])
+    factory, _ = _stub_session_factory()
+
+    orchestrator = IngestionOrchestrator(
+        session_factory=factory, source_repo=source_repo,
+        prediction_repo=prediction_repo, extractor=extractor,
+        embedder=None, sources={SourceType.TELEGRAM: MockSource([doc])},
+    )
+
+    await orchestrator.run_cycle()
+
+    assert len(prediction_repo._predictions) == 1
+    assert prediction_repo._predictions[0].embedding is None
