@@ -192,3 +192,17 @@ async def test_collect_since_none_yields_all():
         yielded.append(doc)
 
     assert len(yielded) == 2
+
+
+@pytest.mark.asyncio
+async def test_collect_maps_epoch_since_to_none_offset_date():
+    long_text = "А" * 100
+    msgs = [make_message(1, long_text, datetime(2024, 8, 1, tzinfo=UTC))]
+    client = make_mock_client(msgs)
+    source = TelegramSource(client)
+    epoch = datetime(1970, 1, 1, tzinfo=UTC)
+
+    async for _ in source.collect(make_person_source(), since=epoch):
+        pass
+
+    assert client._iter_kwargs == {"reverse": True, "offset_date": None}

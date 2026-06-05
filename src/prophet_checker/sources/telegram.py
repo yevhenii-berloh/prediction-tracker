@@ -27,15 +27,17 @@ class TelegramSource:
         since: datetime | None = None,
         limit: int | None = None,
     ) -> AsyncIterator[RawDocument]:
+        print(f"Collecting telegram posts: {person_source}/{since}/{limit}")
         if person_source.source_type != SourceType.TELEGRAM:
             return
 
         channel = person_source.source_identifier
         entity = await self._client.get_entity(channel)
 
+        offset_date = since if since and since.year > 1970 else None
         count = 0
         async for msg in self._client.iter_messages(
-            entity, reverse=True, offset_date=since
+            entity, reverse=True, offset_date=offset_date
         ):
             if not msg.text or len(msg.text.strip()) < self._min_text_length:
                 continue
