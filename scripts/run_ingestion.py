@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import logging
 import sys
 from contextlib import AsyncExitStack
 from pathlib import Path
@@ -51,4 +52,10 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s | %(message)s",
+    )
+    for _noisy in ("LiteLLM", "litellm", "telethon", "httpx", "httpcore"):
+        logging.getLogger(_noisy).setLevel(logging.WARNING)
     asyncio.run(main())
