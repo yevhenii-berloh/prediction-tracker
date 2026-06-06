@@ -133,3 +133,60 @@ async def collect_extractor_negatives(
             negatives.append(_post_entry(p["id"], published, False, "extractor_pool", []))
         print(f"  [neg {len(negatives)}/{n}] tried={tried} {p['id']}: {len(preds)} claims", flush=True)
     return negatives
+
+
+async def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--n", type=int, default=100)
+    parser.add_argument("--min-chars", type=int, default=300)
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument("--max-extractions", type=int, default=300)
+    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--created", default=date.today().isoformat())
+    args = parser.parse_args()
+
+    n_pos = args.n // 2
+    n_neg = args.n - n_pos
+
+    engine = create_async_engine(Settings().database_url, echo=False)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    positives = await load_db_positives(session_factory, n_pos, args.min_chars, args.seed)
+    await engine.dispose()
+    print(f"positives from DB: {len(positives)}/{n_pos}")
+    if len(positives) < n_pos:
+        print(f"  WARN: лише {len(positives)} позитивів у БД (треба {n_pos})")
+
+    posts = json.load(open(ALL_POSTS))
+    exclude = {p["url"] for p in positives}
+    extractor = build_extractor(args.model)
+    negatives = await collect_extractor_negatives(
+        posts, extractor, n_neg, args.min_chars, args.seed, args.max_extractions, exclude)
+    print(f"negatives via extractor: {len(negatives)}/{n_neg}")
+    if len(negatives) < n_neg:
+        print(f"  WARN: лише {len(negatives)} негативів (пул/кеп вичерпано)")
+
+    all_posts = positives + negatives
+    random.Random(args.seed).shuffle(all_posts)
+    out = {
+        "meta": {
+            "created": args.created,
+            "model": args.model,
+            "n": len(all_posts),
+            "with_predictions": len(positives),
+            "without_predictions": len(negatives),
+            "seed": args.seed,
+            "min_chars": args.min_chars,
+        },
+        "posts": all_posts,
+    }
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    with open(args.output, "w") as f:
+        json.dump(out, f, ensure_ascii=False, indent=2)
+    print(f"saved → {args.output}  ({len(all_posts)} posts: {len(positives)} pos / {len(negatives)} neg)")
+
+
+if __name__ == "__main__":
+    logging.getLogger("LiteLLM").setLevel(logging.WARNING)
+    logging.getLogger("litellm").setLevel(logging.WARNING)
+    asyncio.run(main())
