@@ -26,7 +26,7 @@ class IngestionOrchestrator:
         extractor,
         embedder,
         sources: Mapping[SourceType, Source],
-        log_every: int = 50,
+        log_every: int = 5,
     ) -> None:
         self._session_factory = session_factory
         self._source_repo = source_repo
