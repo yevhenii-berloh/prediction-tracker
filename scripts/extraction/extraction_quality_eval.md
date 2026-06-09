@@ -85,3 +85,20 @@
   --judge anthropic/claude-sonnet-4-6 \
   --output-dir scripts/outputs/extraction_eval_sonnet_judge --gold-only
 ```
+
+**8. Явні вхідні / вихідні файли** — `--posts`/`--gold` (вхід) + `--output-dir` (вихід):
+```bash
+# свій пул постів + своя вихідна тека, без gold
+.venv/bin/python scripts/extraction/extraction_quality_eval.py \
+  --posts scripts/data/sample_posts_100.json \
+  --output-dir scripts/outputs/eval_sample100 \
+  --no-gold
+
+# свої пости + свій gold + своя вихідна тека
+.venv/bin/python scripts/extraction/extraction_quality_eval.py \
+  --posts scripts/data/sample_posts.json \
+  --gold scripts/data/gold_labels.json \
+  --output-dir scripts/outputs/eval_custom \
+  --gold-only
+```
+> **Вхід** задають `--posts` (пости) і `--gold` (gold-мітки) — будь-які шляхи до JSON потрібного формату. **Вихід** — `--output-dir`: туди пишуться **3 артефакти з фіксованими іменами** (`extraction_outputs.json`, `extraction_judgements.json`, `extraction_eval_report.json`); окремо їх не перейменувати, тож для паралельних прогонів задавай різні `--output-dir`.
