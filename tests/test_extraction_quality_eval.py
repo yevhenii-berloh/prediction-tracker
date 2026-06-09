@@ -910,3 +910,31 @@ async def test_re_run_stage_2_only_uses_existing_extractions(tmp_path):
         j2["judgements"]["model_a"]["p1"]["per_claim"][0]["verdict"]
         == "hallucination"
     )
+
+
+def test_aggregate_metrics_no_gold_nulls_gold_fields():
+    from extraction.extraction_quality_eval import aggregate_metrics
+    judgements = {
+        "model_x": {
+            "post_1": {
+                "per_claim": [{"verdict": "exact_match"}, {"verdict": "hallucination"}],
+                "missed_predictions": [{"text_excerpt": "X", "why_valid": "..."}],
+            },
+        }
+    }
+    m = aggregate_metrics(judgements=judgements, gold_labels=None)["per_model"]["model_x"]
+    assert m["missed_rate"] is None
+    assert m["gold_agreement"] is None
+    assert m["total_claims"] == 2
+    assert m["avg_quality_score"] == pytest.approx(1.5, abs=1e-6)
+    assert m["hallucination_rate"] == pytest.approx(0.5, abs=1e-6)
+    assert m["missed_predictions_count"] == 1
+
+
+def test_aggregate_metrics_empty_gold_treated_as_no_gold():
+    from extraction.extraction_quality_eval import aggregate_metrics
+    judgements = {"model_x": {"p": {"per_claim": [{"verdict": "exact_match"}], "missed_predictions": []}}}
+    m = aggregate_metrics(judgements=judgements, gold_labels=[])["per_model"]["model_x"]
+    assert m["missed_rate"] is None
+    assert m["gold_agreement"] is None
+    assert m["total_claims"] == 1

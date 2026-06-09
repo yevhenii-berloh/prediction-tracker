@@ -81,7 +81,7 @@ def _empty_distribution() -> dict[str, int]:
 
 
 def aggregate_metrics(
-    judgements: dict, gold_labels: list[dict]
+    judgements: dict, gold_labels: list[dict] | None = None
 ) -> dict:
     """Compute per-model summary report from judgements + gold labels.
 
@@ -98,7 +98,8 @@ def aggregate_metrics(
     counting them as "no valid extractions" would unfairly penalize the
     extractor.
     """
-    gold_index = {g["id"]: g["has_prediction"] for g in gold_labels}
+    no_gold = not gold_labels
+    gold_index = {} if no_gold else {g["id"]: g["has_prediction"] for g in gold_labels}
     per_model: dict[str, dict] = {}
 
     for extractor_id, posts in judgements.items():
@@ -168,8 +169,8 @@ def aggregate_metrics(
             "avg_quality_score": avg_score,
             "hallucination_rate": hallucination_rate,
             "missed_predictions_count": missed_total,
-            "missed_rate": missed_rate,
-            "gold_agreement": {
+            "missed_rate": None if no_gold else missed_rate,
+            "gold_agreement": None if no_gold else {
                 "gold_YES_with_valid_extraction": gold_yes_with_valid,
                 "gold_YES_no_valid_extraction": gold_yes_no_valid,
                 "gold_NO_with_extractions_labeled_valid": gold_no_with_valid,
