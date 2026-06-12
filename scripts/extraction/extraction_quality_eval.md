@@ -23,6 +23,7 @@
 | `--extractors` | Flash Lite, DeepSeek, Sonnet, Gemini 3 Flash | CSV моделей-екстракторів |
 | `--judge` | `anthropic/claude-opus-4-6` | модель-суддя |
 | `--author` | `Арестович` | фільтр постів за `person_name` |
+| `--extraction-prompt` | — (продакшн-промпт) | шлях до файлу з альтернативним system prompt екстракції; ім'я+sha256 пишуться в метадані артефакта |
 | `--stages` | `1,2,3` | які стадії запускати (CSV) |
 | `--limit` | — | обмежити к-сть постів (dry-run / дебаг) |
 | `--gold-only` | off | лише пости з `gold_labels.json` (97 для Арестовича) |
@@ -104,3 +105,13 @@
   --gold-only
 ```
 > **Вхід** задають `--posts` (пости) і `--gold` (gold-мітки) — будь-які шляхи до JSON потрібного формату. **Вихід** — `--output-dir`: туди пишуться **3 артефакти з фіксованими іменами** (`extraction_outputs.json`, `extraction_judgements.json`, `extraction_eval_report.json`); окремо їх не перейменувати, тож для паралельних прогонів задавай різні `--output-dir`.
+
+**9. A/B промпт-варіант екстракції** — кандидат із `scripts/data/prompts/`, окрема вихідна тека:
+```bash
+.venv/bin/python scripts/extraction/extraction_quality_eval.py \
+  --extraction-prompt scripts/data/prompts/extraction_v2_modality.md \
+  --extractors gemini/gemini-3.1-flash-lite-preview \
+  --output-dir scripts/outputs/extraction_eval_prompt_v2 \
+  --gold-only
+```
+> Без `--extraction-prompt` Stage 1 використовує продакшн-промпт `EXTRACTION_SYSTEM` із `prompts.py`. Який саме промпт було використано — видно в run plan (`extraction prompt: <ім'я> (<sha256/12>)`) та в `metadata.extraction_prompt` / `metadata.extraction_prompt_sha256` артефакта `extraction_outputs.json`.
