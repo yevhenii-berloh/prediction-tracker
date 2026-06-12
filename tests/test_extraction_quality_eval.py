@@ -1117,3 +1117,11 @@ async def test_stage1_writes_prompt_metadata(tmp_path):
     artifact = json.loads(out_path.read_text())
     assert artifact["metadata"]["extraction_prompt"] == "variant.md"
     assert artifact["metadata"]["extraction_prompt_sha256"] == "abc123def456"
+
+
+def test_cli_parses_extraction_prompt():
+    from extraction.extraction_quality_eval import _build_arg_parser
+
+    args = _build_arg_parser().parse_args(["--extraction-prompt", "scripts/data/prompts/v2.md"])
+    assert args.extraction_prompt == "scripts/data/prompts/v2.md"
+    assert _build_arg_parser().parse_args([]).extraction_prompt is None

@@ -689,6 +689,12 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         help="Filter posts by person_name",
     )
     parser.add_argument(
+        "--extraction-prompt",
+        default=None,
+        help="Шлях до файлу з альтернативним system prompt екстракції "
+        "(дефолт: продакшн-промпт із prompts.py)",
+    )
+    parser.add_argument(
         "--limit",
         type=int,
         default=None,
@@ -734,6 +740,12 @@ async def _main_async(args: argparse.Namespace) -> None:
         )
 
     if 1 in stages:
+        prompt_override, prompt_meta = _resolve_extraction_prompt(args.extraction_prompt)
+        print(
+            f"  extraction prompt: {prompt_meta['extraction_prompt']} "
+            f"({prompt_meta['extraction_prompt_sha256']})",
+            flush=True,
+        )
         print(
             f"Stage 1: extracting with {len(extractors)} models "
             f"on {args.author} posts"
@@ -743,9 +755,12 @@ async def _main_async(args: argparse.Namespace) -> None:
             posts=posts,
             author_filter=args.author,
             output_path=extractions_path,
-            extractor_factory=_default_extractor_factory,
+            extractor_factory=lambda m: _default_extractor_factory(
+                m, system_prompt=prompt_override
+            ),
             per_model_concurrency=CONCURRENCY_OVERRIDES,
             per_model_min_interval=MIN_CALL_INTERVAL_SECONDS,
+            prompt_metadata=prompt_meta,
         )
         print(f"  ✓ saved {extractions_path}")
 
