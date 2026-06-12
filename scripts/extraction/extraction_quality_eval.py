@@ -188,6 +188,7 @@ async def run_stage1_extraction(
     concurrency: int = 5,
     per_model_concurrency: dict[str, int] | None = None,
     per_model_min_interval: dict[str, float] | None = None,
+    prompt_metadata: dict[str, str] | None = None,
 ) -> None:
     """Run each extractor over filtered posts, save full extractions to disk.
 
@@ -283,6 +284,7 @@ async def run_stage1_extraction(
                     "dataset_size": len(filtered_posts),
                     "extractors": sorted(extractions.keys()),
                     "author_filter": author_filter,
+                    **(prompt_metadata or {}),
                 },
                 "extractions": extractions,
                 "errors": errors,

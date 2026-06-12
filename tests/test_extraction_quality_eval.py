@@ -1097,3 +1097,23 @@ def test_resolve_extraction_prompt_reads_file(tmp_path):
     assert override == "VARIANT PROMPT"
     assert meta["extraction_prompt"] == str(f)
     assert meta["extraction_prompt_sha256"] == hashlib.sha256(b"VARIANT PROMPT").hexdigest()[:12]
+
+
+async def test_stage1_writes_prompt_metadata(tmp_path):
+    from extraction.extraction_quality_eval import run_stage1_extraction
+
+    posts = [{"id": "p1", "person_name": "Арестович",
+              "published_at": "2024-01-01", "text": "T"}]
+    out_path = tmp_path / "extractions.json"
+    await run_stage1_extraction(
+        extractors=["model_x"],
+        posts=posts,
+        author_filter="Арестович",
+        output_path=out_path,
+        extractor_factory=_make_factory({"model_x": {"p1": []}}),
+        prompt_metadata={"extraction_prompt": "variant.md",
+                         "extraction_prompt_sha256": "abc123def456"},
+    )
+    artifact = json.loads(out_path.read_text())
+    assert artifact["metadata"]["extraction_prompt"] == "variant.md"
+    assert artifact["metadata"]["extraction_prompt_sha256"] == "abc123def456"
