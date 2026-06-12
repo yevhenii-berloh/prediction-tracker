@@ -44,6 +44,8 @@
 
 Усі команди — з кореня репо, через `.venv/bin/python`.
 
+Перед першим API-викликом скрипт друкує **run plan**: скільки постів пройшло кожен фільтр (pool → gold-only → limit → author), скільки викликів зробить кожна стадія та ETA на модель (з таблиць тротлінгу `CONCURRENCY_OVERRIDES` / `MIN_CALL_INTERVAL_SECONDS`). Під час роботи обидві стадії друкують живий прогрес (`[stage1 model i/total] post_id: N claims`), а помилки екстракції/судді — одразу в момент виникнення (рядки з `✗`), не лише у фінальному JSON.
+
 **1. Повний прогін з gold (дефолт)** — усі стадії, усі моделі, на gold-розмічених постах:
 ```bash
 .venv/bin/python scripts/extraction/extraction_quality_eval.py --gold-only

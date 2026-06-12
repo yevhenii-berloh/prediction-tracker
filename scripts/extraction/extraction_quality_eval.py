@@ -208,11 +208,11 @@ async def run_stage1_extraction(
         effective_concurrency = per_model_concurrency.get(model_id, concurrency)
         min_interval = per_model_min_interval.get(model_id, 0.0)
         sem = asyncio.Semaphore(effective_concurrency)
-        if min_interval > 0:
-            print(
-                f"  [stage1] {model_id}: concurrency={effective_concurrency}, "
-                f"min_interval={min_interval}s/call"
-            )
+        print(
+            f"  [stage1 {model_id}] starting: {len(filtered_posts)} posts, "
+            f"concurrency={effective_concurrency}, interval={min_interval}s",
+            flush=True,
+        )
 
         async def process(post: dict) -> tuple[str, list[dict], str | None]:
             async with sem:
@@ -234,11 +234,31 @@ async def run_stage1_extraction(
                     await asyncio.sleep(min_interval)
                 return result
 
-        results = await asyncio.gather(*(process(p) for p in filtered_posts))
-        for post_id, claims, err in results:
+        total = len(filtered_posts)
+        completed = 0
+        for coro in asyncio.as_completed([process(p) for p in filtered_posts]):
+            post_id, claims, err = await coro
+            completed += 1
+            if err:
+                print(
+                    f"  ✗ [stage1 {model_id} {completed}/{total}] {post_id}: {err}",
+                    flush=True,
+                )
+            else:
+                print(
+                    f"  [stage1 {model_id} {completed}/{total}] "
+                    f"{post_id}: {len(claims)} claims",
+                    flush=True,
+                )
             extractions[model_id][post_id] = claims
             if err:
                 errors[model_id][post_id] = err
+        n_claims = sum(len(c) for c in extractions[model_id].values())
+        print(
+            f"  [stage1 {model_id}] done: {total} posts, {n_claims} claims, "
+            f"{len(errors[model_id])} errors",
+            flush=True,
+        )
 
     # Merge with existing artifact if present — preserves data for extractors
     # not in the current run, replaces data for extractors that are.
@@ -346,6 +366,10 @@ async def run_stage2_judge(
                 logger.exception(
                     "Judge call failed: %s / %s", model_id, post_id
                 )
+                print(
+                    f"  ✗ [stage2 {model_id}] {post_id}: {type(e).__name__}: {e}",
+                    flush=True,
+                )
                 return model_id, post_id, {
                     "judge_error": f"{type(e).__name__}: {e}",
                     "per_claim": [],
@@ -355,6 +379,12 @@ async def run_stage2_judge(
                 await asyncio.sleep(min_call_interval_seconds)
 
         parsed = parse_judge_response(raw)
+        if parsed.get("parse_error"):
+            print(
+                f"  ✗ [stage2 {model_id}] {post_id}: "
+                f"judge parse error: {parsed['parse_error']}",
+                flush=True,
+            )
         return model_id, post_id, parsed
 
     tasks = [
@@ -368,12 +398,13 @@ async def run_stage2_judge(
     results = []
     completed = 0
     for coro in asyncio.as_completed(tasks):
-        result = await coro
-        results.append(result)
+        model_id, post_id, parsed = await coro
+        results.append((model_id, post_id, parsed))
         completed += 1
         if completed % 5 == 0 or completed == len(tasks):
             print(
-                f"  [stage2] {completed}/{len(tasks)} done", flush=True
+                f"  [stage2 {completed}/{len(tasks)}] last: {model_id} / {post_id}",
+                flush=True,
             )
     for model_id, post_id, parsed in results:
         judgements[model_id][post_id] = parsed
@@ -515,6 +546,88 @@ def _parse_stages(s: str) -> set[int]:
     return {int(x.strip()) for x in s.split(",") if x.strip()}
 
 
+def _format_eta(n_calls: int, concurrency: int, min_interval: float) -> str:
+    """Throttle-bound ETA: both stages sleep min_interval inside the semaphore,
+    so effective throughput is concurrency / min_interval. Without a throttle
+    the wall time is dominated by unknown per-call latency — no fake estimate.
+    """
+    if min_interval <= 0:
+        return f"no throttle (concurrency={concurrency})"
+    seconds = n_calls * min_interval / max(concurrency, 1)
+    if seconds < 60:
+        return f"~{seconds:.0f}s"
+    return f"~{seconds / 60:.1f} min"
+
+
+def _load_filtered_posts(args: argparse.Namespace) -> tuple[list[dict], dict[str, int]]:
+    """Load posts and apply --gold-only / --limit, recording counts per step.
+
+    The --author filter stays inside run_stage1_extraction — here it is only
+    *counted* (counts["after_author"]), so the run plan shows the real call
+    volume without changing what the stages receive.
+    """
+    posts = json.loads(Path(args.posts).read_text(encoding="utf-8"))
+    counts: dict[str, int] = {"pool": len(posts)}
+    if args.gold_only:
+        gold = json.loads(Path(args.gold).read_text(encoding="utf-8"))
+        gold_ids = {g["id"] for g in gold}
+        posts = [p for p in posts if p["id"] in gold_ids]
+        counts["after_gold_only"] = len(posts)
+    if args.limit is not None:
+        posts = [p for p in posts if p["person_name"] == args.author][: args.limit]
+        counts["after_limit"] = len(posts)
+    counts["after_author"] = sum(1 for p in posts if p["person_name"] == args.author)
+    return posts, counts
+
+
+def _format_run_plan(
+    counts: dict[str, int],
+    extractors: list[str],
+    judge_model: str,
+    stages: set[int],
+    author: str,
+    overrides: dict[str, int],
+    intervals: dict[str, float],
+) -> str:
+    """Pre-flight summary printed before the first API call: how many posts
+    survived each filter, how many calls each stage will make, and ETA per
+    model derived from the throttle tables.
+    """
+    n_posts = counts["after_author"]
+    chain = [f"{counts['pool']} pool"]
+    if "after_gold_only" in counts:
+        chain.append(f"{counts['after_gold_only']} gold-only")
+    if "after_limit" in counts:
+        chain.append(f"{counts['after_limit']} limit")
+    chain.append(f"author {author!r}: {n_posts}")
+    lines = ["Run plan:", f"  posts: {' → '.join(chain)}"]
+
+    n_pairs = n_posts * len(extractors)
+    if 1 in stages:
+        lines.append(
+            f"  stage 1: {n_posts} posts × {len(extractors)} extractors = {n_pairs} calls"
+        )
+        for m in extractors:
+            conc = overrides.get(m, 5)
+            interval = intervals.get(m, 0.0)
+            lines.append(
+                f"    {m}  concurrency={conc}  interval={interval}s  "
+                f"ETA {_format_eta(n_posts, conc, interval)}"
+            )
+    if 2 in stages:
+        conc = overrides.get(judge_model, 3)
+        interval = intervals.get(judge_model, 0.0)
+        # Stage 2 alone reads pairs from extraction_outputs.json — the exact
+        # count is printed by run_stage2_judge; here it's an upper bound.
+        pairs_label = str(n_pairs) if 1 in stages else f"up to {n_pairs}"
+        lines.append(
+            f"  stage 2: {pairs_label} judge pairs, judge={judge_model}  "
+            f"concurrency={conc}  interval={interval}s  "
+            f"ETA {_format_eta(n_pairs, conc, interval)}"
+        )
+    return "\n".join(lines)
+
+
 def _build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Task 13.5 — Extraction Quality Evaluation (LLM-as-judge)"
@@ -581,18 +694,23 @@ async def _main_async(args: argparse.Namespace) -> None:
     judgements_path = out_dir / "extraction_judgements.json"
     report_path = out_dir / "extraction_eval_report.json"
 
+    posts: list[dict] = []
+    if stages & {1, 2}:
+        posts, counts = _load_filtered_posts(args)
+        print(
+            _format_run_plan(
+                counts=counts,
+                extractors=extractors,
+                judge_model=args.judge,
+                stages=stages,
+                author=args.author,
+                overrides=CONCURRENCY_OVERRIDES,
+                intervals=MIN_CALL_INTERVAL_SECONDS,
+            ),
+            flush=True,
+        )
+
     if 1 in stages:
-        posts = json.loads(Path(args.posts).read_text(encoding="utf-8"))
-        if args.gold_only:
-            gold = json.loads(Path(args.gold).read_text(encoding="utf-8"))
-            gold_ids = {g["id"] for g in gold}
-            posts = [p for p in posts if p["id"] in gold_ids]
-            print(f"  (gold-only: subset to {len(posts)} posts in gold_labels)")
-        if args.limit is not None:
-            posts = [p for p in posts if p["person_name"] == args.author][
-                : args.limit
-            ]
-            print(f"  (limit={args.limit}: subset to {len(posts)} posts)")
         print(
             f"Stage 1: extracting with {len(extractors)} models "
             f"on {args.author} posts"
@@ -609,16 +727,6 @@ async def _main_async(args: argparse.Namespace) -> None:
         print(f"  ✓ saved {extractions_path}")
 
     if 2 in stages:
-        posts = json.loads(Path(args.posts).read_text(encoding="utf-8"))
-        if args.gold_only:
-            gold = json.loads(Path(args.gold).read_text(encoding="utf-8"))
-            gold_ids = {g["id"] for g in gold}
-            posts = [p for p in posts if p["id"] in gold_ids]
-            print(f"  (gold-only: judge subset to {len(posts)} posts)")
-        if args.limit is not None:
-            posts = [p for p in posts if p["person_name"] == args.author][
-                : args.limit
-            ]
         # Per-judge concurrency override (Opus paid tier supports higher concurrency)
         concurrency = CONCURRENCY_OVERRIDES.get(args.judge, 3)
         min_interval = MIN_CALL_INTERVAL_SECONDS.get(args.judge, 0.0)

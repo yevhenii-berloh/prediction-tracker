@@ -944,3 +944,114 @@ def test_arg_parser_has_no_gold_flag():
     from extraction.extraction_quality_eval import _build_arg_parser
     assert _build_arg_parser().parse_args(["--no-gold"]).no_gold is True
     assert _build_arg_parser().parse_args([]).no_gold is False
+
+
+# =============================================================================
+# Group D — run-plan helpers (_format_eta, _format_run_plan, _load_filtered_posts)
+# =============================================================================
+
+
+def test_format_eta_with_throttle_concurrency_1():
+    from extraction.extraction_quality_eval import _format_eta
+
+    # 97 calls × 7s, serial → 679s ≈ 11.3 min
+    assert _format_eta(97, 1, 7.0) == "~11.3 min"
+
+
+def test_format_eta_concurrency_divides():
+    from extraction.extraction_quality_eval import _format_eta
+
+    # 100 calls × 6s / 2 parallel slots = 300s = 5 min
+    assert _format_eta(100, 2, 6.0) == "~5.0 min"
+
+
+def test_format_eta_under_minute_reports_seconds():
+    from extraction.extraction_quality_eval import _format_eta
+
+    assert _format_eta(5, 1, 7.0) == "~35s"
+
+
+def test_format_eta_zero_interval_reports_no_throttle():
+    from extraction.extraction_quality_eval import _format_eta
+
+    out = _format_eta(100, 5, 0.0)
+    assert "no throttle" in out
+    assert "concurrency=5" in out
+
+
+def test_format_run_plan_contains_counts_and_call_totals():
+    from extraction.extraction_quality_eval import _format_run_plan
+
+    plan = _format_run_plan(
+        counts={"pool": 419, "after_gold_only": 130, "after_author": 97},
+        extractors=["gemini/flash", "deepseek/chat"],
+        judge_model="anthropic/opus",
+        stages={1, 2},
+        author="Арестович",
+        overrides={"gemini/flash": 1, "anthropic/opus": 1},
+        intervals={"gemini/flash": 7.0, "anthropic/opus": 8.0},
+    )
+    assert "419 pool" in plan
+    assert "130 gold-only" in plan
+    assert "'Арестович': 97" in plan
+    assert "97 posts × 2 extractors = 194 calls" in plan
+    assert "gemini/flash" in plan
+    assert "deepseek/chat" in plan
+    # deepseek has no throttle entry → default concurrency 5, no ETA number
+    assert "no throttle (concurrency=5)" in plan
+    assert "judge=anthropic/opus" in plan
+    assert "194 judge pairs" in plan
+
+
+def test_format_run_plan_stage2_only_marks_pairs_approximate():
+    from extraction.extraction_quality_eval import _format_run_plan
+
+    plan = _format_run_plan(
+        counts={"pool": 10, "after_author": 10},
+        extractors=["m_a", "m_b"],
+        judge_model="anthropic/opus",
+        stages={2},
+        author="Арестович",
+        overrides={},
+        intervals={},
+    )
+    assert "stage 1" not in plan
+    assert "up to 20 judge pairs" in plan
+
+
+def _write_posts_and_gold(tmp_path):
+    posts = [
+        {"id": "a1", "person_name": "Арестович", "published_at": "2024-01-01", "text": "т1"},
+        {"id": "a2", "person_name": "Арестович", "published_at": "2024-01-02", "text": "т2"},
+        {"id": "g1", "person_name": "Гордон", "published_at": "2024-01-03", "text": "т3"},
+    ]
+    gold = [{"id": "a1", "has_prediction": True}, {"id": "g1", "has_prediction": False}]
+    posts_path = tmp_path / "posts.json"
+    gold_path = tmp_path / "gold.json"
+    posts_path.write_text(json.dumps(posts), encoding="utf-8")
+    gold_path.write_text(json.dumps(gold), encoding="utf-8")
+    return posts_path, gold_path
+
+
+def test_load_filtered_posts_gold_only_and_counts(tmp_path):
+    from extraction.extraction_quality_eval import _build_arg_parser, _load_filtered_posts
+
+    posts_path, gold_path = _write_posts_and_gold(tmp_path)
+    args = _build_arg_parser().parse_args(
+        ["--posts", str(posts_path), "--gold", str(gold_path), "--gold-only"]
+    )
+    posts, counts = _load_filtered_posts(args)
+    # gold-only keeps a1 + g1; after_author counts WITHOUT removing Гордон
+    assert {p["id"] for p in posts} == {"a1", "g1"}
+    assert counts == {"pool": 3, "after_gold_only": 2, "after_author": 1}
+
+
+def test_load_filtered_posts_limit_applies_author_then_slices(tmp_path):
+    from extraction.extraction_quality_eval import _build_arg_parser, _load_filtered_posts
+
+    posts_path, _ = _write_posts_and_gold(tmp_path)
+    args = _build_arg_parser().parse_args(["--posts", str(posts_path), "--limit", "1"])
+    posts, counts = _load_filtered_posts(args)
+    # --limit pre-filters by author (same as the old inline logic), then slices
+    assert [p["id"] for p in posts] == ["a1"]
+    assert counts == {"pool": 3, "after_limit": 1, "after_author": 1}
