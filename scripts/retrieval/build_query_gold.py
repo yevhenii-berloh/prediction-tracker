@@ -1,8 +1,15 @@
 from __future__ import annotations
 
+import argparse
+import asyncio
+import json
 import random
 from collections import defaultdict
 from itertools import cycle
+from pathlib import Path
+
+from prophet_checker.config import Settings
+from prophet_checker.llm import LLMClient
 
 
 def _cell(row: dict) -> tuple[str, str]:
@@ -63,3 +70,47 @@ async def generate_queries(row: dict, llm) -> list[dict]:
         query = (await llm.complete(build_query_prompt(row, field))).strip()
         records.append({"query": query, "target_id": row["id"], "source_field": field})
     return records
+
+
+CORPUS_PATH = Path("scripts/data/retrieval_eval_corpus.json")
+GOLD_PATH = Path("scripts/data/retrieval_query_gold.json")
+MANUAL_PATH = Path("scripts/data/retrieval_query_gold_manual.json")
+
+
+def ensure_manual_stub(path: Path) -> None:
+    if not path.exists():
+        path.write_text("[]")
+
+
+async def run_gold(corpus_path: Path, out_path: Path, n: int, seed: int, llm) -> int:
+    corpus = json.loads(corpus_path.read_text())
+    targets = sample_targets(corpus, n=n, seed=seed)
+    records: list[dict] = []
+    for row in targets:
+        records.extend(await generate_queries(row, llm))
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(records, ensure_ascii=False, indent=2))
+    return len(records)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--n", type=int, default=80)
+    parser.add_argument("--seed", type=int, default=13)
+    parser.add_argument("--corpus", type=Path, default=CORPUS_PATH)
+    parser.add_argument("--out", type=Path, default=GOLD_PATH)
+    args = parser.parse_args()
+    settings = Settings()
+    llm = LLMClient(
+        provider="gemini",
+        model="gemini-3.1-flash-lite-preview",
+        api_key=settings.gemini_api_key,
+        temperature=0,
+    )
+    count = asyncio.run(run_gold(args.corpus, args.out, args.n, args.seed, llm))
+    ensure_manual_stub(MANUAL_PATH)
+    print(f"gold: {count} queries → {args.out}; ручний зріз: {MANUAL_PATH}")
+
+
+if __name__ == "__main__":
+    main()
