@@ -6,6 +6,7 @@ from typing import Mapping
 
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
+from prophet_checker.analysis.embedding_text import embedding_text
 from prophet_checker.ingestion.report import ChannelReport, CycleReport
 from prophet_checker.models.domain import PersonSource, SourceType
 from prophet_checker.sources.base import Source
@@ -76,7 +77,7 @@ class IngestionOrchestrator:
                     report.posts_with_predictions += 1
                     if self._embedder is not None:
                         for p in predictions:
-                            p.embedding = await self._embedder.embed(p.claim_text)
+                            p.embedding = await self._embedder.embed(embedding_text(p))
                     async with self._session_factory() as session:
                         async with session.begin():
                             await self._source_repo.save_document(raw_doc, session=session)
@@ -96,12 +97,19 @@ class IngestionOrchestrator:
                 if report.posts_seen % self._log_every == 0:
                     logger.info(
                         "ingestion %s: seen=%d with_predictions=%d extracted=%d",
-                        ps.id, report.posts_seen, report.posts_with_predictions, report.predictions_extracted,
+                        ps.id,
+                        report.posts_seen,
+                        report.posts_with_predictions,
+                        report.predictions_extracted,
                     )
         except Exception as exc:
             report.error = f"halted at step=processing: {exc}"
         logger.info(
             "ingestion %s done: seen=%d with_predictions=%d extracted=%d error=%s",
-            ps.id, report.posts_seen, report.posts_with_predictions, report.predictions_extracted, report.error or "-",
+            ps.id,
+            report.posts_seen,
+            report.posts_with_predictions,
+            report.predictions_extracted,
+            report.error or "-",
         )
         return report

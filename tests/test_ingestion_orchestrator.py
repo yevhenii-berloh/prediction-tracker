@@ -2,17 +2,14 @@ from __future__ import annotations
 
 from datetime import UTC, date, datetime
 from unittest.mock import AsyncMock, MagicMock
-from uuid import uuid4
 
-import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from prophet_checker.ingestion import ChannelReport, CycleReport
+from prophet_checker.ingestion import CycleReport
 from prophet_checker.ingestion.orchestrator import IngestionOrchestrator
 from prophet_checker.models.domain import (
     PersonSource,
     Prediction,
-    PredictionStatus,
     RawDocument,
     SourceType,
 )
@@ -43,6 +40,53 @@ def _make_embedder(vector: list[float] | None = None):
     embedder = MagicMock()
     embedder.embed = AsyncMock(return_value=vector or [0.1] * 1536)
     return embedder
+
+
+async def test_embeds_claim_plus_situation():
+    person_source = PersonSource(
+        id="ps1",
+        person_id="p1",
+        source_type=SourceType.TELEGRAM,
+        source_identifier="@arestovich",
+        last_collected_at=datetime(2024, 1, 1, tzinfo=UTC),
+    )
+    docs = [
+        RawDocument(
+            id="tg:a:0",
+            person_id="p1",
+            source_type=SourceType.TELEGRAM,
+            url="https://t.me/a/0",
+            published_at=datetime(2024, 1, 2, tzinfo=UTC),
+            raw_text="post",
+        )
+    ]
+    source_repo = FakeSourceRepo()
+    await source_repo.save_person_source(person_source)
+    pred = Prediction(
+        id="pred-1",
+        document_id="x",
+        person_id="p1",
+        claim_text="claim",
+        situation="context",
+        prediction_date=date(2024, 1, 1),
+    )
+    extractor = MagicMock()
+    extractor.extract = AsyncMock(return_value=[pred])
+    embedder = _make_embedder()
+    factory, _ = _stub_session_factory()
+
+    orchestrator = IngestionOrchestrator(
+        session_factory=factory,
+        source_repo=source_repo,
+        prediction_repo=FakePredictionRepo(),
+        extractor=extractor,
+        embedder=embedder,
+        sources={SourceType.TELEGRAM: MockSource(docs)},
+    )
+
+    await orchestrator.run_cycle()
+
+    embedder.embed.assert_awaited_with("claim\ncontext")
 
 
 async def test_run_cycle_no_active_sources():
@@ -463,15 +507,20 @@ async def test_unregistered_source_type_marks_error_and_continues():
 
 async def test_run_cycle_persists_raw_documents():
     person_source = PersonSource(
-        id="ps1", person_id="p1", source_type=SourceType.TELEGRAM,
+        id="ps1",
+        person_id="p1",
+        source_type=SourceType.TELEGRAM,
         source_identifier="@arestovich",
         last_collected_at=datetime(2024, 1, 1, tzinfo=UTC),
     )
     docs = [
         RawDocument(
-            id=f"tg:arestovich:{i}", person_id="p1", source_type=SourceType.TELEGRAM,
+            id=f"tg:arestovich:{i}",
+            person_id="p1",
+            source_type=SourceType.TELEGRAM,
             url=f"https://t.me/arestovich/{i}",
-            published_at=datetime(2024, 1, 2 + i, tzinfo=UTC), raw_text=f"Post {i}",
+            published_at=datetime(2024, 1, 2 + i, tzinfo=UTC),
+            raw_text=f"Post {i}",
         )
         for i in range(2)
     ]
@@ -479,17 +528,23 @@ async def test_run_cycle_persists_raw_documents():
     await source_repo.save_person_source(person_source)
     prediction_repo = FakePredictionRepo()
     pred = Prediction(
-        id="pred-1", document_id="tg:arestovich:0", person_id="p1",
-        claim_text="claim", prediction_date=date(2024, 1, 1),
+        id="pred-1",
+        document_id="tg:arestovich:0",
+        person_id="p1",
+        claim_text="claim",
+        prediction_date=date(2024, 1, 1),
     )
     extractor = MagicMock()
     extractor.extract = AsyncMock(side_effect=[[pred], []])
     factory, _ = _stub_session_factory()
 
     orchestrator = IngestionOrchestrator(
-        session_factory=factory, source_repo=source_repo,
-        prediction_repo=prediction_repo, extractor=extractor,
-        embedder=_make_embedder(), sources={SourceType.TELEGRAM: MockSource(docs)},
+        session_factory=factory,
+        source_repo=source_repo,
+        prediction_repo=prediction_repo,
+        extractor=extractor,
+        embedder=_make_embedder(),
+        sources={SourceType.TELEGRAM: MockSource(docs)},
     )
 
     await orchestrator.run_cycle()
@@ -501,14 +556,20 @@ async def test_run_cycle_persists_raw_documents():
 
 async def test_mock_source_collect_honors_limit():
     person_source = PersonSource(
-        id="ps1", person_id="p1", source_type=SourceType.TELEGRAM,
+        id="ps1",
+        person_id="p1",
+        source_type=SourceType.TELEGRAM,
         source_identifier="@arestovich",
         last_collected_at=datetime(2024, 1, 1, tzinfo=UTC),
     )
     docs = [
         RawDocument(
-            id=f"d{i}", person_id="p1", source_type=SourceType.TELEGRAM,
-            url=f"u{i}", published_at=datetime(2024, 1, 2 + i, tzinfo=UTC), raw_text="t",
+            id=f"d{i}",
+            person_id="p1",
+            source_type=SourceType.TELEGRAM,
+            url=f"u{i}",
+            published_at=datetime(2024, 1, 2 + i, tzinfo=UTC),
+            raw_text="t",
         )
         for i in range(5)
     ]
@@ -518,14 +579,20 @@ async def test_mock_source_collect_honors_limit():
 
 async def test_run_cycle_passes_limit_to_collect():
     person_source = PersonSource(
-        id="ps1", person_id="p1", source_type=SourceType.TELEGRAM,
+        id="ps1",
+        person_id="p1",
+        source_type=SourceType.TELEGRAM,
         source_identifier="@arestovich",
         last_collected_at=datetime(2024, 1, 1, tzinfo=UTC),
     )
     docs = [
         RawDocument(
-            id=f"d{i}", person_id="p1", source_type=SourceType.TELEGRAM,
-            url=f"u{i}", published_at=datetime(2024, 1, 2 + i, tzinfo=UTC), raw_text="t",
+            id=f"d{i}",
+            person_id="p1",
+            source_type=SourceType.TELEGRAM,
+            url=f"u{i}",
+            published_at=datetime(2024, 1, 2 + i, tzinfo=UTC),
+            raw_text="t",
         )
         for i in range(5)
     ]
@@ -533,9 +600,12 @@ async def test_run_cycle_passes_limit_to_collect():
     await source_repo.save_person_source(person_source)
     factory, _ = _stub_session_factory()
     orchestrator = IngestionOrchestrator(
-        session_factory=factory, source_repo=source_repo,
-        prediction_repo=FakePredictionRepo(), extractor=_make_extractor([]),
-        embedder=_make_embedder(), sources={SourceType.TELEGRAM: MockSource(docs)},
+        session_factory=factory,
+        source_repo=source_repo,
+        prediction_repo=FakePredictionRepo(),
+        extractor=_make_extractor([]),
+        embedder=_make_embedder(),
+        sources={SourceType.TELEGRAM: MockSource(docs)},
     )
 
     report = await orchestrator.run_cycle(limit=1)
@@ -545,30 +615,41 @@ async def test_run_cycle_passes_limit_to_collect():
 
 async def test_run_cycle_skips_embedding_when_no_embedder():
     person_source = PersonSource(
-        id="ps1", person_id="p1", source_type=SourceType.TELEGRAM,
+        id="ps1",
+        person_id="p1",
+        source_type=SourceType.TELEGRAM,
         source_identifier="@arestovich",
         last_collected_at=datetime(2024, 1, 1, tzinfo=UTC),
     )
     doc = RawDocument(
-        id="tg:arestovich:1", person_id="p1", source_type=SourceType.TELEGRAM,
+        id="tg:arestovich:1",
+        person_id="p1",
+        source_type=SourceType.TELEGRAM,
         url="https://t.me/arestovich/1",
-        published_at=datetime(2024, 1, 5, tzinfo=UTC), raw_text="Post",
+        published_at=datetime(2024, 1, 5, tzinfo=UTC),
+        raw_text="Post",
     )
     source_repo = FakeSourceRepo()
     await source_repo.save_person_source(person_source)
     prediction_repo = FakePredictionRepo()
     pred = Prediction(
-        id="pred-1", document_id="tg:arestovich:1", person_id="p1",
-        claim_text="claim", prediction_date=date(2024, 1, 1),
+        id="pred-1",
+        document_id="tg:arestovich:1",
+        person_id="p1",
+        claim_text="claim",
+        prediction_date=date(2024, 1, 1),
     )
     extractor = MagicMock()
     extractor.extract = AsyncMock(side_effect=[[pred]])
     factory, _ = _stub_session_factory()
 
     orchestrator = IngestionOrchestrator(
-        session_factory=factory, source_repo=source_repo,
-        prediction_repo=prediction_repo, extractor=extractor,
-        embedder=None, sources={SourceType.TELEGRAM: MockSource([doc])},
+        session_factory=factory,
+        source_repo=source_repo,
+        prediction_repo=prediction_repo,
+        extractor=extractor,
+        embedder=None,
+        sources={SourceType.TELEGRAM: MockSource([doc])},
     )
 
     await orchestrator.run_cycle()
