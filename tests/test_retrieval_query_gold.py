@@ -17,16 +17,35 @@ class FakeLLM:
         return "  згенерований запит  "
 
 
-def test_prompt_uses_claim_text_for_content():
-    row = {"id": "a", "claim_text": "Авдіївка впаде", "situation": "взимку 2024"}
-    p = build_query_prompt(row, "claim_text")
-    assert "Авдіївка впаде" in p and "не копіюй" in p.lower()
+_ROW = {
+    "id": "a",
+    "claim_text": "Авдіївка впаде",
+    "situation": "взимку 2024",
+    "prediction_date": "2023-11-01",
+    "topic": "війна",
+}
 
 
-def test_prompt_uses_situation_for_context():
-    row = {"id": "a", "claim_text": "Авдіївка впаде", "situation": "взимку 2024"}
-    p = build_query_prompt(row, "situation")
-    assert "взимку 2024" in p
+def test_prompt_includes_full_context_for_grounding():
+    # повний контекст у промпті обох сімей → є звідки взяти якір
+    for field in ("claim_text", "situation"):
+        p = build_query_prompt(_ROW, field)
+        assert "Авдіївка впаде" in p  # зміст
+        assert "взимку 2024" in p  # обставини
+        assert "2023-11-01" in p  # дата для абсолютного періоду
+
+
+def test_prompt_emphasis_differs_by_source_field():
+    content = build_query_prompt(_ROW, "claim_text")
+    context = build_query_prompt(_ROW, "situation")
+    assert "що саме має статися" in content  # акцент на зміст
+    assert "період і подію" in context  # акцент на обставини
+
+
+def test_prompt_demands_anchors_and_paraphrase():
+    p = build_query_prompt(_ROW, "claim_text")
+    assert "перефразуй" in p.lower()  # не копіювати формулювання
+    assert "найближчим часом" in p  # приклад-антипатерн присутній як заборона
 
 
 async def test_generate_two_queries_when_situation_present():
