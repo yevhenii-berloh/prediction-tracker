@@ -91,3 +91,19 @@ class Prediction(BaseModel):
     verify_attempts: int = 0
     last_verify_error: str | None = None
     last_verify_error_at: datetime | None = None
+
+
+class VectorMatch(BaseModel):
+    prediction_id: str
+    distance: float  # cosine-distance: менше = ближче
+
+
+class RetrievedPrediction(BaseModel):
+    prediction: Prediction
+    distance: float
+    rank: int  # 1-based, порядок за схожістю
+
+
+class QueryResult(BaseModel):
+    query: str
+    results: list[RetrievedPrediction]
