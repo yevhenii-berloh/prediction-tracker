@@ -121,6 +121,10 @@ class FakePredictionRepo(PredictionRepository):
             if p.status == PredictionStatus.UNRESOLVED and p.verified_at is None
         ]
 
+    async def get_by_ids(self, ids: list[str]) -> list[Prediction]:
+        by_id = {p.id: p for p in self._predictions}
+        return [by_id[i] for i in ids if i in by_id]
+
     async def update(self, prediction: Prediction) -> Prediction:
         self._predictions = [p if p.id != prediction.id else prediction for p in self._predictions]
         return prediction

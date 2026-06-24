@@ -116,3 +116,19 @@ async def test_vector_store_search():
     assert len(results) == 1
     assert results[0].prediction_id == "p1"
     assert isinstance(results[0].distance, float)
+
+
+async def test_get_by_ids_preserves_order_and_skips_missing():
+    repo = FakePredictionRepo()
+    await repo.save(
+        Prediction(
+            id="a", document_id="d", person_id="1", claim_text="A", prediction_date=date(2023, 1, 1)
+        )
+    )
+    await repo.save(
+        Prediction(
+            id="b", document_id="d", person_id="1", claim_text="B", prediction_date=date(2023, 1, 1)
+        )
+    )
+    got = await repo.get_by_ids(["b", "missing", "a"])
+    assert [p.id for p in got] == ["b", "a"]

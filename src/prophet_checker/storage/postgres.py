@@ -300,6 +300,15 @@ class PostgresPredictionRepository:
             result = await session.execute(stmt)
             return [prediction_db_to_domain(row) for row in result.scalars().all()]
 
+    async def get_by_ids(self, ids: list[str]) -> list[Prediction]:
+        if not ids:
+            return []
+        async with self._session_factory() as session:
+            stmt = select(PredictionDB).where(PredictionDB.id.in_(ids))
+            result = await session.execute(stmt)
+            by_id = {row.id: prediction_db_to_domain(row) for row in result.scalars().all()}
+        return [by_id[i] for i in ids if i in by_id]
+
     async def update(self, prediction: Prediction) -> Prediction:
         async with self._session_factory() as session:
             db_obj = await session.get(PredictionDB, prediction.id)
