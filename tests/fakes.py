@@ -10,6 +10,7 @@ from prophet_checker.models.domain import (
     PredictionStatus,
     RawDocument,
     SourceType,
+    VectorMatch,
 )
 from prophet_checker.storage.interfaces import (
     PersonRepository,
@@ -50,7 +51,8 @@ class FakeSourceRepo(SourceRepository):
         self, person_id: str, source_type: SourceType | None = None
     ) -> list[PersonSource]:
         return [
-            s for s in self._sources
+            s
+            for s in self._sources
             if s.person_id == person_id and (source_type is None or s.source_type == source_type)
         ]
 
@@ -70,8 +72,7 @@ class FakeSourceRepo(SourceRepository):
         self, person_id: str, source_type: SourceType
     ) -> datetime | None:
         docs = [
-            d for d in self._documents
-            if d.person_id == person_id and d.source_type == source_type
+            d for d in self._documents if d.person_id == person_id and d.source_type == source_type
         ]
         if not docs:
             return None
@@ -108,21 +109,20 @@ class FakePredictionRepo(PredictionRepository):
         self, person_id: str, status: PredictionStatus | None = None
     ) -> list[Prediction]:
         return [
-            p for p in self._predictions
+            p
+            for p in self._predictions
             if p.person_id == person_id and (status is None or p.status == status)
         ]
 
     async def get_unverified(self) -> list[Prediction]:
         return [
-            p for p in self._predictions
+            p
+            for p in self._predictions
             if p.status == PredictionStatus.UNRESOLVED and p.verified_at is None
         ]
 
     async def update(self, prediction: Prediction) -> Prediction:
-        self._predictions = [
-            p if p.id != prediction.id else prediction
-            for p in self._predictions
-        ]
+        self._predictions = [p if p.id != prediction.id else prediction for p in self._predictions]
         return prediction
 
 
@@ -135,5 +135,8 @@ class FakeVectorStore(VectorStore):
 
     async def search_similar(
         self, query_embedding: list[float], limit: int = 10
-    ) -> list[str]:
-        return [pid for pid, _ in self._entries[:limit]]
+    ) -> list[VectorMatch]:
+        return [
+            VectorMatch(prediction_id=pid, distance=float(i))
+            for i, (pid, _) in enumerate(self._entries[:limit])
+        ]

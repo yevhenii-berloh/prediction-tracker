@@ -9,18 +9,32 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 logger = logging.getLogger(__name__)
 
 from prophet_checker.models.db import (
-    PersonDB, PersonSourceDB, PredictionDB, RawDocumentDB,
+    PersonDB,
+    PersonSourceDB,
+    PredictionDB,
+    RawDocumentDB,
 )
 from prophet_checker.models.domain import (
-    Person, PersonSource, Prediction, PredictionStatus, PredictionStrength, PredictionValue, RawDocument, SourceType,
+    Person,
+    PersonSource,
+    Prediction,
+    PredictionStatus,
+    PredictionStrength,
+    PredictionValue,
+    RawDocument,
+    SourceType,
+    VectorMatch,
 )
 
 
 # --- Mappers: Domain <-> DB ---
 
+
 def domain_to_person_db(person: Person) -> PersonDB:
     return PersonDB(
-        id=person.id, name=person.name, description=person.description,
+        id=person.id,
+        name=person.name,
+        description=person.description,
         created_at=person.created_at,
     )
 
@@ -31,44 +45,69 @@ def person_db_to_domain(db: PersonDB) -> Person:
 
 def domain_to_person_source_db(ps: PersonSource) -> PersonSourceDB:
     return PersonSourceDB(
-        id=ps.id, person_id=ps.person_id, source_type=ps.source_type.value,
-        source_identifier=ps.source_identifier, enabled=ps.enabled,
+        id=ps.id,
+        person_id=ps.person_id,
+        source_type=ps.source_type.value,
+        source_identifier=ps.source_identifier,
+        enabled=ps.enabled,
         last_collected_at=ps.last_collected_at,
     )
 
 
 def person_source_db_to_domain(db: PersonSourceDB) -> PersonSource:
     return PersonSource(
-        id=db.id, person_id=db.person_id, source_type=SourceType(db.source_type),
-        source_identifier=db.source_identifier, enabled=db.enabled,
+        id=db.id,
+        person_id=db.person_id,
+        source_type=SourceType(db.source_type),
+        source_identifier=db.source_identifier,
+        enabled=db.enabled,
         last_collected_at=db.last_collected_at,
     )
 
 
 def domain_to_raw_document_db(doc: RawDocument) -> RawDocumentDB:
     return RawDocumentDB(
-        id=doc.id, person_id=doc.person_id, source_type=doc.source_type.value,
-        url=doc.url, published_at=doc.published_at, raw_text=doc.raw_text,
-        language=doc.language, collected_at=doc.collected_at, processed=False,
+        id=doc.id,
+        person_id=doc.person_id,
+        source_type=doc.source_type.value,
+        url=doc.url,
+        published_at=doc.published_at,
+        raw_text=doc.raw_text,
+        language=doc.language,
+        collected_at=doc.collected_at,
+        processed=False,
     )
 
 
 def raw_document_db_to_domain(db: RawDocumentDB) -> RawDocument:
     return RawDocument(
-        id=db.id, person_id=db.person_id, source_type=SourceType(db.source_type),
-        url=db.url, published_at=db.published_at, raw_text=db.raw_text,
-        language=db.language, collected_at=db.collected_at,
+        id=db.id,
+        person_id=db.person_id,
+        source_type=SourceType(db.source_type),
+        url=db.url,
+        published_at=db.published_at,
+        raw_text=db.raw_text,
+        language=db.language,
+        collected_at=db.collected_at,
     )
 
 
 def domain_to_prediction_db(pred: Prediction) -> PredictionDB:
     return PredictionDB(
-        id=pred.id, document_id=pred.document_id, person_id=pred.person_id,
-        claim_text=pred.claim_text, situation=pred.situation, prediction_date=pred.prediction_date,
-        target_date=pred.target_date, topic=pred.topic,
-        status=pred.status.value, confidence=pred.confidence,
-        evidence_url=pred.evidence_url, evidence_text=pred.evidence_text,
-        verified_at=pred.verified_at, embedding=pred.embedding,
+        id=pred.id,
+        document_id=pred.document_id,
+        person_id=pred.person_id,
+        claim_text=pred.claim_text,
+        situation=pred.situation,
+        prediction_date=pred.prediction_date,
+        target_date=pred.target_date,
+        topic=pred.topic,
+        status=pred.status.value,
+        confidence=pred.confidence,
+        evidence_url=pred.evidence_url,
+        evidence_text=pred.evidence_text,
+        verified_at=pred.verified_at,
+        embedding=pred.embedding,
         prediction_strength=pred.prediction_strength.value if pred.prediction_strength else None,
         prediction_value=pred.prediction_value.value if pred.prediction_value else None,
         max_horizon=pred.max_horizon,
@@ -81,13 +120,22 @@ def domain_to_prediction_db(pred: Prediction) -> PredictionDB:
 
 def prediction_db_to_domain(db: PredictionDB) -> Prediction:
     return Prediction(
-        id=db.id, document_id=db.document_id, person_id=db.person_id,
-        claim_text=db.claim_text, situation=db.situation, prediction_date=db.prediction_date,
-        target_date=db.target_date, topic=db.topic,
-        status=PredictionStatus(db.status), confidence=db.confidence,
-        evidence_url=db.evidence_url, evidence_text=db.evidence_text,
+        id=db.id,
+        document_id=db.document_id,
+        person_id=db.person_id,
+        claim_text=db.claim_text,
+        situation=db.situation,
+        prediction_date=db.prediction_date,
+        target_date=db.target_date,
+        topic=db.topic,
+        status=PredictionStatus(db.status),
+        confidence=db.confidence,
+        evidence_url=db.evidence_url,
+        evidence_text=db.evidence_text,
         verified_at=db.verified_at,
-        prediction_strength=PredictionStrength(db.prediction_strength) if db.prediction_strength else None,
+        prediction_strength=PredictionStrength(db.prediction_strength)
+        if db.prediction_strength
+        else None,
         prediction_value=PredictionValue(db.prediction_value) if db.prediction_value else None,
         max_horizon=db.max_horizon,
         next_check_at=db.next_check_at,
@@ -98,6 +146,7 @@ def prediction_db_to_domain(db: PredictionDB) -> Prediction:
 
 
 # --- Repository implementations ---
+
 
 class PostgresPersonRepository:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
@@ -288,12 +337,9 @@ class PostgresVectorStore:
 
     async def search_similar(
         self, query_embedding: list[float], limit: int = 10
-    ) -> list[str]:
+    ) -> list[VectorMatch]:
         async with self._session_factory() as session:
-            stmt = (
-                select(PredictionDB.id)
-                .order_by(PredictionDB.embedding.cosine_distance(query_embedding))
-                .limit(limit)
-            )
+            dist = PredictionDB.embedding.cosine_distance(query_embedding)
+            stmt = select(PredictionDB.id, dist.label("distance")).order_by(dist).limit(limit)
             result = await session.execute(stmt)
-            return [row[0] for row in result.all()]
+            return [VectorMatch(prediction_id=r[0], distance=r[1]) for r in result.all()]
