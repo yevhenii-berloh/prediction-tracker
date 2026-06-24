@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import httpx
@@ -27,18 +27,20 @@ async def test_health_returns_ok():
 
 async def test_ingest_run_returns_cycle_report():
     orchestrator = MagicMock()
-    orchestrator.run_cycle = AsyncMock(return_value=CycleReport(
-        started_at=datetime.now(UTC),
-        finished_at=datetime.now(UTC),
-        channels_processed=[
-            ChannelReport(
-                person_source_id="ps1",
-                posts_seen=3,
-                posts_with_predictions=2,
-                predictions_extracted=5,
-            ),
-        ],
-    ))
+    orchestrator.run_cycle = AsyncMock(
+        return_value=CycleReport(
+            started_at=datetime.now(UTC),
+            finished_at=datetime.now(UTC),
+            channels_processed=[
+                ChannelReport(
+                    person_source_id="ps1",
+                    posts_seen=3,
+                    posts_with_predictions=2,
+                    predictions_extracted=5,
+                ),
+            ],
+        )
+    )
     app.state.orchestrator = orchestrator
 
     transport = httpx.ASGITransport(app=app)
@@ -81,22 +83,24 @@ async def test_ingest_run_500_on_catastrophic_exception():
 
 async def test_ingest_run_returns_per_channel_errors_as_200():
     orchestrator = MagicMock()
-    orchestrator.run_cycle = AsyncMock(return_value=CycleReport(
-        started_at=datetime.now(UTC),
-        finished_at=datetime.now(UTC),
-        channels_processed=[
-            ChannelReport(
-                person_source_id="ps1",
-                posts_seen=2,
-                error="halted at step=processing: LLM 503",
-            ),
-            ChannelReport(
-                person_source_id="ps2",
-                posts_seen=5,
-                predictions_extracted=3,
-            ),
-        ],
-    ))
+    orchestrator.run_cycle = AsyncMock(
+        return_value=CycleReport(
+            started_at=datetime.now(UTC),
+            finished_at=datetime.now(UTC),
+            channels_processed=[
+                ChannelReport(
+                    person_source_id="ps1",
+                    posts_seen=2,
+                    error="halted at step=processing: LLM 503",
+                ),
+                ChannelReport(
+                    person_source_id="ps2",
+                    posts_seen=5,
+                    predictions_extracted=3,
+                ),
+            ],
+        )
+    )
     app.state.orchestrator = orchestrator
 
     transport = httpx.ASGITransport(app=app)
@@ -110,3 +114,49 @@ async def test_ingest_run_returns_per_channel_errors_as_200():
     assert channels[0]["error"] is not None
     assert "halted" in channels[0]["error"]
     assert channels[1]["error"] is None
+
+
+@pytest.fixture(autouse=True)
+def _clear_query_orchestrator_state():
+    yield
+    if hasattr(app.state, "query_orchestrator"):
+        delattr(app.state, "query_orchestrator")
+
+
+async def test_query_returns_results():
+    from prophet_checker.models.domain import Prediction, QueryResult, RetrievedPrediction
+
+    qo = MagicMock()
+    pred = Prediction(
+        id="p1", document_id="d", person_id="x", claim_text="c", prediction_date=date(2024, 1, 1)
+    )
+    qo.search = AsyncMock(
+        return_value=QueryResult(
+            query="q", results=[RetrievedPrediction(prediction=pred, distance=0.1, rank=1)]
+        )
+    )
+    app.state.query_orchestrator = qo
+
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post("/query", json={"question": "q", "limit": 5})
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["query"] == "q"
+    assert body["results"][0]["prediction"]["id"] == "p1"
+    assert body["results"][0]["rank"] == 1
+
+
+async def test_query_422_on_empty_question():
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post("/query", json={"question": "", "limit": 5})
+    assert resp.status_code == 422
+
+
+async def test_query_503_when_not_initialized():
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post("/query", json={"question": "q"})
+    assert resp.status_code == 503

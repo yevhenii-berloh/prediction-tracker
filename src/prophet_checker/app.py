@@ -4,10 +4,12 @@ import logging
 from contextlib import AsyncExitStack, asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
+from pydantic import BaseModel, Field
 
 from prophet_checker.config import Settings
-from prophet_checker.factory import build_orchestrator
+from prophet_checker.factory import build_orchestrator, build_query_orchestrator
 from prophet_checker.ingestion import CycleReport
+from prophet_checker.models.domain import QueryResult
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +20,7 @@ async def lifespan(app: FastAPI):
     async with AsyncExitStack() as stack:
         orchestrator = await build_orchestrator(settings, stack)
         app.state.orchestrator = orchestrator
+        app.state.query_orchestrator = await build_query_orchestrator(settings, stack)
         yield
 
 
@@ -45,3 +48,23 @@ async def run_ingestion(request: Request) -> CycleReport:
             status_code=500,
             detail=f"unexpected orchestrator failure: {type(exc).__name__}",
         )
+
+
+class QueryRequest(BaseModel):
+    question: str = Field(min_length=1)
+    limit: int = Field(default=10, ge=1, le=50)
+
+
+@app.post("/query", response_model=QueryResult)
+async def query(req: QueryRequest, request: Request) -> QueryResult:
+    query_orchestrator = getattr(request.app.state, "query_orchestrator", None)
+    if query_orchestrator is None:
+        raise HTTPException(
+            status_code=503,
+            detail="query orchestrator not initialized — server is starting up or shutting down",
+        )
+    try:
+        return await query_orchestrator.search(req.question, req.limit)
+    except Exception as exc:
+        logger.exception("query failed")
+        raise HTTPException(status_code=500, detail=f"query failure: {type(exc).__name__}")
