@@ -11,17 +11,17 @@ from prophet_checker.config import Settings
 from prophet_checker.ingestion import IngestionOrchestrator
 from prophet_checker.llm import EmbeddingClient, LLMClient
 from prophet_checker.models.domain import SourceType
+from prophet_checker.query import QueryOrchestrator
 from prophet_checker.sources.telegram import TelegramSource
 from prophet_checker.storage.postgres import (
     PostgresPredictionRepository,
     PostgresSourceRepository,
+    PostgresVectorStore,
 )
 from prophet_checker.verification import VerificationOrchestrator
 
 
-async def build_orchestrator(
-    settings: Settings, stack: AsyncExitStack
-) -> IngestionOrchestrator:
+async def build_orchestrator(settings: Settings, stack: AsyncExitStack) -> IngestionOrchestrator:
     engine = create_async_engine(settings.database_url, echo=False)
     stack.push_async_callback(engine.dispose)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
@@ -77,3 +77,15 @@ async def build_verification_orchestrator(
     verifier = Verifier(llm)
 
     return VerificationOrchestrator(prediction_repo, verifier)
+
+
+async def build_query_orchestrator(settings: Settings, stack: AsyncExitStack) -> QueryOrchestrator:
+    engine = create_async_engine(settings.database_url, echo=False)
+    stack.push_async_callback(engine.dispose)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+    prediction_repo = PostgresPredictionRepository(session_factory)
+    vector_store = PostgresVectorStore(session_factory)
+    embedder = EmbeddingClient(model=settings.embedding_model, api_key=settings.openai_api_key)
+
+    return QueryOrchestrator(embedder, vector_store, prediction_repo)
