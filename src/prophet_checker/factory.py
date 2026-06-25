@@ -12,6 +12,7 @@ from prophet_checker.ingestion import IngestionOrchestrator
 from prophet_checker.llm import EmbeddingClient, LLMClient
 from prophet_checker.models.domain import SourceType
 from prophet_checker.query import QueryOrchestrator
+from prophet_checker.query.answer_orchestrator import AnswerOrchestrator
 from prophet_checker.sources.telegram import TelegramSource
 from prophet_checker.storage.postgres import (
     PostgresPredictionRepository,
@@ -89,3 +90,16 @@ async def build_query_orchestrator(settings: Settings, stack: AsyncExitStack) ->
     embedder = EmbeddingClient(model=settings.embedding_model, api_key=settings.openai_api_key)
 
     return QueryOrchestrator(embedder, vector_store, prediction_repo)
+
+
+async def build_answer_orchestrator(
+    settings: Settings, stack: AsyncExitStack
+) -> AnswerOrchestrator:
+    query_orchestrator = await build_query_orchestrator(settings, stack)
+    llm = LLMClient(
+        provider="gemini",
+        model="gemini-3.1-flash-lite-preview",
+        api_key=settings.gemini_api_key,
+        temperature=0,
+    )
+    return AnswerOrchestrator(query_orchestrator, llm)
