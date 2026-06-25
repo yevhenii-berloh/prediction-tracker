@@ -20,16 +20,18 @@ def test_build_extraction_prompt():
 
 
 def test_parse_extraction_response_valid():
-    response = json.dumps({
-        "predictions": [
-            {
-                "claim_text": "Контрнаступ почнеться влітку 2023",
-                "prediction_date": "2023-01-15",
-                "target_date": "2023-06-01",
-                "topic": "війна",
-            }
-        ]
-    })
+    response = json.dumps(
+        {
+            "predictions": [
+                {
+                    "claim_text": "Контрнаступ почнеться влітку 2023",
+                    "prediction_date": "2023-01-15",
+                    "target_date": "2023-06-01",
+                    "topic": "війна",
+                }
+            ]
+        }
+    )
     predictions = parse_extraction_response(response)
     assert len(predictions) == 1
     assert predictions[0]["claim_text"] == "Контрнаступ почнеться влітку 2023"
@@ -70,17 +72,31 @@ def test_parse_extraction_response_handles_leading_trailing_whitespace():
 
 
 def test_build_rag_prompt():
-    predictions_context = [
-        {"claim_text": "Pred 1", "status": "confirmed", "confidence": 0.9},
-        {"claim_text": "Pred 2", "status": "refuted", "confidence": 0.7},
+    from datetime import date
+
+    from prophet_checker.models.domain import Prediction, PredictionStatus, RetrievedPrediction
+
+    sources = [
+        RetrievedPrediction(
+            prediction=Prediction(
+                id="pred-1",
+                document_id="d",
+                person_id="x",
+                claim_text="Контрнаступ не досягне моря",
+                prediction_date=date(2023, 6, 1),
+                status=PredictionStatus.REFUTED,
+                confidence=0.7,
+            ),
+            distance=0.2,
+            rank=1,
+        )
     ]
-    prompt = build_rag_prompt(
-        question="Що казав Арестович про контрнаступ?",
-        predictions_context=predictions_context,
-    )
-    assert "Що казав Арестович про контрнаступ?" in prompt
-    assert "Pred 1" in prompt
-    assert "Pred 2" in prompt
+    prompt = build_rag_prompt(question="Що казав про контрнаступ?", sources=sources)
+    assert "Що казав про контрнаступ?" in prompt
+    assert "Контрнаступ не досягне моря" in prompt
+    assert "pred-1" in prompt
+    assert "2023-06-01" in prompt
+    assert "refuted" in prompt
 
 
 def test_build_verification_prompt_v2_substitutes_all_fields():
@@ -141,12 +157,14 @@ def test_parse_verification_response_v2_premature():
 
 def test_parse_v2_raises_on_invalid_json():
     from prophet_checker.llm.prompts import parse_verification_response_v2
+
     with pytest.raises(json.JSONDecodeError):
         parse_verification_response_v2("not valid json")
 
 
 def test_parse_v2_raises_on_missing_required_field():
     from prophet_checker.llm.prompts import parse_verification_response_v2
+
     response = '{"status": "confirmed", "confidence": 0.9, "evidence": "fact"}'
     with pytest.raises(ValueError, match="missing required field"):
         parse_verification_response_v2(response)
@@ -154,6 +172,7 @@ def test_parse_v2_raises_on_missing_required_field():
 
 def test_parse_v2_raises_on_invalid_status():
     from prophet_checker.llm.prompts import parse_verification_response_v2
+
     response = """{
         "status": "verified",
         "confidence": 0.9,
@@ -168,6 +187,7 @@ def test_parse_v2_raises_on_invalid_status():
 
 def test_parse_v2_raises_on_invalid_prediction_strength():
     from prophet_checker.llm.prompts import parse_verification_response_v2
+
     response = """{
         "status": "confirmed",
         "confidence": 0.9,
@@ -182,6 +202,7 @@ def test_parse_v2_raises_on_invalid_prediction_strength():
 
 def test_parse_v2_raises_on_invalid_prediction_value():
     from prophet_checker.llm.prompts import parse_verification_response_v2
+
     response = """{
         "status": "confirmed",
         "confidence": 0.9,
@@ -196,6 +217,7 @@ def test_parse_v2_raises_on_invalid_prediction_value():
 
 def test_parse_v2_raises_premature_without_retry_after():
     from prophet_checker.llm.prompts import parse_verification_response_v2
+
     response = """{
         "status": "premature",
         "confidence": 0.5,
@@ -211,6 +233,7 @@ def test_parse_v2_raises_premature_without_retry_after():
 
 def test_parse_v2_raises_terminal_without_evidence():
     from prophet_checker.llm.prompts import parse_verification_response_v2
+
     response = """{
         "status": "confirmed",
         "confidence": 0.9,
@@ -225,6 +248,7 @@ def test_parse_v2_raises_terminal_without_evidence():
 
 def test_parse_v2_drops_extraneous_retry_after_on_terminal():
     from prophet_checker.llm.prompts import parse_verification_response_v2
+
     response = """{
         "status": "confirmed",
         "confidence": 0.9,
@@ -242,6 +266,7 @@ def test_parse_v2_drops_extraneous_retry_after_on_terminal():
 
 def test_parse_v2_drops_extraneous_retry_after_on_unresolved():
     from prophet_checker.llm.prompts import parse_verification_response_v2
+
     response = """{
         "status": "unresolved",
         "confidence": 0.4,
@@ -258,6 +283,7 @@ def test_parse_v2_drops_extraneous_retry_after_on_unresolved():
 
 def test_parse_v2_drops_extraneous_max_horizon_on_non_premature():
     from prophet_checker.llm.prompts import parse_verification_response_v2
+
     response = """{
         "status": "confirmed",
         "confidence": 0.9,
@@ -274,22 +300,26 @@ def test_parse_v2_drops_extraneous_max_horizon_on_non_premature():
 
 def test_validate_situation_accepts_non_empty():
     from prophet_checker.llm.prompts import validate_situation
+
     assert validate_situation("У відповідь на іранські погрози") is True
 
 
 def test_validate_situation_rejects_empty_and_none():
     from prophet_checker.llm.prompts import validate_situation
+
     assert validate_situation("") is False
     assert validate_situation(None) is False
 
 
 def test_validate_situation_rejects_whitespace_only():
     from prophet_checker.llm.prompts import validate_situation
+
     assert validate_situation("   \n\t  ") is False
 
 
 def test_extraction_template_includes_situation_field():
     from prophet_checker.llm.prompts import EXTRACTION_TEMPLATE
+
     assert "situation: 1-2 sentences" in EXTRACTION_TEMPLATE
     assert '"situation": "..."' in EXTRACTION_TEMPLATE
 
@@ -297,17 +327,20 @@ def test_extraction_template_includes_situation_field():
 def test_parse_extraction_response_extracts_situation():
     import json
     from prophet_checker.llm.prompts import parse_extraction_response
-    response = json.dumps({
-        "predictions": [
-            {
-                "claim_text": "Війна закінчиться у 2026",
-                "prediction_date": "2024-01-15",
-                "target_date": "2026-12-31",
-                "topic": "війна",
-                "situation": "Обговорення перспектив завершення війни у 2026",
-            }
-        ]
-    })
+
+    response = json.dumps(
+        {
+            "predictions": [
+                {
+                    "claim_text": "Війна закінчиться у 2026",
+                    "prediction_date": "2024-01-15",
+                    "target_date": "2026-12-31",
+                    "topic": "війна",
+                    "situation": "Обговорення перспектив завершення війни у 2026",
+                }
+            ]
+        }
+    )
     predictions = parse_extraction_response(response)
     assert len(predictions) == 1
     assert predictions[0]["situation"] == "Обговорення перспектив завершення війни у 2026"
@@ -361,11 +394,13 @@ def test_get_assessment_system_v2_injects_today_and_markers():
 def test_parse_assessment_happy_path():
     from prophet_checker.llm.prompts import parse_assessment_response_v2
 
-    raw = json.dumps({
-        "reasoning": "Vague hedge.",
-        "prediction_strength": "low",
-        "prediction_value": "high",
-    })
+    raw = json.dumps(
+        {
+            "reasoning": "Vague hedge.",
+            "prediction_strength": "low",
+            "prediction_value": "high",
+        }
+    )
     result = parse_assessment_response_v2(raw)
     assert result == {"prediction_strength": "low"}
 

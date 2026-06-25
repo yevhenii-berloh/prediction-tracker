@@ -107,3 +107,9 @@ class RetrievedPrediction(BaseModel):
 class QueryResult(BaseModel):
     query: str
     results: list[RetrievedPrediction]
+
+
+class AnswerResult(BaseModel):
+    query: str
+    answer: str
+    sources: list[RetrievedPrediction]

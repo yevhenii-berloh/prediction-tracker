@@ -3,6 +3,10 @@ from __future__ import annotations
 import json
 import logging
 import re
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from prophet_checker.models.domain import RetrievedPrediction
 
 logger = logging.getLogger(__name__)
 
@@ -364,15 +368,24 @@ Respond ONLY with raw JSON, no markdown fences:
 
 def build_extraction_prompt(text: str, person_name: str, published_date: str) -> str:
     return EXTRACTION_TEMPLATE.format(
-        text=text, person_name=person_name, published_date=published_date,
+        text=text,
+        person_name=person_name,
+        published_date=published_date,
     )
 
 
-def build_rag_prompt(question: str, predictions_context: list[dict]) -> str:
-    context_str = "\n".join(
-        f"- {p['claim_text']} [status: {p['status']}, confidence: {p['confidence']}]"
-        for p in predictions_context
-    )
+def build_rag_prompt(question: str, sources: list[RetrievedPrediction]) -> str:
+    lines = []
+    for s in sources:
+        p = s.prediction
+        target = f", target: {p.target_date.isoformat()}" if p.target_date else ""
+        situation = f" | situation: {p.situation}" if p.situation else ""
+        lines.append(
+            f"[{p.id}] {p.claim_text}{situation} "
+            f"(date: {p.prediction_date.isoformat()}{target}, "
+            f"status: {p.status.value}, confidence: {p.confidence})"
+        )
+    context_str = "\n".join(lines)
     return RAG_TEMPLATE.format(question=question, predictions_context=context_str)
 
 
@@ -430,8 +443,7 @@ def parse_verification_response_v2(response: str) -> dict:
 
     if data["status"] not in {"confirmed", "refuted", "unresolved", "premature"}:
         raise ValueError(
-            f"invalid status: {data['status']!r} "
-            f"(expected confirmed/refuted/unresolved/premature)"
+            f"invalid status: {data['status']!r} (expected confirmed/refuted/unresolved/premature)"
         )
 
     if data["prediction_strength"] not in {"low", "medium", "high"}:
@@ -442,8 +454,7 @@ def parse_verification_response_v2(response: str) -> dict:
 
     if data["prediction_value"] not in {"low", "medium", "high"}:
         raise ValueError(
-            f"invalid prediction_value: {data['prediction_value']!r} "
-            f"(expected low/medium/high)"
+            f"invalid prediction_value: {data['prediction_value']!r} (expected low/medium/high)"
         )
 
     status = data["status"]
@@ -458,15 +469,11 @@ def parse_verification_response_v2(response: str) -> dict:
         raise ValueError(f"status={status} requires evidence")
 
     if status != "premature" and retry_after is not None:
-        logger.warning(
-            "soft-normalize: dropping extraneous retry_after on status=%s", status
-        )
+        logger.warning("soft-normalize: dropping extraneous retry_after on status=%s", status)
         data["retry_after"] = None
 
     if status != "premature" and max_horizon is not None:
-        logger.warning(
-            "soft-normalize: dropping extraneous max_horizon on status=%s", status
-        )
+        logger.warning("soft-normalize: dropping extraneous max_horizon on status=%s", status)
         data["max_horizon"] = None
 
     data["evidence"] = evidence
