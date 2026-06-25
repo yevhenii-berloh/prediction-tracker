@@ -50,17 +50,21 @@ async def backfill(
     prediction_repo: PredictionRepository,
     vector_store: VectorStore,
     embedder: EmbeddingClient,
-    progress_every: int = 200,
+    progress_every: int = 50,
 ) -> int:
     """Для кожного прогнозу всіх осіб: embed(claim+situation) → store_embedding. Повертає к-сть."""
     count = 0
     for person in await person_repo.list_all():
         for pred in await prediction_repo.get_by_person(person.id):
-            vector = await embedder.embed(embedding_text(pred))
-            await vector_store.store_embedding(pred.id, vector)
-            count += 1
-            if count % progress_every == 0:
-                print(f"backfilled {count} predictions...")
+            present = await vector_store.is_embedding_present(pred.id)
+            if not present:
+                vector = await embedder.embed(embedding_text(pred))
+                await vector_store.store_embedding(pred.id, vector)
+                count += 1
+                if count % progress_every == 0:
+                    print(f"backfilled {count} predictions...")
+            else:
+                print(f"Skipping already backfilled prediction for {pred.id}")
     return count
 
 

@@ -344,6 +344,11 @@ class PostgresVectorStore:
                 db_obj.embedding = embedding
                 await session.commit()
 
+    async def is_embedding_present(self, prediction_id: str) -> bool:
+        async with self._session_factory() as session:
+            db_obj = await session.get(PredictionDB, prediction_id)
+            return db_obj is not None and db_obj.embedding is not None
+
     async def search_similar(
         self, query_embedding: list[float], limit: int = 10
     ) -> list[VectorMatch]:

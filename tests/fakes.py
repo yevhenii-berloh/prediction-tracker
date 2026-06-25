@@ -137,6 +137,9 @@ class FakeVectorStore(VectorStore):
     async def store_embedding(self, prediction_id: str, embedding: list[float]) -> None:
         self._entries.append((prediction_id, embedding))
 
+    async def is_embedding_present(self, prediction_id: str) -> bool:
+        return any(pid == prediction_id for pid, _ in self._entries)
+
     async def search_similar(
         self, query_embedding: list[float], limit: int = 10
     ) -> list[VectorMatch]:
