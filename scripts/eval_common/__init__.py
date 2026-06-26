@@ -6,6 +6,9 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
+from eval_common.clients import build_eval_llm
+from eval_common.fakes import FakeJudge, fake_sut
+from eval_common.judge import Judge, LLMJudge, fingerprint_prompt, shuffle_options
 from eval_common.models import (
     EvalCase,
     EvalMetadata,
@@ -26,6 +29,13 @@ __all__ = [
     "EvalMetadata",
     "EvalReport",
     "Scorer",
+    "Judge",
+    "LLMJudge",
+    "FakeJudge",
+    "fake_sut",
+    "build_eval_llm",
+    "fingerprint_prompt",
+    "shuffle_options",
     "run_cases",
     "write_report",
     "run_eval",

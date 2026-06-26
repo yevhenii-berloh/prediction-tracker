@@ -30,7 +30,7 @@ async def run_cases(
                 result = await run_one(case)
                 error = None
             except Exception as exc:  # ізоляція: падіння одного case не валить прогін
-                logger.warning("run_one failed: case=%s err=%s", case.id, type(exc).__name__)
+                logger.exception("run_one failed: case=%s", case.id)
                 result = None
                 error = type(exc).__name__
             latency = time.monotonic() - start
