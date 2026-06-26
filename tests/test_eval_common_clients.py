@@ -16,6 +16,16 @@ def test_parse_model_id_rejects_bare():
         parse_model_id("gpt-5-mini")
 
 
+def test_parse_model_id_rejects_trailing_slash():
+    with pytest.raises(ValueError):
+        parse_model_id("anthropic/")
+
+
+def test_parse_model_id_rejects_leading_slash():
+    with pytest.raises(ValueError):
+        parse_model_id("/model")
+
+
 def test_build_eval_llm_unknown_provider():
     with pytest.raises(ValueError):
         build_eval_llm("foo/bar")

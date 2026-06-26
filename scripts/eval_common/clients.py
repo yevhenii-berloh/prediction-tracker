@@ -14,9 +14,9 @@ PROVIDER_API_KEY_ENV = {
 
 
 def parse_model_id(model_id: str) -> tuple[str, str]:
-    if "/" not in model_id:
+    provider, _, model = model_id.partition("/")
+    if not provider or not model:
         raise ValueError(f"model_id must be 'provider/model', got {model_id!r}")
-    provider, model = model_id.split("/", 1)
     return provider, model
 
 
