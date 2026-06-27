@@ -40,6 +40,8 @@ OUT_DIR = PROJECT_ROOT / "scripts" / "outputs" / "generation_eval"
 async def _main(judge_model: str, limit: int, concurrency: int) -> None:
     settings = Settings()
     cases = load_generation_gold(GOLD_PATH)
+    if limit:  # 0 = усі; інакше — перші N кейсів (швидкий прогін)
+        cases = cases[:limit]
     judge = LLMJudge(build_eval_llm(judge_model, temperature=0), judge_id=judge_model)
     scorers = [FaithfulnessScorer(judge), RefusalScorer(judge), CompletenessScorer(judge)]
     logger.info(
@@ -94,7 +96,7 @@ def main() -> None:
         description="Generation eval (faithfulness + refusal + completeness)"
     )
     p.add_argument("--judge", default="anthropic/claude-opus-4-8")
-    p.add_argument("--limit", type=int, default=10)
+    p.add_argument("--limit", type=int, default=0, help="run only first N cases (0 = all)")
     p.add_argument("--concurrency", type=int, default=4)
     args = p.parse_args()
     asyncio.run(_main(args.judge, args.limit, args.concurrency))
