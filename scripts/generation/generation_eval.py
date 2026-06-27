@@ -4,23 +4,35 @@ from __future__ import annotations
 import argparse
 import asyncio
 import logging
+import sys
 from contextlib import AsyncExitStack
 from datetime import UTC, datetime
 from pathlib import Path
 
-from eval_common import EvalMetadata, run_eval
-from eval_common.clients import build_eval_llm
-from eval_common.judge import LLMJudge, fingerprint_prompt
-from generation.gold import load_generation_gold
-from generation.judge_prompts import COMPLETENESS_SYSTEM, FAITHFULNESS_SYSTEM, REFUSAL_SYSTEM
-from generation.metrics import aggregate
-from generation.scorers import CompletenessScorer, FaithfulnessScorer, RefusalScorer
-from prophet_checker.config import Settings
-from prophet_checker.factory import build_answer_orchestrator
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
+sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
+
+from eval_common import EvalMetadata, run_eval  # noqa: E402
+from eval_common.clients import build_eval_llm  # noqa: E402
+from eval_common.judge import LLMJudge, fingerprint_prompt  # noqa: E402
+from generation.gold import load_generation_gold  # noqa: E402
+from generation.judge_prompts import (  # noqa: E402
+    COMPLETENESS_SYSTEM,
+    FAITHFULNESS_SYSTEM,
+    REFUSAL_SYSTEM,
+)
+from generation.metrics import aggregate  # noqa: E402
+from generation.scorers import (  # noqa: E402
+    CompletenessScorer,
+    FaithfulnessScorer,
+    RefusalScorer,
+)
+from prophet_checker.config import Settings  # noqa: E402
+from prophet_checker.factory import build_answer_orchestrator  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
-PROJECT_ROOT = Path(__file__).parent.parent.parent
 GOLD_PATH = PROJECT_ROOT / "scripts" / "data" / "generation_gold.json"
 OUT_DIR = PROJECT_ROOT / "scripts" / "outputs" / "generation_eval"
 
