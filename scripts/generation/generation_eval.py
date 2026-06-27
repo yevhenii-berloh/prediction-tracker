@@ -42,6 +42,9 @@ async def _main(judge_model: str, limit: int, concurrency: int) -> None:
     cases = load_generation_gold(GOLD_PATH)
     judge = LLMJudge(build_eval_llm(judge_model, temperature=0), judge_id=judge_model)
     scorers = [FaithfulnessScorer(judge), RefusalScorer(judge), CompletenessScorer(judge)]
+    logger.info(
+        "generation eval: %d cases, judge=%s, concurrency=%d", len(cases), judge_model, concurrency
+    )
 
     metadata = EvalMetadata(
         eval_name="generation",

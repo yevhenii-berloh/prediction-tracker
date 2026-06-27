@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from collections.abc import Awaitable, Callable
 from pathlib import Path
 
@@ -41,6 +42,8 @@ __all__ = [
     "run_eval",
 ]
 
+logger = logging.getLogger(__name__)
+
 
 async def run_eval(
     cases: list[EvalCase],
@@ -54,11 +57,17 @@ async def run_eval(
 ) -> EvalReport:
     """Single-pass eval: run SUT → score each run → aggregate → write report."""
     runs = await run_cases(cases, run_one, concurrency=concurrency)
+    total = len(runs)
+    logger.info("scoring %d runs (%d scorers)", total, len(scorers))
     scored: list[ScoredRun] = []
-    for run in runs:
+    step = max(1, total // 10)  # прогрес ~кожні 10%
+    for i, run in enumerate(runs, start=1):
         cards = await asyncio.gather(*(s.score(run) for s in scorers))
         scored.append(ScoredRun(run=run, cards=list(cards)))
+        if i % step == 0 or i == total:
+            logger.info("scored %d/%d", i, total)
     metrics = aggregate(scored)
     report = EvalReport(metadata=metadata, metrics=metrics, runs=scored)
     write_report(report, out_dir)
+    logger.info("wrote report → %s", out_dir)
     return report

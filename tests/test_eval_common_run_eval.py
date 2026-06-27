@@ -80,3 +80,23 @@ async def test_run_eval_handles_sut_failure_with_guarded_scorers(tmp_path):
     assert [c.scorer for c in by_id["0"].cards] == ["sum", "ok"]
     # aggregate skipped the None: doubled 0 + doubled 4 = 4, plus ok-flags (1+0+1)=2 → 6
     assert report.metrics.total == 6
+
+
+async def test_run_eval_logs_progress(tmp_path, caplog):
+    import logging
+
+    cases = [EvalCase(id=str(i), input=_In(n=i)) for i in range(3)]
+
+    async def run_one(case):
+        return _Out(doubled=case.input.n * 2)
+
+    def aggregate(scored):
+        return _M(total=int(sum(c.score for s in scored for c in s.cards)))
+
+    meta = EvalMetadata(eval_name="t", created_at="2026-01-01T00:00:00Z", n_cases=3)
+    with caplog.at_level(logging.INFO):
+        await run_eval(cases, run_one, [_SumScorer()], aggregate, meta, tmp_path)
+
+    msgs = [r.getMessage() for r in caplog.records]
+    assert any("scored 3/3" in m for m in msgs)
+    assert any("wrote report" in m for m in msgs)

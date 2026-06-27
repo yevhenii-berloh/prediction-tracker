@@ -36,3 +36,19 @@ async def test_run_cases_empty_returns_empty():
         return _Out(n=0)
 
     assert await run_cases([], run_one) == []
+
+
+async def test_run_cases_logs_progress(caplog):
+    import logging
+
+    cases = [EvalCase(id=str(i), input=_In(n=i)) for i in range(3)]
+
+    async def run_one(case):
+        return _Out(n=case.input.n)
+
+    with caplog.at_level(logging.INFO, logger="eval_common.runner"):
+        await run_cases(cases, run_one)
+
+    msgs = [r.getMessage() for r in caplog.records]
+    assert any("3 cases" in m for m in msgs)  # стартовий рядок
+    assert any("3/3" in m for m in msgs)  # фінальний прогрес
