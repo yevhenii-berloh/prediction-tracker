@@ -6,21 +6,16 @@ from eval_common.models import EvalRun, ScoreCard
 from generation.gen_models import (
     CompletenessDetail,
     FaithfulnessDetail,
-    RefusalDetail,
     SourceCoverage,
 )
 from generation.judge_prompts import (
     COMPLETENESS_SYSTEM,
     FAITHFULNESS_SYSTEM,
-    REFUSAL_SYSTEM,
     build_completeness_prompt,
     build_faithfulness_prompt,
-    build_refusal_prompt,
     parse_completeness_response,
     parse_faithfulness_response,
-    parse_refusal_response,
 )
-from prophet_checker.query.answer_orchestrator import REFUSAL_NO_DATA
 
 
 class FaithfulnessScorer:
@@ -43,32 +38,6 @@ class FaithfulnessScorer:
             scorer=self.name,
             score=supported / len(claims),
             detail=FaithfulnessDetail(claims=claims),
-        )
-
-
-class RefusalScorer:
-    name = "refusal"
-
-    def __init__(self, judge: Judge) -> None:
-        self._judge = judge
-
-    async def score(self, run: EvalRun) -> ScoreCard:
-        labels = run.case.labels
-        if run.result is None:
-            return ScoreCard(scorer=self.name, score=None)
-        answer = run.result.answer
-        if answer.strip() == REFUSAL_NO_DATA:
-            refused = True
-        else:
-            raw = await self._judge.assess(build_refusal_prompt(answer), system=REFUSAL_SYSTEM)
-            refused = parse_refusal_response(raw)
-        correct = (labels.answerable and not refused) or (not labels.answerable and refused)
-        return ScoreCard(
-            scorer=self.name,
-            score=1.0 if correct else 0.0,
-            detail=RefusalDetail(
-                refused=refused, answerable=labels.answerable, category=labels.category
-            ),
         )
 
 

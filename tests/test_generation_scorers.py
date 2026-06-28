@@ -2,7 +2,7 @@ from datetime import date
 
 from eval_common.models import EvalCase, EvalRun
 from generation.gen_models import ExpectedSource, GenerationInput, GenerationLabels
-from generation.scorers import CompletenessScorer, FaithfulnessScorer, RefusalScorer
+from generation.scorers import CompletenessScorer, FaithfulnessScorer
 from prophet_checker.models.domain import AnswerResult, Prediction, RetrievedPrediction
 from prophet_checker.query.answer_orchestrator import REFUSAL_NO_DATA
 
@@ -82,47 +82,6 @@ async def test_faithfulness_ratio():
     )
     assert card.score == 0.5
     assert len(card.detail.claims) == 2
-
-
-# --- refusal ---
-
-
-async def test_refusal_na_on_sut_error():
-    card = await RefusalScorer(_SeqJudge()).score(
-        _run(None, answerable=True, category="single_source")
-    )
-    assert card.score is None
-
-
-async def test_refusal_hardrefusal_on_answerable_is_wrong():
-    card = await RefusalScorer(_SeqJudge()).score(
-        _run(REFUSAL_NO_DATA, answerable=True, category="single_source")
-    )
-    assert card.score == 0.0  # over-refusal
-    assert card.detail.refused is True
-
-
-async def test_refusal_hardrefusal_on_offcorpus_is_correct():
-    card = await RefusalScorer(_SeqJudge()).score(
-        _run(REFUSAL_NO_DATA, answerable=False, category="off_domain")
-    )
-    assert card.score == 1.0
-
-
-async def test_refusal_soft_refusal_via_judge():
-    judge = _SeqJudge('{"refused": true}')
-    card = await RefusalScorer(judge).score(
-        _run("не можу відповісти", answerable=False, category="near_domain")
-    )
-    assert card.score == 1.0
-
-
-async def test_refusal_false_answer_on_offcorpus():
-    judge = _SeqJudge('{"refused": false}')
-    card = await RefusalScorer(judge).score(
-        _run("впевнена вигадка", answerable=False, category="off_domain")
-    )
-    assert card.score == 0.0
 
 
 # --- completeness ---
