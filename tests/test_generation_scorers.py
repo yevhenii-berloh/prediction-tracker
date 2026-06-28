@@ -1,7 +1,7 @@
 from datetime import date
 
 from eval_common.models import EvalCase, EvalRun
-from generation.gen_models import ExpectedSource, GenerationInput, GenerationLabels
+from generation.gen_models import GenerationInput, GenerationLabels
 from generation.scorers import CompletenessScorer, FaithfulnessScorer
 from prophet_checker.models.domain import AnswerResult, Prediction, RetrievedPrediction
 from prophet_checker.query.answer_orchestrator import REFUSAL_NO_DATA
@@ -32,17 +32,18 @@ def _pred(pid: str) -> Prediction:
     )
 
 
-def _run(answer, *, answerable, category, expected=None):
-    labels = GenerationLabels(
-        answerable=answerable, expected_sources=expected or [], category=category
-    )
+def _run(answer, *, answerable, category, source_ids=("p1",)):
+    labels = GenerationLabels(answerable=answerable, expected_sources=[], category=category)
     case = EvalCase(id="c1", input=GenerationInput(question="q"), labels=labels)
     result = None
     if answer is not None:
         result = AnswerResult(
             query="q",
             answer=answer,
-            sources=[RetrievedPrediction(prediction=_pred("p1"), distance=0.1, rank=1)],
+            sources=[
+                RetrievedPrediction(prediction=_pred(pid), distance=0.1, rank=i)
+                for i, pid in enumerate(source_ids, 1)
+            ],
         )
     return EvalRun(case=case, result=result, latency_s=0.1)
 
@@ -87,21 +88,33 @@ async def test_faithfulness_ratio():
 # --- completeness ---
 
 
-async def test_completeness_na_on_offcorpus():
+async def test_completeness_na_on_sut_error():
     card = await CompletenessScorer(_SeqJudge()).score(
-        _run("щось", answerable=False, category="off_domain")
+        _run(None, answerable=True, category="single_source")
     )
     assert card.score is None
 
 
+async def test_completeness_na_when_no_sources():
+    # порожні sources (refusal / DB-miss) → N/A, а не recall=0
+    run = EvalRun(
+        case=EvalCase(
+            id="c1",
+            input=GenerationInput(question="q"),
+            labels=GenerationLabels(answerable=True, expected_sources=[], category="single_source"),
+        ),
+        result=AnswerResult(query="q", answer=REFUSAL_NO_DATA, sources=[]),
+        latency_s=0.1,
+    )
+    card = await CompletenessScorer(_SeqJudge()).score(run)
+    assert card.score is None
+
+
 async def test_completeness_recall_half():
-    expected = [
-        ExpectedSource(prediction_id="p1", claim="c1"),
-        ExpectedSource(prediction_id="p2", claim="c2"),
-    ]
     judge = _SeqJudge('{"covered": true}', '{"covered": false}')
     card = await CompletenessScorer(judge).score(
-        _run("відп", answerable=True, category="synthesis", expected=expected)
+        _run("відп", answerable=True, category="synthesis", source_ids=("p1", "p2"))
     )
     assert card.score == 0.5
     assert [c.covered for c in card.detail.coverage] == [True, False]
+    assert [c.prediction_id for c in card.detail.coverage] == ["p1", "p2"]

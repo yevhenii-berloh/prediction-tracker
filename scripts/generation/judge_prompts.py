@@ -42,11 +42,17 @@ def build_faithfulness_prompt(answer: str, sources: list) -> str:
     )
 
 
-def build_completeness_prompt(answer: str, claim: str) -> str:
+def build_completeness_prompt(answer: str, claim: str, situation: str | None = None) -> str:
+    ctx = (
+        "\n\nКОНТЕКСТ (ситуація прогнозу — лише щоб правильно зрозуміти ТВЕРДЖЕННЯ; "
+        f"переказувати її не треба):\n{situation}"
+        if situation
+        else ""
+    )
     return (
         "Чи ВІДПОВІДЬ відображає (згадує або передає суть) ТВЕРДЖЕННЯ? "
         'Формат: {"covered": true|false, "reason": "..."}\n\n'
-        f"ТВЕРДЖЕННЯ:\n{claim}\n\nВІДПОВІДЬ:\n{answer}"
+        f"ТВЕРДЖЕННЯ:\n{claim}{ctx}\n\nВІДПОВІДЬ:\n{answer}"
     )
 
 

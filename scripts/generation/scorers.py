@@ -48,19 +48,16 @@ class CompletenessScorer:
         self._judge = judge
 
     async def score(self, run: EvalRun) -> ScoreCard:
-        labels = run.case.labels
-        if run.result is None or not labels.answerable or not labels.expected_sources:
+        if run.result is None or not run.result.sources:  # порожні sources = refusal → N/A
             return ScoreCard(scorer=self.name, score=None)
         coverage = []
-        for es in labels.expected_sources:
+        for s in run.result.sources:
+            p = s.prediction
             raw = await self._judge.assess(
-                build_completeness_prompt(run.result.answer, es.claim), system=COMPLETENESS_SYSTEM
+                build_completeness_prompt(run.result.answer, p.claim_text, p.situation),
+                system=COMPLETENESS_SYSTEM,
             )
             covered, reason = parse_completeness_response(raw)
-            coverage.append(
-                SourceCoverage(prediction_id=es.prediction_id, covered=covered, reason=reason)
-            )
+            coverage.append(SourceCoverage(prediction_id=p.id, covered=covered, reason=reason))
         score = sum(1 for c in coverage if c.covered) / len(coverage)
-        return ScoreCard(
-            scorer=self.name, score=score, detail=CompletenessDetail(coverage=coverage)
-        )
+        return ScoreCard(scorer=self.name, score=score, detail=CompletenessDetail(coverage=coverage))
