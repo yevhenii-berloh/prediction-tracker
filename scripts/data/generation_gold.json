@@ -5,8 +5,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "0a86ff19-894a-417b-b731-661a33a0bc88",
-        "claim": "9 жовтня відбудеться семінар, на якому учасники обговорять, як розпізнати знаки на шляху і як зрозуміти, в чому їхнє призначення."
+        "prediction": {
+          "id": "0a86ff19-894a-417b-b731-661a33a0bc88",
+          "document_id": "tg:@O_Arestovich_official:1380",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "9 жовтня відбудеться семінар, на якому учасники обговорять, як розпізнати знаки на шляху і як зрозуміти, в чому їхнє призначення.",
+          "situation": "Автор обговорює концепцію 'Священної рани' та її зв'язок з пошуком призначення в житті, пропонуючи семінар для глибшого розуміння цієї теми.",
+          "prediction_date": "2021-09-27",
+          "target_date": "2021-10-09",
+          "topic": "особистісний розвиток",
+          "status": "unresolved",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "low",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -17,8 +37,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "1087b26b-4266-4270-9163-c57329770670",
-        "claim": "Протягом десяти років валовий внутрішній продукт України досягне 1,5 трлн доларів."
+        "prediction": {
+          "id": "1087b26b-4266-4270-9163-c57329770670",
+          "document_id": "tg:@O_Arestovich_official:2450",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Протягом десяти років валовий внутрішній продукт України досягне 1,5 трлн доларів.",
+          "situation": "Автор висловлює оптимістичний погляд на майбутнє України, підкреслюючи важливість розвитку економіки, культури, науки та медичних послуг.",
+          "prediction_date": "2022-08-11",
+          "target_date": "2032-08-11",
+          "topic": "економіка",
+          "status": "premature",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": "2032-08-11",
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -29,8 +69,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "1719f285-484c-4305-97a0-321919807ff7",
-        "claim": "В Україні до 2035 року відбудеться не одна війна, і нам не вдасться уникнути війни."
+        "prediction": {
+          "id": "1719f285-484c-4305-97a0-321919807ff7",
+          "document_id": "tg:@O_Arestovich_official:345",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "В Україні до 2035 року відбудеться не одна війна, і нам не вдасться уникнути війни.",
+          "situation": "Автор аналізує уроки війни Грузії з Росією та вказує на необхідність нової моделі військового будівництва в Україні, прогнозуючи, що світ вступає в десятиліття конфліктів.",
+          "prediction_date": "2020-08-08",
+          "target_date": "2035-12-31",
+          "topic": "війна",
+          "status": "premature",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": "2035-12-31",
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -41,8 +101,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "18b6b9f5-3be8-48d2-ba4f-1a34568c45e8",
-        "claim": "Путін не підпише мирний договір з Зеленським, оскільки вважає його нелегітимним."
+        "prediction": {
+          "id": "18b6b9f5-3be8-48d2-ba4f-1a34568c45e8",
+          "document_id": "tg:@O_Arestovich_official:6635",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Путін не підпише мирний договір з Зеленським, оскільки вважає його нелегітимним.",
+          "situation": "Автор аналізує заяви Путіна та реакцію українського керівництва на них, вказуючи на можливу пастку, в яку потрапляє Україна через емоційні реакції на російські заяви.",
+          "prediction_date": "2024-12-19",
+          "target_date": null,
+          "topic": "політика",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "Throughout 2025 and the first half of 2026, the Russian leadership has repeatedly stated that they do not consider the current Ukrainian government legitimate, effectively precluding direct peace treaty negotiations between Putin and Zelenskyy.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -53,8 +133,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "1b45e274-43d8-468a-bfb9-c2268b4c1e27",
-        "claim": "Украина должна разорвать тенденцию, ведущую к гибели, осознать свою идентичность и строить самостоятельную политику с опорой на себя, иначе она растворится как государство вместе с уходящей эпохой."
+        "prediction": {
+          "id": "1b45e274-43d8-468a-bfb9-c2268b4c1e27",
+          "document_id": "tg:@O_Arestovich_official:7093",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Украина должна разорвать тенденцию, ведущую к гибели, осознать свою идентичность и строить самостоятельную политику с опорой на себя, иначе она растворится как государство вместе с уходящей эпохой.",
+          "situation": "Автор обсуждает текущее состояние Украины и ее политические перспективы в контексте угрозы со стороны России и необходимости осознания украинской идентичности.",
+          "prediction_date": "2025-03-22",
+          "target_date": null,
+          "topic": "політика",
+          "status": "unresolved",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -65,8 +165,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "1f2bd4fc-4de7-45e4-aaed-56273baa5435",
-        "claim": "Військова місія ЄС в Україні триватиме до кінця року."
+        "prediction": {
+          "id": "1f2bd4fc-4de7-45e4-aaed-56273baa5435",
+          "document_id": "tg:@O_Arestovich_official:1404",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Військова місія ЄС в Україні триватиме до кінця року.",
+          "situation": "Автор зазначає про військову підтримку України з боку Європейського Союзу.",
+          "prediction_date": "2021-10-13",
+          "target_date": "2021-12-31",
+          "topic": "міжнародні відносини",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "The EU Military Assistance Mission in support of Ukraine (EUMAM Ukraine) was officially established by the Council of the European Union on October 17, 2022; no such mission existed in Ukraine during 2021.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "medium",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -77,8 +197,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "20256164-5fac-4983-8d7d-c74abff55ab1",
-        "claim": "Військова група 14 армії та «Вооруженные силы ПМР» будуть розглядатися як третій армійський корпус «народної міліції Одесської народної республіки» у 2020 році."
+        "prediction": {
+          "id": "20256164-5fac-4983-8d7d-c74abff55ab1",
+          "document_id": "tg:@O_Arestovich_official:148",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Військова група 14 армії та «Вооруженные силы ПМР» будуть розглядатися як третій армійський корпус «народної міліції Одесської народної республіки» у 2020 році.",
+          "situation": "Автор аналізує загострення військової ситуації в регіоні, зокрема в Придністров'ї, на фоні стратегічних навчань Росії, і попереджає про можливість вторгнення в Україну.",
+          "prediction_date": "2020-05-02",
+          "target_date": "2020-12-31",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "The Odesa region remained under the sovereign control of Ukraine throughout 2020, and no 'Odessa People's Republic' or associated military corps was ever established.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -89,8 +229,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "210c2214-fbb3-4c13-b2f4-bb856d5d2444",
-        "claim": "Голосування по законопроекту про санкції проти Росії, розробленому сенаторами Грэмом і Блюменталем, відбудеться вже на наступному тижні."
+        "prediction": {
+          "id": "210c2214-fbb3-4c13-b2f4-bb856d5d2444",
+          "document_id": "tg:@O_Arestovich_official:7799",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Голосування по законопроекту про санкції проти Росії, розробленому сенаторами Грэмом і Блюменталем, відбудеться вже на наступному тижні.",
+          "situation": "Автор коментує новини про санкції проти Росії, які підтримав Дональд Трамп, вказуючи на те, що Україна робить поступки для миру, тоді як Росія продовжує агресію.",
+          "prediction_date": "2026-01-08",
+          "target_date": "2026-01-15",
+          "topic": "політика",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "Legislative records from the U.S. Senate for the week of January 12-16, 2026, confirm that no vote was held on the specific sanctions bill proposed by Senators Graham and Blumenthal.",
+          "verified_at": "2026-06-21T10:15:31.831108Z",
+          "prediction_strength": "high",
+          "prediction_value": "medium",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 2,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -101,8 +261,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "22865108-0cbc-48ae-97e0-635b96c9d83a",
-        "claim": "Міра пресечення «утримання під вартою» для Порошенка, який страждає від діабету, буде обрана в той же день, коли пройдуть похорони його батька, в четвер."
+        "prediction": {
+          "id": "22865108-0cbc-48ae-97e0-635b96c9d83a",
+          "document_id": "tg:@O_Arestovich_official:250",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Міра пресечення «утримання під вартою» для Порошенка, який страждає від діабету, буде обрана в той же день, коли пройдуть похорони його батька, в четвер.",
+          "situation": "Автор коментує ситуацію навколо Порошенка, зокрема, його стан здоров'я та обрання міри пресечення в контексті смерті його батька.",
+          "prediction_date": "2020-06-16",
+          "target_date": "2020-06-18",
+          "topic": "політика",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "Petro Poroshenko's father, Oleksiy Poroshenko, was buried on June 18, 2020. The Pecherskyi District Court of Kyiv held the hearing on the preventive measure for Petro Poroshenko on July 1, 2020, where the court ultimately denied the prosecution's request for detention.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "medium",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -113,8 +293,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "2653eace-12b8-4705-aef9-c4246434754d",
-        "claim": "Будуть сформовані Фонд відновлення України, акціонерами якого стануть США, РФ і КНР, з метою досягнення розміру 1 трлн доларів."
+        "prediction": {
+          "id": "2653eace-12b8-4705-aef9-c4246434754d",
+          "document_id": "tg:@O_Arestovich_official:6960",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Будуть сформовані Фонд відновлення України, акціонерами якого стануть США, РФ і КНР, з метою досягнення розміру 1 трлн доларів.",
+          "situation": "Автор описує нову стратегію миру через економіку, в якій передбачається створення фонду для відновлення України з участю великих держав.",
+          "prediction_date": "2025-02-23",
+          "target_date": null,
+          "topic": "економіка",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "Станом на 20 червня 2026 року міжнародні механізми відновлення України (такі як Ukraine Facility) функціонують без участі Російської Федерації, а дипломатичні відносини та санкційна політика виключають можливість спільного інвестиційного фонду з країною-агресором.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -125,8 +325,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "367d100b-25e5-4b9c-bf51-b9ed1018cb5d",
-        "claim": "Сили оборони України виконують задачу прорыву основної оборони противника вже цієї осені."
+        "prediction": {
+          "id": "367d100b-25e5-4b9c-bf51-b9ed1018cb5d",
+          "document_id": "tg:@O_Arestovich_official:4148",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Сили оборони України виконують задачу прорыву основної оборони противника вже цієї осені.",
+          "situation": "Автор стверджує, що незважаючи на зусилля російських військ та заяви в західній пресі, Сили оборони України планомірно просуваються до побережжя Азовського моря і вже виконали перший етап контрнаступу.",
+          "prediction_date": "2023-07-30",
+          "target_date": "2023-09-30",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "As of September 30, 2023, the front line in the Zaporizhzhia region remained north of the main Russian defensive lines (the Surovikin line), and no operational breakthrough to the coast was achieved during the autumn of 2023.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -137,8 +357,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "3b638e48-6fe3-45e8-a7b3-71cc0203bf50",
-        "claim": "Переговори між Україною та Росією відбудуться цього року, але чи зможемо ми домовитися – питання відкрите."
+        "prediction": {
+          "id": "3b638e48-6fe3-45e8-a7b3-71cc0203bf50",
+          "document_id": "tg:@O_Arestovich_official:6157",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Переговори між Україною та Росією відбудуться цього року, але чи зможемо ми домовитися – питання відкрите.",
+          "situation": "Автор обговорює поточну ситуацію на фронті, зокрема наступ російських військ на Донбасі, та підготовку до переговорів, які можуть відбутися в умовах зростаючої напруженості.",
+          "prediction_date": "2024-09-03",
+          "target_date": "2024-12-31",
+          "topic": "міжнародні відносини",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "No official bilateral peace negotiations between Ukraine and the Russian Federation took place during the 2024 calendar year; diplomatic efforts remained limited to prisoner exchanges and humanitarian corridors mediated by third parties.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -149,8 +389,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "3babc7f0-7a44-420a-bd6a-26de84c3a2fc",
-        "claim": "Горячая фаза войны закончится в период с первого марта до июля."
+        "prediction": {
+          "id": "3babc7f0-7a44-420a-bd6a-26de84c3a2fc",
+          "document_id": "tg:@O_Arestovich_official:6892",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Горячая фаза войны закончится в период с первого марта до июля.",
+          "situation": "Автор указывает на план прекращения войны и говорит о том, что даты окончания горячей фазы войны близки к реальности.",
+          "prediction_date": "2025-02-08",
+          "target_date": "2025-07-31",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "As of June 2026, intense combat operations, including artillery exchanges, drone warfare, and territorial maneuvering, continue across the front line in Ukraine, contradicting the claim that the hot phase would conclude by July 2025.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -161,8 +421,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "4ad4eccb-5941-498c-9acf-28d96900babf",
-        "claim": "Путін оголосить всеобщу мобілізацію в РФ 9 травня 2022 року."
+        "prediction": {
+          "id": "4ad4eccb-5941-498c-9acf-28d96900babf",
+          "document_id": "tg:@O_Arestovich_official:2013",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Путін оголосить всеобщу мобілізацію в РФ 9 травня 2022 року.",
+          "situation": "Автор обговорює можливість оголошення всеобщої мобілізації в Росії, підкреслюючи, що це рішення має бути якось виправдане перед громадянами, які чують, що \"спецоперація йде за планом\".",
+          "prediction_date": "2022-05-08",
+          "target_date": "2022-05-09",
+          "topic": "політика",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "On May 9, 2022, during his speech at the Victory Day parade in Moscow, Vladimir Putin did not announce a general mobilization; instead, he focused on justifying the ongoing 'special military operation' without declaring a formal state of war or mass mobilization.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -173,8 +453,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "4be09bef-9f77-4b55-b946-3f8f5834fee0",
-        "claim": "Свободне проявлення нашої органіки дозволить нам скачкообразно розвивати економіку і ВПК, що зніме питання другого раунду війни з РФ."
+        "prediction": {
+          "id": "4be09bef-9f77-4b55-b946-3f8f5834fee0",
+          "document_id": "tg:@O_Arestovich_official:6038",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Свободне проявлення нашої органіки дозволить нам скачкообразно розвивати економіку і ВПК, що зніме питання другого раунду війни з РФ.",
+          "situation": "Автор вказує на важливість органічного розвитку для економіки та військово-промислового комплексу України в контексті війни з Росією.",
+          "prediction_date": "2024-08-10",
+          "target_date": null,
+          "topic": "економіка",
+          "status": "unresolved",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -185,8 +485,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "5369c256-71a6-406d-bbc8-67a3d63cdf5f",
-        "claim": "Висока ймовірність зустрічі президентів України та Росії відбудеться."
+        "prediction": {
+          "id": "5369c256-71a6-406d-bbc8-67a3d63cdf5f",
+          "document_id": "tg:@O_Arestovich_official:1146",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Висока ймовірність зустрічі президентів України та Росії відбудеться.",
+          "situation": "Автор коментує результати засідання ТКГ та обговорює можливість зустрічі між президентами України та Росії, зокрема в контексті дипломатичних зусиль та консолідації Заходу.",
+          "prediction_date": "2021-04-29",
+          "target_date": null,
+          "topic": "міжнародні відносини",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "Since the full-scale invasion of February 2022, all direct diplomatic contact at the presidential level between Ukraine and Russia has ceased, and the International Criminal Court issued an arrest warrant for Vladimir Putin in 2023, effectively precluding any formal bilateral summit.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -197,8 +517,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "5622c734-f97c-4287-8ad2-6679209d99af",
-        "claim": "На 11 вересня Росія не зможе провести референдум в окупованих територіях України через відсутність перспективи наступу та збільшення контролю над територією."
+        "prediction": {
+          "id": "5622c734-f97c-4287-8ad2-6679209d99af",
+          "document_id": "tg:@O_Arestovich_official:2281",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "На 11 вересня Росія не зможе провести референдум в окупованих територіях України через відсутність перспективи наступу та збільшення контролю над територією.",
+          "situation": "Автор аналізує підготовку Росії до референдуму в окупованих територіях України, зазначаючи, що для його проведення потрібна законність, якої немає через військові обставини.",
+          "prediction_date": "2022-06-29",
+          "target_date": "2022-09-11",
+          "topic": "політика",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "Russia conducted illegal referendums in occupied Ukrainian territories from September 23 to 27, 2022, and subsequently signed treaties of accession for these regions into the Russian Federation on September 30, 2022.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -209,8 +549,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "5738cbaf-e8c4-435d-8b9b-63589358b61a",
-        "claim": "Через рік-два-три війни в Україні буде мільйон убитих і 50% території буде втрачено."
+        "prediction": {
+          "id": "5738cbaf-e8c4-435d-8b9b-63589358b61a",
+          "document_id": "tg:@O_Arestovich_official:6803",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Через рік-два-три війни в Україні буде мільйон убитих і 50% території буде втрачено.",
+          "situation": "Автор обговорює наслідки війни в Україні, зокрема втрати людей і території, та критикує західних партнерів за недостатню допомогу.",
+          "prediction_date": "2025-01-22",
+          "target_date": null,
+          "topic": "війна",
+          "status": "premature",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": "2027-01-22",
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -221,8 +581,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "5a1f7c81-9288-43f8-a9ed-b2bce1953731",
-        "claim": "В рамках військових навчань «Об'єднані зусилля - 2020» буде повністю розгорнута система управління Територіальної оборони України з практичним призовом і навчаннями більше 7000 резервістів."
+        "prediction": {
+          "id": "5a1f7c81-9288-43f8-a9ed-b2bce1953731",
+          "document_id": "tg:@O_Arestovich_official:514",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "В рамках військових навчань «Об'єднані зусилля - 2020» буде повністю розгорнута система управління Територіальної оборони України з практичним призовом і навчаннями більше 7000 резервістів.",
+          "situation": "Автор коментує проведення військових навчань в Україні, які заплановані на фоні збільшення ймовірності агресії з боку Росії під час їхніх навчань.",
+          "prediction_date": "2020-09-17",
+          "target_date": "2020-09-17",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "Official reports from the Ministry of Defense of Ukraine regarding the 'Joint Efforts-2020' exercises confirm the participation of approximately 12,000 personnel in total, but the specific claim of a 7,000-person reservist call-up for a fully deployed Territorial Defense system is inconsistent with the actual operational structure and mobilization figures of that period.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "medium",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -233,8 +613,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "5b2856c1-3c7b-4710-bba6-c0ffcf431571",
-        "claim": "Запас прочності економіки України буде вичерпано приблизно до жовтня 2024 року."
+        "prediction": {
+          "id": "5b2856c1-3c7b-4710-bba6-c0ffcf431571",
+          "document_id": "tg:@O_Arestovich_official:5649",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Запас прочності економіки України буде вичерпано приблизно до жовтня 2024 року.",
+          "situation": "Автор аналізує наслідки неефективної мобілізації, що призводить до закриття бізнесів, масових звільнень та структурних змін на ринку праці.",
+          "prediction_date": "2024-05-24",
+          "target_date": "2024-10-01",
+          "topic": "економіка",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "Ukraine's state budget continues to be executed, international financial aid packages (including EU and IMF programs) have remained active through 2025 and 2026, and the national economy has not experienced the total collapse or cessation of state functions predicted for late 2024.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -245,8 +645,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "5cc0e5eb-e81d-499d-8957-9ed0cef532af",
-        "claim": "Чехи відмовляться від планованих закупок «Дана-2М» на користь тільки 155-міліметрових стволів «CAESAR», що буде реалізовано з 2020 року."
+        "prediction": {
+          "id": "5cc0e5eb-e81d-499d-8957-9ed0cef532af",
+          "document_id": "tg:@O_Arestovich_official:779",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Чехи відмовляться від планованих закупок «Дана-2М» на користь тільки 155-міліметрових стволів «CAESAR», що буде реалізовано з 2020 року.",
+          "situation": "Автор коментує ситуацію з закупівлею артилерійських систем в Чехії, спростовуючи інформацію про відмову від «Дана-2М».",
+          "prediction_date": "2020-11-12",
+          "target_date": "2020-12-31",
+          "topic": "економіка",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "In December 2020, the Czech Ministry of Defense officially signed a contract for the purchase of 52 Dana-M2 152mm self-propelled howitzers, directly contradicting the claim that they would abandon this procurement in favor of CAESAR systems by the end of 2020.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "medium",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -257,8 +677,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "60913300-a6b2-424a-b40d-4a529745379c",
-        "claim": "1 жовтня ми будемо жити в іншому світі, з виборами в Німеччині, стартом президентської кампанії у Франції, закінченням «Запада-2021» та виборами в Госдуму РФ."
+        "prediction": {
+          "id": "60913300-a6b2-424a-b40d-4a529745379c",
+          "document_id": "tg:@O_Arestovich_official:1271",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "1 жовтня ми будемо жити в іншому світі, з виборами в Німеччині, стартом президентської кампанії у Франції, закінченням «Запада-2021» та виборами в Госдуму РФ.",
+          "situation": "Автор обговорює зміни у міжнародній політиці та внутрішніх справах України, зокрема, вплив виборів у Німеччині та Франції, а також інших подій, які можуть вплинути на ситуацію в Україні.",
+          "prediction_date": "2021-07-22",
+          "target_date": "2021-10-01",
+          "topic": "політика",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "The German federal election took place on September 26, 2021, and the Russian State Duma elections concluded on September 19, 2021. However, the French presidential campaign for the 2022 election did not officially commence until the Constitutional Council published the list of candidates in March 2022, refuting the claim that it had started by October 1, 2021.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "medium",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -269,8 +709,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "660b2b66-4de9-48e5-b5de-8c8c9dbbd98a",
-        "claim": "10 грудня на загальному засіданні представників країн ЄС буде практично автоматично вирішено питання продовження санкцій проти РФ."
+        "prediction": {
+          "id": "660b2b66-4de9-48e5-b5de-8c8c9dbbd98a",
+          "document_id": "tg:@O_Arestovich_official:842",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "10 грудня на загальному засіданні представників країн ЄС буде практично автоматично вирішено питання продовження санкцій проти РФ.",
+          "situation": "Автор зазначає, що в умовах поточної політичної ситуації в Європі питання продовження санкцій проти Росії буде вирішено на засіданні ЄС.",
+          "prediction_date": "2020-11-28",
+          "target_date": "2020-12-10",
+          "topic": "політика",
+          "status": "confirmed",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "On December 10, 2020, EU leaders at the European Council summit reached a consensus to extend the economic sanctions against the Russian Federation for a further six months, until July 31, 2021.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "medium",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -281,8 +741,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "672d6c6b-c9b3-4f90-b4da-f79a441a348f",
-        "claim": "Переговори між Україною та Росією не призведуть до успіху, оскільки президент України не вірить у їх результативність, але дає їм шанс."
+        "prediction": {
+          "id": "672d6c6b-c9b3-4f90-b4da-f79a441a348f",
+          "document_id": "tg:@O_Arestovich_official:1671",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Переговори між Україною та Росією не призведуть до успіху, оскільки президент України не вірить у їх результативність, але дає їм шанс.",
+          "situation": "Автор коментує ситуацію з переговорами між Україною та Росією, підкреслюючи, що бої тривають і що українська сторона не вважає переговори успішними.",
+          "prediction_date": "2022-02-27",
+          "target_date": null,
+          "topic": "міжнародні відносини",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "As of June 2026, no comprehensive peace treaty or successful diplomatic resolution has been reached between Ukraine and Russia; the conflict remains active, and the Ukrainian government has maintained its stance that negotiations with the current Russian leadership are ineffective without a complete withdrawal of forces.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -293,8 +773,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "7922d6f2-b96d-43d7-9f7e-e97c9238e475",
-        "claim": "У листопаді 2025 року дефіцит українського бюджету становитиме близько 40 мільярдів доларів."
+        "prediction": {
+          "id": "7922d6f2-b96d-43d7-9f7e-e97c9238e475",
+          "document_id": "tg:@O_Arestovich_official:7456",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "У листопаді 2025 року дефіцит українського бюджету становитиме близько 40 мільярдів доларів.",
+          "situation": "Автор аналізує фінансову ситуацію в Україні, зокрема бюджет на наступний рік, та можливість отримання допомоги від європейських та американських партнерів.",
+          "prediction_date": "2025-08-17",
+          "target_date": "2025-11-01",
+          "topic": "економіка",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "According to the 2025 State Budget of Ukraine, the total planned annual deficit was approximately 1.5 trillion UAH (roughly 38-40 billion USD at the time of budget approval), making a 40 billion USD deficit for a single month factually incorrect.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "medium",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -305,8 +805,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "7c3ebb0d-632b-4521-a0f6-8894dec6c20c",
-        "claim": "Україна стане сильною і самостійною, або її зімнуть."
+        "prediction": {
+          "id": "7c3ebb0d-632b-4521-a0f6-8894dec6c20c",
+          "document_id": "tg:@O_Arestovich_official:1155",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Україна стане сильною і самостійною, або її зімнуть.",
+          "situation": "Автор обговорює виклики, з якими стикається Україна, та необхідність подолати комплекс вселенської жертви, щоб стати сильною державою.",
+          "prediction_date": "2021-05-10",
+          "target_date": null,
+          "topic": "політика",
+          "status": "unresolved",
+          "confidence": 0.8,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -317,8 +837,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "7c6b46f0-5787-42f3-afdf-a716b990b656",
-        "claim": "Українська солідарність радикально підвищить величину витрат для Росії, що може призвести до її військового поразки."
+        "prediction": {
+          "id": "7c6b46f0-5787-42f3-afdf-a716b990b656",
+          "document_id": "tg:@O_Arestovich_official:8074",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Українська солідарність радикально підвищить величину витрат для Росії, що може призвести до її військового поразки.",
+          "situation": "Автор обговорює вплив української солідарності на результати війни та можливі наслідки для Росії.",
+          "prediction_date": "2026-05-18",
+          "target_date": null,
+          "topic": "війна",
+          "status": "unresolved",
+          "confidence": 0.8,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-21T10:15:31.831108Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 2,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -329,8 +869,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "7d73ee32-b9ca-43b9-9e40-67ba33c5340e",
-        "claim": "В Україні відбудеться зовнішньополітичне поразка, яке вже стоїть на порозі."
+        "prediction": {
+          "id": "7d73ee32-b9ca-43b9-9e40-67ba33c5340e",
+          "document_id": "tg:@O_Arestovich_official:74",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "В Україні відбудеться зовнішньополітичне поразка, яке вже стоїть на порозі.",
+          "situation": "Автор вказує на невдачі нової влади в управлінні країною та їх наслідки, включаючи можливі зовнішньополітичні проблеми.",
+          "prediction_date": "2020-03-31",
+          "target_date": null,
+          "topic": "міжнародні відносини",
+          "status": "unresolved",
+          "confidence": 0.8,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -341,8 +901,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "8180c17b-c5a5-4668-826e-ea9a7bdd8b67",
-        "claim": "Якщо ми хочемо зберегтися в своїх кордонах, привести до розвалу путінську Росію, повернути свою історію і стати сильним державою, нам потрібен інший проект."
+        "prediction": {
+          "id": "8180c17b-c5a5-4668-826e-ea9a7bdd8b67",
+          "document_id": "tg:@O_Arestovich_official:2235",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Якщо ми хочемо зберегтися в своїх кордонах, привести до розвалу путінську Росію, повернути свою історію і стати сильним державою, нам потрібен інший проект.",
+          "situation": "Автор висловлює необхідність альтернативного проекту для України, щоб уникнути втрати територій і стати сильною державою.",
+          "prediction_date": "2022-06-18",
+          "target_date": null,
+          "topic": "політика",
+          "status": "unresolved",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -353,8 +933,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "83eb3265-9a7a-4e62-82d1-fa99d040a6ea",
-        "claim": "Республіканці програють проміжні вибори в Конгрес США цього року, що призведе до усунення Трампа від влади через два роки."
+        "prediction": {
+          "id": "83eb3265-9a7a-4e62-82d1-fa99d040a6ea",
+          "document_id": "tg:@O_Arestovich_official:7906",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Республіканці програють проміжні вибори в Конгрес США цього року, що призведе до усунення Трампа від влади через два роки.",
+          "situation": "Зеленський сподівається на активну участь у планах Демократичної партії США щодо усунення Трампа від влади.",
+          "prediction_date": "2026-02-18",
+          "target_date": "2026-11-08",
+          "topic": "політика",
+          "status": "premature",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-21T10:15:31.831108Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": "2026-11-09",
+          "verify_attempts": 2,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -365,8 +965,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "8434bb85-a491-42b8-846b-6bbdf6081b14",
-        "claim": "Ракетні обстріли по Україні не відбудуться через певні обставини."
+        "prediction": {
+          "id": "8434bb85-a491-42b8-846b-6bbdf6081b14",
+          "document_id": "tg:@O_Arestovich_official:1593",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Ракетні обстріли по Україні не відбудуться через певні обставини.",
+          "situation": "Автор аналізує військову ситуацію та можливість ракетних атак на Україну.",
+          "prediction_date": "2022-01-31",
+          "target_date": null,
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "Since February 24, 2022, Ukraine has been subjected to continuous and widespread missile and drone attacks by Russian forces, resulting in significant destruction of infrastructure and civilian casualties.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -377,8 +997,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "84f0d404-fc41-4e36-b61a-08d4c5c0c903",
-        "claim": "25 липня відбудеться киносемінар по мультфільму «Панда-Кунг-Фу», на якому ми вивчимо міф і його вплив на нас."
+        "prediction": {
+          "id": "84f0d404-fc41-4e36-b61a-08d4c5c0c903",
+          "document_id": "tg:@O_Arestovich_official:303",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "25 липня відбудеться киносемінар по мультфільму «Панда-Кунг-Фу», на якому ми вивчимо міф і його вплив на нас.",
+          "situation": "Автор анонсує проведення киносемінару, присвяченого дослідженню міфологічних сюжетів та їх впливу на свідомість.",
+          "prediction_date": "2020-07-14",
+          "target_date": "2020-07-25",
+          "topic": "культура",
+          "status": "unresolved",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "low",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -389,8 +1029,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "879e5865-bb9c-4a12-9fba-fcee3d0caf40",
-        "claim": "Модуль «Реализованная личность» в Школе «Апейрон» вперше почнеться 4 лютого 2023 року."
+        "prediction": {
+          "id": "879e5865-bb9c-4a12-9fba-fcee3d0caf40",
+          "document_id": "tg:@O_Arestovich_official:3056",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Модуль «Реализованная личность» в Школе «Апейрон» вперше почнеться 4 лютого 2023 року.",
+          "situation": "Автор описує структуру курсів та модулів Школи «Апейрон», а також анонсує початок нового модуля, який має на меті допомогти учасникам знайти свою особисту силу та самостійність.",
+          "prediction_date": "2023-01-05",
+          "target_date": "2023-02-04",
+          "topic": "освіта",
+          "status": "confirmed",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "The module 'Realized Personality' in the Apeiron School officially launched its curriculum on February 4, 2023, as scheduled in the institution's academic calendar for that year.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "low",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -401,8 +1061,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "880dea38-634d-4950-af0d-f07239696bd4",
-        "claim": "Жителі ОРДЛОУ можуть стати додатковим электоратом \"Єдиної Росії\" на виборах."
+        "prediction": {
+          "id": "880dea38-634d-4950-af0d-f07239696bd4",
+          "document_id": "tg:@O_Arestovich_official:1167",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Жителі ОРДЛОУ можуть стати додатковим электоратом \"Єдиної Росії\" на виборах.",
+          "situation": "Обговорюється можливість впливу жителів ОРДЛОУ на результати виборів в Росії, зокрема в контексті підтримки партії \"Єдина Росія\".",
+          "prediction_date": "2021-05-23",
+          "target_date": null,
+          "topic": "політика",
+          "status": "confirmed",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "In the September 2023 regional elections and the March 2024 presidential election, the occupied territories of Donetsk and Luhansk regions were treated as constituent entities of the Russian Federation, with 'United Russia' securing overwhelming majorities in the local legislative bodies established by the occupation authorities.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -413,8 +1093,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "89df71e8-23e8-43e8-9b23-c68b5decfe95",
-        "claim": "На основі динаміки, до 2025 року Європа прийме ідею про розподіл України на три частини: російську, нейтральну та західну."
+        "prediction": {
+          "id": "89df71e8-23e8-43e8-9b23-c68b5decfe95",
+          "document_id": "tg:@O_Arestovich_official:7524",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "На основі динаміки, до 2025 року Європа прийме ідею про розподіл України на три частини: російську, нейтральну та західну.",
+          "situation": "Автор аналізує ситуацію в Україні, зокрема проблеми в армії, корупцію та інформаційний вплив на громадян, і зазначає, що на фоні цих викликів Орбан заявляє про можливий розподіл України.",
+          "prediction_date": "2025-09-09",
+          "target_date": "2025-12-31",
+          "topic": "міжнародні відносини",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "As of June 2026, no European state or the European Union as a bloc has adopted or recognized a plan to partition Ukraine; diplomatic support for Ukraine's territorial integrity remains the official stance of all EU and NATO member states.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -425,8 +1125,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "8a0ff7c2-f53a-44b7-a369-e7abfa431c89",
-        "claim": "План по створенню 300 000 групи НАТО на кордонах Росії буде реалізований протягом семи років для стримування російської армії."
+        "prediction": {
+          "id": "8a0ff7c2-f53a-44b7-a369-e7abfa431c89",
+          "document_id": "tg:@O_Arestovich_official:4079",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "План по створенню 300 000 групи НАТО на кордонах Росії буде реалізований протягом семи років для стримування російської армії.",
+          "situation": "Автор коментує новини про створення великої групи НАТО біля кордонів Росії та збільшення виробництва боєприпасів, що викликало обговорення можливості війни.",
+          "prediction_date": "2023-07-16",
+          "target_date": "2030-07-16",
+          "topic": "міжнародні відносини",
+          "status": "premature",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": "2030-07-16",
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -437,8 +1157,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "8b4bc844-91bb-49be-8ea8-f7b664e9d39b",
-        "claim": "Кремль спробує реалізувати сценарій масових вуличних безладів в Україні в період з січня по березень, одночасно з загостренням на фронті та провокаціями на кордонах."
+        "prediction": {
+          "id": "8b4bc844-91bb-49be-8ea8-f7b664e9d39b",
+          "document_id": "tg:@O_Arestovich_official:1549",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Кремль спробує реалізувати сценарій масових вуличних безладів в Україні в період з січня по березень, одночасно з загостренням на фронті та провокаціями на кордонах.",
+          "situation": "Автор аналізує ситуацію в Казахстані та можливі дії Кремля щодо України, вказуючи на страх росіян перед українською силою та на їхні наміри спровокувати безлад в Україні.",
+          "prediction_date": "2022-01-07",
+          "target_date": "2022-03-31",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "Following the full-scale invasion on February 24, 2022, Ukraine experienced a surge in national unity and social cohesion rather than internal mass civil unrest, as evidenced by widespread mobilization and public support for the government.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -449,8 +1189,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "92d4ba2b-2138-4235-a9f8-e4300a0dcc44",
-        "claim": "Україна вистоїть, як держава."
+        "prediction": {
+          "id": "92d4ba2b-2138-4235-a9f8-e4300a0dcc44",
+          "document_id": "tg:@O_Arestovich_official:966",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Україна вистоїть, як держава.",
+          "situation": "Олексій Арестович обговорює можливі загрози для України, зокрема в контексті військових дій з боку Росії.",
+          "prediction_date": "2021-01-14",
+          "target_date": null,
+          "topic": "війна",
+          "status": "confirmed",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "As of June 20, 2026, the Ukrainian state remains a sovereign entity with a functioning government, international diplomatic recognition, and control over the majority of its internationally recognized territory.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -461,8 +1221,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "935a24a4-1d6b-40c8-94de-385c843e4725",
-        "claim": "Ситуація може сильно змінитися для нас через півроку-рік, і замість договору про вступ до НАТО можуть з'явитися нові Мінські угоди без реальних гарантій."
+        "prediction": {
+          "id": "935a24a4-1d6b-40c8-94de-385c843e4725",
+          "document_id": "tg:@O_Arestovich_official:4672",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Ситуація може сильно змінитися для нас через півроку-рік, і замість договору про вступ до НАТО можуть з'явитися нові Мінські угоди без реальних гарантій.",
+          "situation": "Автор аналізує поточну військову ситуацію в Україні, відзначаючи, що західні партнери не можуть надати необхідну військову допомогу, і підкреслює важливість вступу до НАТО для забезпечення безпеки.",
+          "prediction_date": "2023-11-12",
+          "target_date": "2024-05-12",
+          "topic": "міжнародні відносини",
+          "status": "refuted",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": "As of June 2026, Ukraine has not signed any 'Minsk-style' agreements; instead, it has formalized long-term security commitments with over 20 countries, including the United States, UK, Germany, and France, which provide concrete military and financial support frameworks.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -473,8 +1253,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "98433ae4-d121-426b-8398-2e7b0b05ef19",
-        "claim": "14 грудня в Інтерфакс-Україна відбудеться спільна прес-конференція за участю Віце-прем'єр-міністра України О. Уруського, Голови Комітету Верховної Ради України О. Завітневича, Генерального директора «Укроборонпром» Ю. Гусєва та радника Офісу Президента України О. Арестовича."
+        "prediction": {
+          "id": "98433ae4-d121-426b-8398-2e7b0b05ef19",
+          "document_id": "tg:@O_Arestovich_official:864",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "14 грудня в Інтерфакс-Україна відбудеться спільна прес-конференція за участю Віце-прем'єр-міністра України О. Уруського, Голови Комітету Верховної Ради України О. Завітневича, Генерального директора «Укроборонпром» Ю. Гусєва та радника Офісу Президента України О. Арестовича.",
+          "situation": "Автор анонсує прес-конференцію, на якій будуть обговорюватися питання реформування оборонно-промислового комплексу України.",
+          "prediction_date": "2020-12-08",
+          "target_date": "2020-12-14",
+          "topic": "політика",
+          "status": "confirmed",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "On December 14, 2020, the press conference titled 'Reform of the Defense Industry: First Results and Plans' was held at the Interfax-Ukraine agency featuring Oleh Uruskyi, Oleksandr Zavitnevych, Yurii Husiev, and Oleksii Arestovych.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "low",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -485,8 +1285,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "994a288c-b888-4863-9518-66ae57f61f5e",
-        "claim": "Російські війська не зможуть фізично взяти завод «Азовсталь» і це їм не вдасться."
+        "prediction": {
+          "id": "994a288c-b888-4863-9518-66ae57f61f5e",
+          "document_id": "tg:@O_Arestovich_official:1922",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Російські війська не зможуть фізично взяти завод «Азовсталь» і це їм не вдасться.",
+          "situation": "Автор аналізує ситуацію на фронті під час 57-ї доби війни, зазначаючи, що російські війська не змогли просунутися в Луганській області та що вони зазнали великих втрат у спробах захопити «Азовсталь».",
+          "prediction_date": "2022-04-21",
+          "target_date": null,
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "On May 20, 2022, the last Ukrainian defenders of the Azovstal steel plant in Mariupol surrendered to Russian forces, marking the complete capture of the facility by the Russian military.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -497,8 +1317,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "a103dfc2-2865-4fff-ba7a-d8a98d76a72d",
-        "claim": "Трамп зможе розпочати серйозні переговори з ким би то не було тільки 20 січня, після офіційного приведення до присяги."
+        "prediction": {
+          "id": "a103dfc2-2865-4fff-ba7a-d8a98d76a72d",
+          "document_id": "tg:@O_Arestovich_official:6695",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Трамп зможе розпочати серйозні переговори з ким би то не було тільки 20 січня, після офіційного приведення до присяги.",
+          "situation": "Автор коментує ситуацію навколо можливих переговорів Трампа з іноземними лідерами, підкреслюючи юридичні обмеження до його інавгурації.",
+          "prediction_date": "2024-12-30",
+          "target_date": "2025-01-20",
+          "topic": "міжнародні відносини",
+          "status": "confirmed",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "Donald Trump was officially inaugurated as the 47th President of the United States on January 20, 2025, following his victory in the 2024 presidential election.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "medium",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -509,8 +1349,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "a20fb9b4-8888-4e17-9df4-f01afcf8e83d",
-        "claim": "Якщо Україна не зупинить війну і не займеться перезагрузкою системи, це призведе до її самоубійства."
+        "prediction": {
+          "id": "a20fb9b4-8888-4e17-9df4-f01afcf8e83d",
+          "document_id": "tg:@O_Arestovich_official:6533",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Якщо Україна не зупинить війну і не займеться перезагрузкою системи, це призведе до її самоубійства.",
+          "situation": "Автор обговорює важкість війни для України та необхідність зупинки конфлікту для виживання держави.",
+          "prediction_date": "2024-11-29",
+          "target_date": null,
+          "topic": "війна",
+          "status": "unresolved",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -521,8 +1381,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "a2730a52-5b8b-44b3-810a-6b593aacc3ac",
-        "claim": "Рано чи пізно Білорусь буде вільною."
+        "prediction": {
+          "id": "a2730a52-5b8b-44b3-810a-6b593aacc3ac",
+          "document_id": "tg:@O_Arestovich_official:4606",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Рано чи пізно Білорусь буде вільною.",
+          "situation": "Автор обговорює майбутнє Білорусі в контексті її важливості для обʼєднання вільних країн Східної Європи та впливу режиму Лукашенка на народ.",
+          "prediction_date": "2023-10-31",
+          "target_date": null,
+          "topic": "політика",
+          "status": "unresolved",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -533,8 +1413,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "a73665e0-f89d-4d12-a0bb-9e93f8bb6814",
-        "claim": "Росіяни підготують стратегічне наступлення, яке відбудеться в найближчі дні по всьому фронту, від Запорожжя до Купянська."
+        "prediction": {
+          "id": "a73665e0-f89d-4d12-a0bb-9e93f8bb6814",
+          "document_id": "tg:@O_Arestovich_official:6290",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Росіяни підготують стратегічне наступлення, яке відбудеться в найближчі дні по всьому фронту, від Запорожжя до Купянська.",
+          "situation": "Автор коментує накопичення ударних груп російських військ на фронті та висловлює думку про imminent стратегічне наступлення.",
+          "prediction_date": "2024-10-11",
+          "target_date": "2024-10-18",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "Military reports and frontline monitoring from October 2024 confirm that while localized fighting continued, there was no large-scale, synchronized strategic offensive launched across the entire Zaporizhzhia-Kupiansk axis as claimed.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -545,8 +1445,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "a7e9b86d-3c18-43f6-b13c-3d10430d574a",
-        "claim": "Перший крок до миру полягає в тому, щоб дійти до побережжя Азовського моря і звільнити значну частину території на півдні."
+        "prediction": {
+          "id": "a7e9b86d-3c18-43f6-b13c-3d10430d574a",
+          "document_id": "tg:@O_Arestovich_official:4196",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Перший крок до миру полягає в тому, щоб дійти до побережжя Азовського моря і звільнити значну частину території на півдні.",
+          "situation": "Автор обговорює необхідність умов для результативних переговорів між Зеленським і Путіним, зазначаючи, що для цього потрібні певні підстави, яких наразі немає.",
+          "prediction_date": "2023-08-10",
+          "target_date": null,
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "Станом на 20 червня 2026 року контроль над узбережжям Азовського моря (зокрема містами Маріуполь та Бердянськ) залишається за російськими окупаційними військами, а лінія фронту на півдні України не зазнала суттєвих змін на користь ЗСУ з серпня 2023 року.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -557,8 +1477,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "a8a2d720-84f0-4925-9d2b-428c96ae49b8",
-        "claim": "З 2014 по 2032 рік Україна боротиметься за свободу та незалежність, але в результаті стане частиною СРСР-2."
+        "prediction": {
+          "id": "a8a2d720-84f0-4925-9d2b-428c96ae49b8",
+          "document_id": "tg:@O_Arestovich_official:7992",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "З 2014 по 2032 рік Україна боротиметься за свободу та незалежність, але в результаті стане частиною СРСР-2.",
+          "situation": "Автор аналізує соціокультурні аспекти війни та наслідки для України, вказуючи на можливі негативні результати боротьби за незалежність.",
+          "prediction_date": "2026-04-08",
+          "target_date": "2032-12-31",
+          "topic": "війна",
+          "status": "premature",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-21T10:15:31.831108Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": "2032-12-31",
+          "verify_attempts": 2,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -569,8 +1509,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "a9a38a02-c390-4864-aab5-6874bd240318",
-        "claim": "Повномасштабна війна проти Росії призведе до значних негативних наслідків для України."
+        "prediction": {
+          "id": "a9a38a02-c390-4864-aab5-6874bd240318",
+          "document_id": "tg:@O_Arestovich_official:1288",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Повномасштабна війна проти Росії призведе до значних негативних наслідків для України.",
+          "situation": "Автор обговорює можливі наслідки військових дій та загострення конфлікту з Росією, зокрема в контексті політичної ситуації в Україні.",
+          "prediction_date": "2021-08-05",
+          "target_date": null,
+          "topic": "війна",
+          "status": "confirmed",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "As of June 2026, Ukraine has suffered massive destruction of critical infrastructure, significant loss of life, displacement of millions of citizens, and a severe contraction of its GDP due to the ongoing full-scale war with Russia.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -581,8 +1541,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "aa805204-2468-4189-9123-01bcac3adf79",
-        "claim": "Путін може атакувати європейські країни НАТО в липні під час саміту НАТО у Вашингтоні."
+        "prediction": {
+          "id": "aa805204-2468-4189-9123-01bcac3adf79",
+          "document_id": "tg:@O_Arestovich_official:5214",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Путін може атакувати європейські країни НАТО в липні під час саміту НАТО у Вашингтоні.",
+          "situation": "Автор обговорює можливість нападу Росії на країни НАТО, зазначаючи три ключові моменти, коли це може статися.",
+          "prediction_date": "2024-03-05",
+          "target_date": "2024-07-01",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "The NATO summit in Washington took place from July 9 to July 11, 2024, and concluded without any military aggression or direct attack by the Russian Federation against any NATO member state.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -593,8 +1573,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "af07573b-ce26-41c7-b4de-a78a74d4aecd",
-        "claim": "У Молдові 28 вересня відбудуться парламентські вибори, на яких проросійські сили можуть отримати можливість усунути Майю Санду з поста президента."
+        "prediction": {
+          "id": "af07573b-ce26-41c7-b4de-a78a74d4aecd",
+          "document_id": "tg:@O_Arestovich_official:7550",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "У Молдові 28 вересня відбудуться парламентські вибори, на яких проросійські сили можуть отримати можливість усунути Майю Санду з поста президента.",
+          "situation": "Автор прогнозує можливі наслідки парламентських виборів у Молдові, які можуть призвести до зміни влади на проросійську.",
+          "prediction_date": "2025-09-19",
+          "target_date": "2025-09-28",
+          "topic": "політика",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "The parliamentary elections in Moldova were not held in September 2025; the previous elections occurred in 2021, and the next regular elections are mandated for 2029. Additionally, the Moldovan President is elected by the Parliament or directly by the people, and parliamentary election results do not automatically trigger a removal of the President.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -605,8 +1605,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "b07c4b68-c914-4107-8839-fb2752cd5147",
-        "claim": "6 листопада на семінарі «Внутрішня чесність» ми спробуємо освоїти принципи відновлення розірваної зворотної зв'язку від самого себе до свого життя."
+        "prediction": {
+          "id": "b07c4b68-c914-4107-8839-fb2752cd5147",
+          "document_id": "tg:@O_Arestovich_official:1423",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "6 листопада на семінарі «Внутрішня чесність» ми спробуємо освоїти принципи відновлення розірваної зворотної зв'язку від самого себе до свого життя.",
+          "situation": "Автор обговорює важливість внутрішньої чесності та відновлення зв'язку з собою, пропонуючи семінар для освоєння цих принципів.",
+          "prediction_date": "2021-10-27",
+          "target_date": "2021-11-06",
+          "topic": "особистісний розвиток",
+          "status": "confirmed",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": "The seminar 'Внутрішня чесність' was scheduled and held on November 6, 2021, as a psychological workshop.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "low",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -617,8 +1637,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "b8291900-d0de-4e52-9858-c6e6ce7f775f",
-        "claim": "Воєнна промисловість України буде перестроєна в тісному співробітництві зі країнами НАТО протягом 10 років."
+        "prediction": {
+          "id": "b8291900-d0de-4e52-9858-c6e6ce7f775f",
+          "document_id": "tg:@O_Arestovich_official:2750",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Воєнна промисловість України буде перестроєна в тісному співробітництві зі країнами НАТО протягом 10 років.",
+          "situation": "Автор коментує наслідки масованого ракетного обстрілу України Росією, зазначаючи, що цивілізований світ відповідає на агресію швидкою передачею озброєння Україні.",
+          "prediction_date": "2022-10-13",
+          "target_date": "2032-10-13",
+          "topic": "економіка",
+          "status": "premature",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": "2032-10-13",
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -629,8 +1669,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "b8e7e9a8-4399-4572-8ae4-b2a855886467",
-        "claim": "Організація «Вагнер» не виконає обіцянку вийти з Бахмута 10-го травня."
+        "prediction": {
+          "id": "b8e7e9a8-4399-4572-8ae4-b2a855886467",
+          "document_id": "tg:@O_Arestovich_official:3689",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Організація «Вагнер» не виконає обіцянку вийти з Бахмута 10-го травня.",
+          "situation": "Автор коментує невдачі Кремля у війні та ситуацію навколо організації «Вагнер», яка не виконала своїх обіцянок щодо виходу з Бахмута.",
+          "prediction_date": "2023-05-11",
+          "target_date": "2023-05-10",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "Yevgeny Prigozhin and Wagner forces remained in Bakhmut well past the May 10, 2023, deadline, continuing combat operations and only initiating a formal handover of positions to regular Russian army units later in May 2023.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "medium",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -641,8 +1701,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "c05043b3-4cd9-4db6-a7ed-ce3b6bd9cb7d",
-        "claim": "700 тисяч людей залишаться без води через руйнування системи іригації."
+        "prediction": {
+          "id": "c05043b3-4cd9-4db6-a7ed-ce3b6bd9cb7d",
+          "document_id": "tg:@O_Arestovich_official:3873",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "700 тисяч людей залишаться без води через руйнування системи іригації.",
+          "situation": "Автор зазначає, що руйнування системи іригації призведе до великої кількості людей, які залишаться без води.",
+          "prediction_date": "2023-06-11",
+          "target_date": null,
+          "topic": "економіка",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "Following the destruction of the Kakhovka Hydroelectric Power Plant on June 6, 2023, the North Crimean Canal and the Kakhovka irrigation system were drained, leaving over 700,000 people in the region with severely restricted or non-existent access to centralized water supplies, necessitating emergency water deliveries and the construction of new pipelines.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -653,8 +1733,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "c0744024-1928-4755-b48f-2188e7edbd4a",
-        "claim": "Якщо Захід несподівано передасть Україні велику кількість озброєнь, Сили оборони України можуть почати завдавати росіянам тяжкі поразки на полі бою."
+        "prediction": {
+          "id": "c0744024-1928-4755-b48f-2188e7edbd4a",
+          "document_id": "tg:@O_Arestovich_official:7656",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Якщо Захід несподівано передасть Україні велику кількість озброєнь, Сили оборони України можуть почати завдавати росіянам тяжкі поразки на полі бою.",
+          "situation": "Автор обговорює можливість зміни ситуації на фронті внаслідок дій Заходу щодо постачання озброєнь Україні.",
+          "prediction_date": "2025-10-24",
+          "target_date": null,
+          "topic": "війна",
+          "status": "premature",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": "2027-10-24",
+          "next_check_at": "2026-12-20",
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -665,8 +1765,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "c09667c0-f01a-4242-b7a0-52f84b3ecefb",
-        "claim": "Протягом трьох місяців, з літа до осені 2025 року, відбудеться продовження переговорів між США та Росією, в яких американці спробують знизити вимоги Путіна, а Путін сподівається, що американці зрозуміють, що допомога не діє на нього і що рішення полягає в усуненні Зеленського."
+        "prediction": {
+          "id": "c09667c0-f01a-4242-b7a0-52f84b3ecefb",
+          "document_id": "tg:@O_Arestovich_official:7372",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Протягом трьох місяців, з літа до осені 2025 року, відбудеться продовження переговорів між США та Росією, в яких американці спробують знизити вимоги Путіна, а Путін сподівається, що американці зрозуміють, що допомога не діє на нього і що рішення полягає в усуненні Зеленського.",
+          "situation": "Автор аналізує відносини між Трампом і Путіним, зокрема пропозиції щодо усунення Зеленського та можливі наслідки для України в контексті військової та фінансової допомоги.",
+          "prediction_date": "2025-07-11",
+          "target_date": "2025-10-11",
+          "topic": "міжнародні відносини",
+          "status": "unresolved",
+          "confidence": 0.85,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -677,8 +1797,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "d296aa7f-256c-4c9a-8499-6e1bcae22f36",
-        "claim": "7 вересня 2020 року Пушилін розпочне війну, завдавши удару по позиціях українського 503-го батальйону морської піхоти в районі села Шуми."
+        "prediction": {
+          "id": "d296aa7f-256c-4c9a-8499-6e1bcae22f36",
+          "document_id": "tg:@O_Arestovich_official:463",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "7 вересня 2020 року Пушилін розпочне війну, завдавши удару по позиціях українського 503-го батальйону морської піхоти в районі села Шуми.",
+          "situation": "Автор коментує заяву Пушиліна про початок війни та аналізує причини, чому ОРДЛО не можуть дотримуватись перемир'я, оскільки це загрожує їхньому існуванню.",
+          "prediction_date": "2020-09-06",
+          "target_date": "2020-09-07",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "On September 7, 2020, the Joint Forces Operation (JFO) command reported that the situation in the area of Shumy remained under control and no combat engagement or offensive operation as described in the claim occurred.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "medium",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -689,8 +1829,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "d39c2f2a-870f-4670-a6fb-74f0ce116603",
-        "claim": "У найближчий час не буде нападу Росії на країни Балтії."
+        "prediction": {
+          "id": "d39c2f2a-870f-4670-a6fb-74f0ce116603",
+          "document_id": "tg:@O_Arestovich_official:7972",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "У найближчий час не буде нападу Росії на країни Балтії.",
+          "situation": "Автор коментує можливі провокації з боку Росії щодо країн Балтії, але запевняє, що нападу не відбудеться через брак сил у Росії.",
+          "prediction_date": "2026-03-25",
+          "target_date": null,
+          "topic": "міжнародні відносини",
+          "status": "confirmed",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": "As of June 2026, there has been no military invasion or direct armed attack by the Russian Federation against Estonia, Latvia, or Lithuania.",
+          "verified_at": "2026-06-21T10:15:31.831108Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 2,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -701,8 +1861,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "d5c6b794-d263-48ec-9cdc-3febd9a35a2a",
-        "claim": "Нове керівництво НАТО заявить, що Україна стане 33-м або 34-м членом НАТО."
+        "prediction": {
+          "id": "d5c6b794-d263-48ec-9cdc-3febd9a35a2a",
+          "document_id": "tg:@O_Arestovich_official:6356",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Нове керівництво НАТО заявить, що Україна стане 33-м або 34-м членом НАТО.",
+          "situation": "Автор коментує заяву нового голови НАТО Рютте про можливе членство України в НАТО, вказуючи на невизначеність щодо порядкового номера.",
+          "prediction_date": "2024-10-22",
+          "target_date": null,
+          "topic": "міжнародні відносини",
+          "status": "premature",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": "2030-01-01",
+          "next_check_at": "2027-06-20",
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -713,8 +1893,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "d5d1ff94-421a-4ed4-b9aa-0fe6d87518cc",
-        "claim": "Якщо Захід або інші країни не почнуть масово постачати Україні озброєння, то підготовка полумільйона нових бійців займе щонайменше дев'ять місяців, що може затримати українські військові дії до липня наступного року."
+        "prediction": {
+          "id": "d5d1ff94-421a-4ed4-b9aa-0fe6d87518cc",
+          "document_id": "tg:@O_Arestovich_official:4491",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Якщо Захід або інші країни не почнуть масово постачати Україні озброєння, то підготовка полумільйона нових бійців займе щонайменше дев'ять місяців, що може затримати українські військові дії до липня наступного року.",
+          "situation": "Автор розглядає питання постачання озброєнь Україні та вплив цього на військові дії в умовах затримки мобілізації.",
+          "prediction_date": "2023-10-08",
+          "target_date": "2024-07-01",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "As of July 2024, the Ukrainian Armed Forces were actively engaged in combat operations across the front line, including the defense of Kharkiv and Donetsk regions, demonstrating that military activity was not suspended or delayed until that date due to the mentioned training constraints.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -725,8 +1925,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "d62de1d8-bf70-44cc-9aef-a6d7d6e4dd13",
-        "claim": "Рішення американського керівництва видати новій владі Афганістану списки всіх американських громадян та афганців, які співпрацювали з американською адміністрацією, призведе до того, що ці люди будуть взяті в заручники або вбиті на місці."
+        "prediction": {
+          "id": "d62de1d8-bf70-44cc-9aef-a6d7d6e4dd13",
+          "document_id": "tg:@O_Arestovich_official:1539",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Рішення американського керівництва видати новій владі Афганістану списки всіх американських громадян та афганців, які співпрацювали з американською адміністрацією, призведе до того, що ці люди будуть взяті в заручники або вбиті на місці.",
+          "situation": "Автор коментує рішення американського керівництва щодо надання списків американських громадян та афганців, які співпрацювали з США, новій владі Афганістану, вказуючи на можливі негативні наслідки цього кроку.",
+          "prediction_date": "2021-12-27",
+          "target_date": null,
+          "topic": "міжнародні відносини",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "Reports from the United Nations Assistance Mission in Afghanistan (UNAMA) and Human Rights Watch documented hundreds of extrajudicial killings and forced disappearances of former Afghan government officials and those who worked with international forces in the months following the withdrawal.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -737,8 +1957,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "d6425a73-ddf1-47da-a281-c92ab3d3deb3",
-        "claim": "Європа прийме правий поворот, що призведе до зростання популярності правих політиків, таких як Орбан."
+        "prediction": {
+          "id": "d6425a73-ddf1-47da-a281-c92ab3d3deb3",
+          "document_id": "tg:@O_Arestovich_official:4811",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Європа прийме правий поворот, що призведе до зростання популярності правих політиків, таких як Орбан.",
+          "situation": "Автор зазначає, що Європа не здатна захистити себе, що веде до змін у політичному ландшафті.",
+          "prediction_date": "2023-12-13",
+          "target_date": null,
+          "topic": "політика",
+          "status": "confirmed",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": "The 2024 European Parliament elections resulted in significant gains for right-wing and nationalist factions, and subsequent national elections in several EU countries have seen the formation of governments led by or heavily influenced by right-wing populist parties, aligning with the political model established by Orbán.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -749,8 +1989,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "d82aad2b-6de8-4eaf-8599-27ce705d3c66",
-        "claim": "США будуть продовжувати вести економічну війну з Китаєм, і наразі вони мають перевагу в цій боротьбі."
+        "prediction": {
+          "id": "d82aad2b-6de8-4eaf-8599-27ce705d3c66",
+          "document_id": "tg:@O_Arestovich_official:7125",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "США будуть продовжувати вести економічну війну з Китаєм, і наразі вони мають перевагу в цій боротьбі.",
+          "situation": "Автор обговорює стратегії США в контексті зростаючого впливу Китаю та необхідності запобігти союзу між Москвою і Пекіном.",
+          "prediction_date": "2025-04-11",
+          "target_date": null,
+          "topic": "економіка",
+          "status": "confirmed",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": "As of June 2026, the US government continues to enforce strict semiconductor export bans and has expanded 'entity list' restrictions on Chinese AI and quantum computing firms, while China's economic growth remains constrained by domestic debt and trade barriers imposed by the US and its allies.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -761,8 +2021,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "d83a4c35-f137-46d2-acbd-843e75ff689d",
-        "claim": "Протягом найближчих 2-3 місяців буде вирішено, чи зможемо ми звільнити значну частину нашої території від російської армії до нового року, якщо Захід надасть ще 25-30 HIMARS та близько 200 одиниць артилерії калібру 155 мм."
+        "prediction": {
+          "id": "d83a4c35-f137-46d2-acbd-843e75ff689d",
+          "document_id": "tg:@O_Arestovich_official:2504",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Протягом найближчих 2-3 місяців буде вирішено, чи зможемо ми звільнити значну частину нашої території від російської армії до нового року, якщо Захід надасть ще 25-30 HIMARS та близько 200 одиниць артилерії калібру 155 мм.",
+          "situation": "Автор обговорює залежність України від військової допомоги Заходу та її вплив на хід війни, підкреслюючи важливість поставок для звільнення території.",
+          "prediction_date": "2022-08-24",
+          "target_date": "2022-12-31",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "As of December 31, 2022, Russian forces continued to occupy approximately 18% of Ukrainian territory, including the Crimean Peninsula and significant parts of the Donetsk, Luhansk, Zaporizhzhia, and Kherson regions, confirming that the predicted liberation did not occur within the specified timeframe.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -773,8 +2053,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "da7192c2-8c57-43d4-9cdd-850db9854522",
-        "claim": "До 9 травня 2026 року Росія вичерпає існуючу модель війни, що призведе до різкого погіршення суспільно-політичної обстановки в самій РФ."
+        "prediction": {
+          "id": "da7192c2-8c57-43d4-9cdd-850db9854522",
+          "document_id": "tg:@O_Arestovich_official:8049",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "До 9 травня 2026 року Росія вичерпає існуючу модель війни, що призведе до різкого погіршення суспільно-політичної обстановки в самій РФ.",
+          "situation": "Автор аналізує невдачі Росії у війні з Україною та наслідки для внутрішньої політики, вказуючи на необхідність змін у військовій стратегії.",
+          "prediction_date": "2026-05-08",
+          "target_date": "2026-05-09",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": "As of June 2026, the Russian government maintains control over its military operations and internal security apparatus, with no documented evidence of a 'sharp deterioration' of the socio-political situation occurring by the May 9 deadline.",
+          "verified_at": "2026-06-21T10:15:31.831108Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 2,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -785,8 +2085,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "dbfe5b24-7a9c-4aea-a8db-e3d8ad624e7e",
-        "claim": "Україна досягне нового рівня суб'єктності, реалізуючи власні інтереси без оглядки на інших."
+        "prediction": {
+          "id": "dbfe5b24-7a9c-4aea-a8db-e3d8ad624e7e",
+          "document_id": "tg:@O_Arestovich_official:6109",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Україна досягне нового рівня суб'єктності, реалізуючи власні інтереси без оглядки на інших.",
+          "situation": "Автор говорить про зростання суб'єктності України в умовах війни, підкреслюючи важливість незалежності від зовнішніх впливів та необхідність діяти на власний розсуд.",
+          "prediction_date": "2024-08-24",
+          "target_date": null,
+          "topic": "політика",
+          "status": "unresolved",
+          "confidence": 0.8,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -797,8 +2117,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "e566abeb-4bb8-4ae5-9dfe-4ec7fcb366fc",
-        "claim": "Кіносемінар по фільму «Обратная связь» відбудеться 20 січня."
+        "prediction": {
+          "id": "e566abeb-4bb8-4ae5-9dfe-4ec7fcb366fc",
+          "document_id": "tg:@O_Arestovich_official:4902",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Кіносемінар по фільму «Обратная связь» відбудеться 20 січня.",
+          "situation": "Автор зазначає, що семінар буде корисним для розуміння мужественності на практиці, анонсуючи його проведення.",
+          "prediction_date": "2024-01-04",
+          "target_date": "2024-01-20",
+          "topic": "соціальні відносини",
+          "status": "unresolved",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "low",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -809,8 +2149,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "e6ffe2cf-f47d-467b-8316-90ec889ae9a6",
-        "claim": "Після війни ситуація з демографічною кризою в Україні буде на грані катастрофи."
+        "prediction": {
+          "id": "e6ffe2cf-f47d-467b-8316-90ec889ae9a6",
+          "document_id": "tg:@O_Arestovich_official:5512",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Після війни ситуація з демографічною кризою в Україні буде на грані катастрофи.",
+          "situation": "Автор висловлює занепокоєння щодо поділу громадян на «правильних» і «неправильних», що може призвести до негативних наслідків для демографічної ситуації в Україні після війни.",
+          "prediction_date": "2024-04-28",
+          "target_date": null,
+          "topic": "демографія",
+          "status": "unresolved",
+          "confidence": 0.8,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -821,8 +2181,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "e74381b2-f9ce-4d3c-b553-10e1b6a84092",
-        "claim": "Будуть часи, коли людство не буде пам'ятати Брежнева."
+        "prediction": {
+          "id": "e74381b2-f9ce-4d3c-b553-10e1b6a84092",
+          "document_id": "tg:@O_Arestovich_official:5088",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Будуть часи, коли людство не буде пам'ятати Брежнева.",
+          "situation": "Автор згадує про момент, коли дізнався про смерть Брежнева, і розмірковує про те, як пам'ять про історичних постатей може змінюватися з часом.",
+          "prediction_date": "1982-11-10",
+          "target_date": null,
+          "topic": "історія",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "Sociological data and educational trends in post-Soviet states indicate that younger generations have little to no personal recollection of the Brezhnev era, and his historical significance is increasingly relegated to academic study rather than living memory.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "low",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -833,8 +2213,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "f393a691-b9ed-4bca-b817-126848a307aa",
-        "claim": "Путін виграє вибори 17 березня 2024 року."
+        "prediction": {
+          "id": "f393a691-b9ed-4bca-b817-126848a307aa",
+          "document_id": "tg:@O_Arestovich_official:5159",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Путін виграє вибори 17 березня 2024 року.",
+          "situation": "Автор розглядає політичну ситуацію в Росії, зокрема, вибори президента та можливі наслідки для внутрішньої політики.",
+          "prediction_date": "2024-02-24",
+          "target_date": "2024-03-17",
+          "topic": "політика",
+          "status": "confirmed",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "On March 18, 2024, the Central Election Commission of the Russian Federation announced that Vladimir Putin won the presidential election with 87.28% of the vote.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -845,8 +2245,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "f3f6c272-c744-4514-9242-1b3d3ebea2e4",
-        "claim": "Якщо Україна не оновить всі наявні потужності теплових електростанцій до 2025 року, то країна зіткнеться з острим дефіцитом електроенергії."
+        "prediction": {
+          "id": "f3f6c272-c744-4514-9242-1b3d3ebea2e4",
+          "document_id": "tg:@O_Arestovich_official:1027",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Якщо Україна не оновить всі наявні потужності теплових електростанцій до 2025 року, то країна зіткнеться з острим дефіцитом електроенергії.",
+          "situation": "Автор обговорює проблеми в енергетичному секторі України, зокрема, недостатній запас вугілля на ТЕС та необхідність оновлення електростанцій, щоб уникнути дефіциту електроенергії.",
+          "prediction_date": "2021-02-15",
+          "target_date": "2025-12-31",
+          "topic": "економіка",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "As of 2025-2026, Ukraine faces a chronic and acute electricity deficit, necessitating rolling blackouts and significant reliance on energy imports, exacerbated by the failure to modernize aging thermal infrastructure and the loss of over 9 GW of generation capacity.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -857,8 +2277,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "f463f327-c06a-4270-bf09-6e0ce4c3222a",
-        "claim": "Україна в нинішньому вигляді помре, і скільки від неї залишиться та якою вона буде, вирішуватимуть не українці."
+        "prediction": {
+          "id": "f463f327-c06a-4270-bf09-6e0ce4c3222a",
+          "document_id": "tg:@O_Arestovich_official:7257",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Україна в нинішньому вигляді помре, і скільки від неї залишиться та якою вона буде, вирішуватимуть не українці.",
+          "situation": "Автор стверджує, що українці не готові взяти на себе відповідальність за свою країну, що призведе до її загибелі.",
+          "prediction_date": "2025-05-17",
+          "target_date": null,
+          "topic": "політика",
+          "status": "unresolved",
+          "confidence": 0.8,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -869,8 +2309,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "f4b447b0-27e3-46eb-b63e-1cd8971bbf11",
-        "claim": "Якщо Росія втягнеться в Балтійську війну, то процеси в Росії масштабуються, аж до її розвалу."
+        "prediction": {
+          "id": "f4b447b0-27e3-46eb-b63e-1cd8971bbf11",
+          "document_id": "tg:@O_Arestovich_official:7940",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Якщо Росія втягнеться в Балтійську війну, то процеси в Росії масштабуються, аж до її розвалу.",
+          "situation": "Автор розглядає можливість ескалації конфлікту, що може призвести до серйозних наслідків для Російської Федерації.",
+          "prediction_date": "2026-03-03",
+          "target_date": null,
+          "topic": "міжнародні відносини",
+          "status": "premature",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-21T10:15:31.831108Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": "2027-06-21",
+          "next_check_at": "2026-12-21",
+          "verify_attempts": 2,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -881,8 +2341,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "f5e523e8-95c2-45b7-bfc8-288af77ea024",
-        "claim": "До 20 січня Росія або проведе широку мобілізацію, або планово витратить свої залишки резервів, а далі відбудеться припинення вогню."
+        "prediction": {
+          "id": "f5e523e8-95c2-45b7-bfc8-288af77ea024",
+          "document_id": "tg:@O_Arestovich_official:6483",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "До 20 січня Росія або проведе широку мобілізацію, або планово витратить свої залишки резервів, а далі відбудеться припинення вогню.",
+          "situation": "Автор аналізує можливі дії Росії у відповідь на тиск з боку Трампа, який має розпочатися після його інавгурації.",
+          "prediction_date": "2024-11-17",
+          "target_date": "2024-01-20",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "As of June 20, 2026, active hostilities between Russia and Ukraine persist along the entire front line, and no ceasefire agreement has been reached or enacted.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -893,8 +2373,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "f66e777c-b942-455d-94f6-dd79a3424d24",
-        "claim": "В Україні може відбутися військовий переворот, умовний Майдан або створення уряду національної згоди в умовах війни."
+        "prediction": {
+          "id": "f66e777c-b942-455d-94f6-dd79a3424d24",
+          "document_id": "tg:@O_Arestovich_official:4755",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "В Україні може відбутися військовий переворот, умовний Майдан або створення уряду національної згоди в умовах війни.",
+          "situation": "Автор обговорює накопичені суперечності в Україні під час війни та можливі екстраординарні шляхи їх вирішення.",
+          "prediction_date": "2023-12-03",
+          "target_date": null,
+          "topic": "політика",
+          "status": "refuted",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": "The Ukrainian government has remained stable and functional throughout the period from December 2023 to June 2026, with no military coup or revolutionary overthrow of the constitutional order taking place.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -905,8 +2405,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "f8062ac0-706a-4dda-9817-8d5d46e0b99d",
-        "claim": "Німеччина передасть Україні 178 танків Леопард-1."
+        "prediction": {
+          "id": "f8062ac0-706a-4dda-9817-8d5d46e0b99d",
+          "document_id": "tg:@O_Arestovich_official:3197",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Німеччина передасть Україні 178 танків Леопард-1.",
+          "situation": "Автор коментує новину про те, що Німеччина схвалила передачу Україні танків, що є важливим кроком у підтримці України в умовах війни.",
+          "prediction_date": "2023-02-07",
+          "target_date": null,
+          "topic": "міжнародні відносини",
+          "status": "confirmed",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "7 лютого 2023 року Федеральне міністерство економіки та захисту клімату Німеччини офіційно видало ліцензії на експорт до 178 танків Leopard 1A5 для України.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "medium",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -917,8 +2437,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "f88b7ea9-a9b1-4edf-aca2-b6363fc89647",
-        "claim": "У середу Конгрес США проголосує за законопроект H.R.2913, що може призвести до офіційного відновлення і розширення допомоги Україні."
+        "prediction": {
+          "id": "f88b7ea9-a9b1-4edf-aca2-b6363fc89647",
+          "document_id": "tg:@O_Arestovich_official:8110",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "У середу Конгрес США проголосує за законопроект H.R.2913, що може призвести до офіційного відновлення і розширення допомоги Україні.",
+          "situation": "Автор обговорює можливість голосування в Конгресі США за законопроект, який має на меті відновлення військової допомоги Україні після року політичних затримок.",
+          "prediction_date": "2026-06-02",
+          "target_date": "2026-06-04",
+          "topic": "політика",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "Official records of the U.S. House of Representatives for June 3, 2026, confirm that no vote on a bill designated H.R.2913 regarding the restoration of aid to Ukraine took place.",
+          "verified_at": "2026-06-21T10:15:31.831108Z",
+          "prediction_strength": "high",
+          "prediction_value": "medium",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 2,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -929,8 +2469,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "faada242-a663-4fb4-9eaa-7fa0532b8dbf",
-        "claim": "Іран позбудеться ядерних амбіцій і вийде з-під виключного впливу Китаю, що призведе до нових правил торгівлі для Китаю."
+        "prediction": {
+          "id": "faada242-a663-4fb4-9eaa-7fa0532b8dbf",
+          "document_id": "tg:@O_Arestovich_official:8151",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Іран позбудеться ядерних амбіцій і вийде з-під виключного впливу Китаю, що призведе до нових правил торгівлі для Китаю.",
+          "situation": "Автор прогнозує наслідки угоди між США та Іраном, яка має змінити геополітичну ситуацію в регіоні.",
+          "prediction_date": "2026-06-12",
+          "target_date": null,
+          "topic": "міжнародні відносини",
+          "status": "premature",
+          "confidence": 0.8,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-21T10:15:31.831108Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": "2027-06-21",
+          "next_check_at": "2026-12-21",
+          "verify_attempts": 2,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -941,8 +2501,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "fc040b4a-ad00-4e12-9e42-5d8a70345c6b",
-        "claim": "Якщо не вдасться домовитися, Трамп може відступити в сторону, зупинити допомогу, і тоді РФ зможе практично безперешкодно бити по українських містах."
+        "prediction": {
+          "id": "fc040b4a-ad00-4e12-9e42-5d8a70345c6b",
+          "document_id": "tg:@O_Arestovich_official:7169",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Якщо не вдасться домовитися, Трамп може відступити в сторону, зупинити допомогу, і тоді РФ зможе практично безперешкодно бити по українських містах.",
+          "situation": "Автор попереджає про можливі наслідки невдачі в переговорах, що можуть призвести до зменшення підтримки з боку США.",
+          "prediction_date": "2025-04-22",
+          "target_date": null,
+          "topic": "міжнародні відносини",
+          "status": "premature",
+          "confidence": 0.8,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": "2027-01-20",
+          "next_check_at": "2026-12-20",
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -953,8 +2533,28 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "fde730ee-53dc-4af0-83e1-876c52ce6d46",
-        "claim": "Україна прогавить Північний потік-2."
+        "prediction": {
+          "id": "fde730ee-53dc-4af0-83e1-876c52ce6d46",
+          "document_id": "tg:@O_Arestovich_official:1177",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Україна прогавить Північний потік-2.",
+          "situation": "Автор вказує на важливість Північного потоку-2 і можливі наслідки для України.",
+          "prediction_date": "2021-06-03",
+          "target_date": null,
+          "topic": "економіка",
+          "status": "confirmed",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "Nord Stream 2 construction was completed in September 2021, and the pipeline was rendered permanently inoperable following underwater explosions in September 2022.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "single_source"
@@ -965,16 +2565,76 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "d83a4c35-f137-46d2-acbd-843e75ff689d",
-        "claim": "Протягом найближчих 2-3 місяців буде вирішено, чи зможемо ми звільнити значну частину нашої території від російської армії до нового року, якщо Захід надасть ще 25-30 HIMARS та близько 200 одиниць артилерії калібру 155 мм."
+        "prediction": {
+          "id": "d83a4c35-f137-46d2-acbd-843e75ff689d",
+          "document_id": "tg:@O_Arestovich_official:2504",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Протягом найближчих 2-3 місяців буде вирішено, чи зможемо ми звільнити значну частину нашої території від російської армії до нового року, якщо Захід надасть ще 25-30 HIMARS та близько 200 одиниць артилерії калібру 155 мм.",
+          "situation": "Автор обговорює залежність України від військової допомоги Заходу та її вплив на хід війни, підкреслюючи важливість поставок для звільнення території.",
+          "prediction_date": "2022-08-24",
+          "target_date": "2022-12-31",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "As of December 31, 2022, Russian forces continued to occupy approximately 18% of Ukrainian territory, including the Crimean Peninsula and significant parts of the Donetsk, Luhansk, Zaporizhzhia, and Kherson regions, confirming that the predicted liberation did not occur within the specified timeframe.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       },
       {
-        "prediction_id": "367d100b-25e5-4b9c-bf51-b9ed1018cb5d",
-        "claim": "Сили оборони України виконують задачу прорыву основної оборони противника вже цієї осені."
+        "prediction": {
+          "id": "367d100b-25e5-4b9c-bf51-b9ed1018cb5d",
+          "document_id": "tg:@O_Arestovich_official:4148",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Сили оборони України виконують задачу прорыву основної оборони противника вже цієї осені.",
+          "situation": "Автор стверджує, що незважаючи на зусилля російських військ та заяви в західній пресі, Сили оборони України планомірно просуваються до побережжя Азовського моря і вже виконали перший етап контрнаступу.",
+          "prediction_date": "2023-07-30",
+          "target_date": "2023-09-30",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "As of September 30, 2023, the front line in the Zaporizhzhia region remained north of the main Russian defensive lines (the Surovikin line), and no operational breakthrough to the coast was achieved during the autumn of 2023.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       },
       {
-        "prediction_id": "a7e9b86d-3c18-43f6-b13c-3d10430d574a",
-        "claim": "Перший крок до миру полягає в тому, щоб дійти до побережжя Азовського моря і звільнити значну частину території на півдні."
+        "prediction": {
+          "id": "a7e9b86d-3c18-43f6-b13c-3d10430d574a",
+          "document_id": "tg:@O_Arestovich_official:4196",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Перший крок до миру полягає в тому, щоб дійти до побережжя Азовського моря і звільнити значну частину території на півдні.",
+          "situation": "Автор обговорює необхідність умов для результативних переговорів між Зеленським і Путіним, зазначаючи, що для цього потрібні певні підстави, яких наразі немає.",
+          "prediction_date": "2023-08-10",
+          "target_date": null,
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "Станом на 20 червня 2026 року контроль над узбережжям Азовського моря (зокрема містами Маріуполь та Бердянськ) залишається за російськими окупаційними військами, а лінія фронту на півдні України не зазнала суттєвих змін на користь ЗСУ з серпня 2023 року.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "synthesis"
@@ -985,12 +2645,52 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "c5c3ddd6-3e84-44fb-973d-b072cd91d5db",
-        "claim": "Сили ворога не зможуть увійти в Мариуполь, і вони там всі поляжуть."
+        "prediction": {
+          "id": "c5c3ddd6-3e84-44fb-973d-b072cd91d5db",
+          "document_id": "tg:@O_Arestovich_official:1688",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Сили ворога не зможуть увійти в Мариуполь, і вони там всі поляжуть.",
+          "situation": "Автор коментує ситуацію в Мариуполі, де противник намагається захопити місто, але не має сил для цього, вказуючи на важкі умови війни та стійкість українських військових.",
+          "prediction_date": "2022-03-10",
+          "target_date": null,
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "Mariupol fell under Russian military control in May 2022 after the surrender of the remaining Ukrainian defenders at the Azovstal plant.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       },
       {
-        "prediction_id": "994a288c-b888-4863-9518-66ae57f61f5e",
-        "claim": "Російські війська не зможуть фізично взяти завод «Азовсталь» і це їм не вдасться."
+        "prediction": {
+          "id": "994a288c-b888-4863-9518-66ae57f61f5e",
+          "document_id": "tg:@O_Arestovich_official:1922",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Російські війська не зможуть фізично взяти завод «Азовсталь» і це їм не вдасться.",
+          "situation": "Автор аналізує ситуацію на фронті під час 57-ї доби війни, зазначаючи, що російські війська не змогли просунутися в Луганській області та що вони зазнали великих втрат у спробах захопити «Азовсталь».",
+          "prediction_date": "2022-04-21",
+          "target_date": null,
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "On May 20, 2022, the last Ukrainian defenders of the Azovstal steel plant in Mariupol surrendered to Russian forces, marking the complete capture of the facility by the Russian military.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "synthesis"
@@ -1001,12 +2701,52 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "3b638e48-6fe3-45e8-a7b3-71cc0203bf50",
-        "claim": "Переговори між Україною та Росією відбудуться цього року, але чи зможемо ми домовитися – питання відкрите."
+        "prediction": {
+          "id": "3b638e48-6fe3-45e8-a7b3-71cc0203bf50",
+          "document_id": "tg:@O_Arestovich_official:6157",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Переговори між Україною та Росією відбудуться цього року, але чи зможемо ми домовитися – питання відкрите.",
+          "situation": "Автор обговорює поточну ситуацію на фронті, зокрема наступ російських військ на Донбасі, та підготовку до переговорів, які можуть відбутися в умовах зростаючої напруженості.",
+          "prediction_date": "2024-09-03",
+          "target_date": "2024-12-31",
+          "topic": "міжнародні відносини",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "No official bilateral peace negotiations between Ukraine and the Russian Federation took place during the 2024 calendar year; diplomatic efforts remained limited to prisoner exchanges and humanitarian corridors mediated by third parties.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       },
       {
-        "prediction_id": "db3925d3-ea7e-4820-908d-863d249bef71",
-        "claim": "Переговори між Україною та Росією, які мають відбутися, рано чи пізно призведуть до мирного урегулювання конфлікту."
+        "prediction": {
+          "id": "db3925d3-ea7e-4820-908d-863d249bef71",
+          "document_id": "tg:@O_Arestovich_official:6195",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Переговори між Україною та Росією, які мають відбутися, рано чи пізно призведуть до мирного урегулювання конфлікту.",
+          "situation": "Автор аналізує ілюзії щодо війни, зазначаючи, що західні партнери мають стратегію, яка передбачає примушення обох сторін до дипломатичного рішення конфлікту.",
+          "prediction_date": "2024-09-17",
+          "target_date": null,
+          "topic": "війна",
+          "status": "unresolved",
+          "confidence": 0.8,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "synthesis"
@@ -1017,12 +2757,52 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "b6928337-680d-44e1-b3b4-eafe613a66fb",
-        "claim": "Україна стане членом НАТО через ПДЧ, незважаючи на побоювання окремих країн НАТО, таких як Франція та Німеччина."
+        "prediction": {
+          "id": "b6928337-680d-44e1-b3b4-eafe613a66fb",
+          "document_id": "tg:@O_Arestovich_official:1196",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Україна стане членом НАТО через ПДЧ, незважаючи на побоювання окремих країн НАТО, таких як Франція та Німеччина.",
+          "situation": "Автор аналізує результати самітів G7 та НАТО, а також позиції України і Росії напередодні зустрічі Путіна з Байденом, підкреслюючи, що Захід не боїться Путіна і що Україні потрібно шукати політичні аргументи для вступу до НАТО.",
+          "prediction_date": "2021-06-15",
+          "target_date": null,
+          "topic": "міжнародні відносини",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "At the 2023 NATO Vilnius Summit, the alliance officially removed the requirement for a Membership Action Plan (MAP) for Ukraine, changing the accession process to a one-step procedure, which contradicts the prediction that Ukraine would join specifically 'via MAP'.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       },
       {
-        "prediction_id": "d5c6b794-d263-48ec-9cdc-3febd9a35a2a",
-        "claim": "Нове керівництво НАТО заявить, що Україна стане 33-м або 34-м членом НАТО."
+        "prediction": {
+          "id": "d5c6b794-d263-48ec-9cdc-3febd9a35a2a",
+          "document_id": "tg:@O_Arestovich_official:6356",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Нове керівництво НАТО заявить, що Україна стане 33-м або 34-м членом НАТО.",
+          "situation": "Автор коментує заяву нового голови НАТО Рютте про можливе членство України в НАТО, вказуючи на невизначеність щодо порядкового номера.",
+          "prediction_date": "2024-10-22",
+          "target_date": null,
+          "topic": "міжнародні відносини",
+          "status": "premature",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": "2030-01-01",
+          "next_check_at": "2027-06-20",
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "synthesis"
@@ -1033,16 +2813,76 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "f5d28605-e537-41ac-aa02-c20fb334bba5",
-        "claim": "Коли почнеться третя хвиля мобілізації в кінці листопада, учасники першої хвилі почнуть повертатися додому в гробах."
+        "prediction": {
+          "id": "f5d28605-e537-41ac-aa02-c20fb334bba5",
+          "document_id": "tg:@O_Arestovich_official:2646",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Коли почнеться третя хвиля мобілізації в кінці листопада, учасники першої хвилі почнуть повертатися додому в гробах.",
+          "situation": "Автор прогнозує наслідки мобілізації, зокрема, загибель військових, що повертаються з фронту.",
+          "prediction_date": "2022-09-24",
+          "target_date": "2022-11-30",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "There was no 'third wave of mobilization' in late November 2022 that resulted in the mass return of first-wave recruits in coffins; the mobilization process remained continuous and did not result in the predicted catastrophic outcome for the initial cohort.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       },
       {
-        "prediction_id": "2eb207ea-0769-4afb-a0de-091119fd4caa",
-        "claim": "Росія не зможе мобілізувати і навчити ще 200 тисяч резервістів."
+        "prediction": {
+          "id": "2eb207ea-0769-4afb-a0de-091119fd4caa",
+          "document_id": "tg:@O_Arestovich_official:3106",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Росія не зможе мобілізувати і навчити ще 200 тисяч резервістів.",
+          "situation": "Автор аналізує ситуацію на фронті, де Росія збільшує чисельність своїх військ, але стикається з проблемами в мобілізації та підготовці резервістів.",
+          "prediction_date": "2023-01-18",
+          "target_date": null,
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "Russian official reports and independent intelligence assessments confirm that Russia mobilized 300,000 personnel in late 2022, followed by sustained recruitment efforts that have added hundreds of thousands more to the active force structure by mid-2026.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       },
       {
-        "prediction_id": "e99aa70f-3630-4c9a-8ad1-600c9d4d4369",
-        "claim": "Сформування хоч якихось стратегічних резервів у Росії, здатних на полі бою, відбудеться до кінця літа."
+        "prediction": {
+          "id": "e99aa70f-3630-4c9a-8ad1-600c9d4d4369",
+          "document_id": "tg:@O_Arestovich_official:5302",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Сформування хоч якихось стратегічних резервів у Росії, здатних на полі бою, відбудеться до кінця літа.",
+          "situation": "Автор обговорює можливу ескалацію з боку Кремля у відповідь на теракти, зазначаючи, що Росія може мобілізувати багато людей, але не має чим їх озброїти.",
+          "prediction_date": "2024-03-22",
+          "target_date": "2024-08-31",
+          "topic": "війна",
+          "status": "confirmed",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "У період з червня по серпень 2024 року російські війська активізували наступальні дії на сході України, залучаючи сформовані резерви, що дозволило їм утримувати ініціативу та просуватися на Покровському напрямку, попри значні втрати.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "medium",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "synthesis"
@@ -1053,16 +2893,76 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "407b6225-6924-44d9-a246-2a49ec7e5df8",
-        "claim": "Події, які повинні покласти кінець війні в Україні, відбудуться цього року, не дожидаючись другої річниці російського вторгнення."
+        "prediction": {
+          "id": "407b6225-6924-44d9-a246-2a49ec7e5df8",
+          "document_id": "tg:@O_Arestovich_official:3252",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Події, які повинні покласти кінець війні в Україні, відбудуться цього року, не дожидаючись другої річниці російського вторгнення.",
+          "situation": "Автор коментує візит Президента США напередодні річниці вторгнення Росії в Україну, зазначаючи, що світ зрозумів необхідність зупинити путінську Росію через військову та фінансову підтримку.",
+          "prediction_date": "2023-02-20",
+          "target_date": "2023-12-31",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "The Russian invasion of Ukraine, which began on February 24, 2022, continued throughout 2023 and remains active as of June 20, 2026, with active frontlines in eastern and southern Ukraine.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       },
       {
-        "prediction_id": "3babc7f0-7a44-420a-bd6a-26de84c3a2fc",
-        "claim": "Горячая фаза войны закончится в период с первого марта до июля."
+        "prediction": {
+          "id": "3babc7f0-7a44-420a-bd6a-26de84c3a2fc",
+          "document_id": "tg:@O_Arestovich_official:6892",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Горячая фаза войны закончится в период с первого марта до июля.",
+          "situation": "Автор указывает на план прекращения войны и говорит о том, что даты окончания горячей фазы войны близки к реальности.",
+          "prediction_date": "2025-02-08",
+          "target_date": "2025-07-31",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "As of June 2026, intense combat operations, including artillery exchanges, drone warfare, and territorial maneuvering, continue across the front line in Ukraine, contradicting the claim that the hot phase would conclude by July 2025.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       },
       {
-        "prediction_id": "eca00a0e-e29e-43ba-b3d5-566e310032de",
-        "claim": "Трамп закінчить війну в Україні впродовж найближчих днів, після чого переключиться на Венесуелу."
+        "prediction": {
+          "id": "eca00a0e-e29e-43ba-b3d5-566e310032de",
+          "document_id": "tg:@O_Arestovich_official:7754",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Трамп закінчить війну в Україні впродовж найближчих днів, після чого переключиться на Венесуелу.",
+          "situation": "Автор аналізує геополітичну ситуацію, в якій Трамп намагається вирішити конфлікт в Україні, щоб зосередитися на інших американських інтересах, зокрема у Венесуелі.",
+          "prediction_date": "2025-12-19",
+          "target_date": "2025-12-31",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "The war in Ukraine remains active as of June 2026, and no peace agreement was brokered by Donald Trump in late December 2025, nor has there been a pivot to intervention in Venezuela.",
+          "verified_at": "2026-06-21T10:15:31.831108Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 2,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "synthesis"
@@ -1073,16 +2973,76 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "8b4bc844-91bb-49be-8ea8-f7b664e9d39b",
-        "claim": "Кремль спробує реалізувати сценарій масових вуличних безладів в Україні в період з січня по березень, одночасно з загостренням на фронті та провокаціями на кордонах."
+        "prediction": {
+          "id": "8b4bc844-91bb-49be-8ea8-f7b664e9d39b",
+          "document_id": "tg:@O_Arestovich_official:1549",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Кремль спробує реалізувати сценарій масових вуличних безладів в Україні в період з січня по березень, одночасно з загостренням на фронті та провокаціями на кордонах.",
+          "situation": "Автор аналізує ситуацію в Казахстані та можливі дії Кремля щодо України, вказуючи на страх росіян перед українською силою та на їхні наміри спровокувати безлад в Україні.",
+          "prediction_date": "2022-01-07",
+          "target_date": "2022-03-31",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "Following the full-scale invasion on February 24, 2022, Ukraine experienced a surge in national unity and social cohesion rather than internal mass civil unrest, as evidenced by widespread mobilization and public support for the government.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       },
       {
-        "prediction_id": "8434bb85-a491-42b8-846b-6bbdf6081b14",
-        "claim": "Ракетні обстріли по Україні не відбудуться через певні обставини."
+        "prediction": {
+          "id": "8434bb85-a491-42b8-846b-6bbdf6081b14",
+          "document_id": "tg:@O_Arestovich_official:1593",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Ракетні обстріли по Україні не відбудуться через певні обставини.",
+          "situation": "Автор аналізує військову ситуацію та можливість ракетних атак на Україну.",
+          "prediction_date": "2022-01-31",
+          "target_date": null,
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "Since February 24, 2022, Ukraine has been subjected to continuous and widespread missile and drone attacks by Russian forces, resulting in significant destruction of infrastructure and civilian casualties.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       },
       {
-        "prediction_id": "355015cb-0102-4501-972e-672d38f41e2e",
-        "claim": "Очікується, що вторгнення відбудеться 20 лютого."
+        "prediction": {
+          "id": "355015cb-0102-4501-972e-672d38f41e2e",
+          "document_id": "tg:@O_Arestovich_official:1631",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Очікується, що вторгнення відбудеться 20 лютого.",
+          "situation": "Автор обговорює напружену ситуацію на сході України, зокрема обстріли та можливість військового вторгнення Росії.",
+          "prediction_date": "2022-02-17",
+          "target_date": "2022-02-20",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "The full-scale Russian invasion of Ukraine began on February 24, 2022, not February 20, 2022.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "synthesis"
@@ -1093,12 +3053,52 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "a103dfc2-2865-4fff-ba7a-d8a98d76a72d",
-        "claim": "Трамп зможе розпочати серйозні переговори з ким би то не було тільки 20 січня, після офіційного приведення до присяги."
+        "prediction": {
+          "id": "a103dfc2-2865-4fff-ba7a-d8a98d76a72d",
+          "document_id": "tg:@O_Arestovich_official:6695",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Трамп зможе розпочати серйозні переговори з ким би то не було тільки 20 січня, після офіційного приведення до присяги.",
+          "situation": "Автор коментує ситуацію навколо можливих переговорів Трампа з іноземними лідерами, підкреслюючи юридичні обмеження до його інавгурації.",
+          "prediction_date": "2024-12-30",
+          "target_date": "2025-01-20",
+          "topic": "міжнародні відносини",
+          "status": "confirmed",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "Donald Trump was officially inaugurated as the 47th President of the United States on January 20, 2025, following his victory in the 2024 presidential election.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "medium",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       },
       {
-        "prediction_id": "fc040b4a-ad00-4e12-9e42-5d8a70345c6b",
-        "claim": "Якщо не вдасться домовитися, Трамп може відступити в сторону, зупинити допомогу, і тоді РФ зможе практично безперешкодно бити по українських містах."
+        "prediction": {
+          "id": "fc040b4a-ad00-4e12-9e42-5d8a70345c6b",
+          "document_id": "tg:@O_Arestovich_official:7169",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Якщо не вдасться домовитися, Трамп може відступити в сторону, зупинити допомогу, і тоді РФ зможе практично безперешкодно бити по українських містах.",
+          "situation": "Автор попереджає про можливі наслідки невдачі в переговорах, що можуть призвести до зменшення підтримки з боку США.",
+          "prediction_date": "2025-04-22",
+          "target_date": null,
+          "topic": "міжнародні відносини",
+          "status": "premature",
+          "confidence": 0.8,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": "2027-01-20",
+          "next_check_at": "2026-12-20",
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "synthesis"
@@ -1109,16 +3109,76 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "5738cbaf-e8c4-435d-8b9b-63589358b61a",
-        "claim": "Через рік-два-три війни в Україні буде мільйон убитих і 50% території буде втрачено."
+        "prediction": {
+          "id": "5738cbaf-e8c4-435d-8b9b-63589358b61a",
+          "document_id": "tg:@O_Arestovich_official:6803",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Через рік-два-три війни в Україні буде мільйон убитих і 50% території буде втрачено.",
+          "situation": "Автор обговорює наслідки війни в Україні, зокрема втрати людей і території, та критикує західних партнерів за недостатню допомогу.",
+          "prediction_date": "2025-01-22",
+          "target_date": null,
+          "topic": "війна",
+          "status": "premature",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "medium",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": "2027-01-22",
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       },
       {
-        "prediction_id": "e28b31a5-1dec-439e-bdda-49a936c2ff0b",
-        "claim": "Протягом наступних шести місяців Україна може втратити ще кілька областей, окрім чотирьох, які вже під загрозою."
+        "prediction": {
+          "id": "e28b31a5-1dec-439e-bdda-49a936c2ff0b",
+          "document_id": "tg:@O_Arestovich_official:7105",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Протягом наступних шести місяців Україна може втратити ще кілька областей, окрім чотирьох, які вже під загрозою.",
+          "situation": "Автор обговорює загрозу націоналістичного проекту «Землянка УПА» в Україні та його наслідки для територіальної цілісності країни, вказуючи на можливість втрати територій через відсутність підтримки та ефективності цього проекту.",
+          "prediction_date": "2025-04-01",
+          "target_date": "2025-10-01",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "Between April 2025 and October 2025, Ukraine did not lose control over any additional administrative regions (oblasts) beyond those partially occupied prior to the prediction date.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       },
       {
-        "prediction_id": "587bf950-17b9-4f2f-8439-98499aa3b99c",
-        "claim": "Військова втрата Донеччини Україною може стати можливим варіантом розвитку подій, після чого можуть початися реалізації договорів, що обговорюються на переговорах."
+        "prediction": {
+          "id": "587bf950-17b9-4f2f-8439-98499aa3b99c",
+          "document_id": "tg:@O_Arestovich_official:7855",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Військова втрата Донеччини Україною може стати можливим варіантом розвитку подій, після чого можуть початися реалізації договорів, що обговорюються на переговорах.",
+          "situation": "Автор розглядає можливі сценарії розвитку конфлікту, зокрема, втрата території як умову для початку реалізації мирних угод.",
+          "prediction_date": "2026-02-03",
+          "target_date": null,
+          "topic": "війна",
+          "status": "premature",
+          "confidence": 0.8,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-21T10:15:31.831108Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": "2027-06-21",
+          "next_check_at": "2026-12-21",
+          "verify_attempts": 2,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "synthesis"
@@ -1129,12 +3189,52 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "31e2c6ac-6f41-434f-aac8-89698ed5a9db",
-        "claim": "Кар'єра Пригожина та його учасників закінчиться протягом двох-трьох тижнів."
+        "prediction": {
+          "id": "31e2c6ac-6f41-434f-aac8-89698ed5a9db",
+          "document_id": "tg:@O_Arestovich_official:3617",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Кар'єра Пригожина та його учасників закінчиться протягом двох-трьох тижнів.",
+          "situation": "Автор аналізує структуру ЧВК Вагнер та військову машину Путіна, зазначаючи, що кар'єра Пригожина підходить до кінця.",
+          "prediction_date": "2023-04-28",
+          "target_date": "2023-05-12",
+          "topic": "війна",
+          "status": "confirmed",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "Yevgeny Prigozhin died in a plane crash in Tver Oblast on August 23, 2023, and the Wagner Group was subsequently absorbed or restructured under the control of the Russian Ministry of Defense.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       },
       {
-        "prediction_id": "b8e7e9a8-4399-4572-8ae4-b2a855886467",
-        "claim": "Організація «Вагнер» не виконає обіцянку вийти з Бахмута 10-го травня."
+        "prediction": {
+          "id": "b8e7e9a8-4399-4572-8ae4-b2a855886467",
+          "document_id": "tg:@O_Arestovich_official:3689",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Організація «Вагнер» не виконає обіцянку вийти з Бахмута 10-го травня.",
+          "situation": "Автор коментує невдачі Кремля у війні та ситуацію навколо організації «Вагнер», яка не виконала своїх обіцянок щодо виходу з Бахмута.",
+          "prediction_date": "2023-05-11",
+          "target_date": "2023-05-10",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "Yevgeny Prigozhin and Wagner forces remained in Bakhmut well past the May 10, 2023, deadline, continuing combat operations and only initiating a formal handover of positions to regular Russian army units later in May 2023.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "medium",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "synthesis"
@@ -1145,12 +3245,52 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "c255d28c-a029-4c7a-9e7b-1f3635b84e48",
-        "claim": "Весною ми будемо воювати з новими арміями всередині Росії, які будуть боротися між собою."
+        "prediction": {
+          "id": "c255d28c-a029-4c7a-9e7b-1f3635b84e48",
+          "document_id": "tg:@O_Arestovich_official:2832",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Весною ми будемо воювати з новими арміями всередині Росії, які будуть боротися між собою.",
+          "situation": "Автор ставить питання про те, з ким Україна буде воювати навесні, вказуючи на можливі внутрішні конфлікти в Росії.",
+          "prediction_date": "2022-11-01",
+          "target_date": "2023-03-01",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "Between March 2023 and the present date, the Russian Federation has maintained centralized control over its armed forces and security structures, with no evidence of competing 'new armies' engaging in internal conflict within Russian territory.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       },
       {
-        "prediction_id": "f4b447b0-27e3-46eb-b63e-1cd8971bbf11",
-        "claim": "Якщо Росія втягнеться в Балтійську війну, то процеси в Росії масштабуються, аж до її розвалу."
+        "prediction": {
+          "id": "f4b447b0-27e3-46eb-b63e-1cd8971bbf11",
+          "document_id": "tg:@O_Arestovich_official:7940",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Якщо Росія втягнеться в Балтійську війну, то процеси в Росії масштабуються, аж до її розвалу.",
+          "situation": "Автор розглядає можливість ескалації конфлікту, що може призвести до серйозних наслідків для Російської Федерації.",
+          "prediction_date": "2026-03-03",
+          "target_date": null,
+          "topic": "міжнародні відносини",
+          "status": "premature",
+          "confidence": 0.9,
+          "evidence_url": null,
+          "evidence_text": null,
+          "verified_at": "2026-06-21T10:15:31.831108Z",
+          "prediction_strength": "low",
+          "prediction_value": "high",
+          "max_horizon": "2027-06-21",
+          "next_check_at": "2026-12-21",
+          "verify_attempts": 2,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "synthesis"
@@ -1161,12 +3301,52 @@
     "answerable": true,
     "expected_sources": [
       {
-        "prediction_id": "c02fceaf-5ffb-457c-97e5-8372b39fefbc",
-        "claim": "Протягом року армія Вірменії зможе відновити лише 10% свого потенціалу, в той час як Баку накопить достатньо ресурсів, щоб вибити наступні 30% потенціалу НКР."
+        "prediction": {
+          "id": "c02fceaf-5ffb-457c-97e5-8372b39fefbc",
+          "document_id": "tg:@O_Arestovich_official:565",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Протягом року армія Вірменії зможе відновити лише 10% свого потенціалу, в той час як Баку накопить достатньо ресурсів, щоб вибити наступні 30% потенціалу НКР.",
+          "situation": "Автор вказує на стратегічну перевагу Азербайджану в конфлікті з Вірменією, прогнозуючи, що Вірменія не зможе швидко відновити свої сили.",
+          "prediction_date": "2020-10-02",
+          "target_date": "2021-10-02",
+          "topic": "війна",
+          "status": "refuted",
+          "confidence": 0.95,
+          "evidence_url": null,
+          "evidence_text": "In September 2023, Azerbaijan launched a military operation that resulted in the total capitulation of the Nagorno-Karabakh Republic, the dissolution of its government and military structures, and the subsequent exodus of the Armenian population from the region.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       },
       {
-        "prediction_id": "6ac14e59-d6bc-40c1-8983-71c54535e168",
-        "claim": "Азербайджанська армія, для припинення існування карабахської групи в якості організованої військової сили, досягне успіху протягом 21 дня."
+        "prediction": {
+          "id": "6ac14e59-d6bc-40c1-8983-71c54535e168",
+          "document_id": "tg:@O_Arestovich_official:662",
+          "person_id": "person:@O_Arestovich_official",
+          "claim_text": "Азербайджанська армія, для припинення існування карабахської групи в якості організованої військової сили, досягне успіху протягом 21 дня.",
+          "situation": "Автор аналізує військові дії між Азербайджаном та Вірменією в Нагірному Карабасі, зокрема успіхи азербайджанських військ у захопленні територій та знищенні організованих військових сил Вірменії.",
+          "prediction_date": "2020-10-20",
+          "target_date": null,
+          "topic": "війна",
+          "status": "confirmed",
+          "confidence": 1.0,
+          "evidence_url": null,
+          "evidence_text": "The trilateral statement signed on November 10, 2020, by the leaders of Azerbaijan, Armenia, and Russia effectively ended the large-scale military operations and the organized military presence of the Nagorno-Karabakh forces in the territories regained by Azerbaijan.",
+          "verified_at": "2026-06-20T19:33:01.417715Z",
+          "prediction_strength": "high",
+          "prediction_value": "high",
+          "max_horizon": null,
+          "next_check_at": null,
+          "verify_attempts": 1,
+          "last_verify_error": null,
+          "last_verify_error_at": null
+        }
       }
     ],
     "category": "synthesis"
