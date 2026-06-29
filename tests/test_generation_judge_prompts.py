@@ -52,3 +52,21 @@ def test_faithfulness_prompt_shows_judge_same_source_as_generator():
     assert "2023-06-01" in prompt  # date — раніше суддя цього НЕ бачив
     assert "2023-12-31" in prompt  # target — раніше суддя цього НЕ бачив
     assert "0.7" in prompt  # confidence — раніше суддя цього НЕ бачив
+
+
+def test_faithfulness_prompt_treats_status_as_verdict_authority():
+    # вердикт ("прогноз справдився/ні") ґрунтується на полі status — суддя має приймати його
+    # як авторитет, інакше штрафує чесний переказ вердикту як «непідкріплений»
+    pred = Prediction(
+        id="p1",
+        document_id="d",
+        person_id="x",
+        claim_text="контрнаступ не дійде до моря",
+        prediction_date=date(2023, 6, 1),
+        status=PredictionStatus.REFUTED,
+    )
+    prompt = build_faithfulness_prompt(
+        "цей прогноз не справдився", [RetrievedPrediction(prediction=pred, distance=0.2, rank=1)]
+    )
+    assert "status" in prompt
+    assert "АВТОРИТЕТ" in prompt  # інструкція: status — авторитетний вердикт
