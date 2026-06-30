@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     embeddings_enabled: bool = True
     tg_session_path: str = "tg_session"
     verification_confidence_threshold: float = 0.6
+    relevance_threshold: float | None = None  # None = top-k без порога; ставимо після sweep (задача A)
     log_level: str = "INFO"
 
     model_config = {

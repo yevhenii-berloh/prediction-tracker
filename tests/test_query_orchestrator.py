@@ -50,3 +50,30 @@ async def test_search_empty_corpus_returns_empty():
     orch = QueryOrchestrator(_embedder(), FakeVectorStore(), FakePredictionRepo())
     result = await orch.search("q")
     assert result.results == []
+
+
+async def _store_repo_p1_p2():
+    store = FakeVectorStore()
+    # FakeVectorStore: distance = порядок вставки (0-based) → p1=0.0, p2=1.0
+    await store.store_embedding("p1", [0.1, 0.1, 0.1])
+    await store.store_embedding("p2", [0.2, 0.2, 0.2])
+    repo = FakePredictionRepo()
+    for pid in ("p1", "p2"):
+        await repo.save(
+            Prediction(id=pid, document_id="d", person_id="x", claim_text=pid, prediction_date=date(2024, 1, 1))
+        )
+    return store, repo
+
+
+async def test_search_applies_relevance_threshold():
+    store, repo = await _store_repo_p1_p2()
+    orch = QueryOrchestrator(_embedder(), store, repo, relevance_threshold=0.5)
+    result = await orch.search("q", limit=10)
+    assert [r.prediction.id for r in result.results] == ["p1"]  # p2@1.0 > 0.5 відсічено
+
+
+async def test_search_threshold_none_keeps_all():
+    store, repo = await _store_repo_p1_p2()
+    orch = QueryOrchestrator(_embedder(), store, repo)  # дефолт None
+    result = await orch.search("q", limit=10)
+    assert [r.prediction.id for r in result.results] == ["p1", "p2"]  # без фільтра

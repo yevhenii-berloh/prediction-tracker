@@ -11,14 +11,18 @@ class QueryOrchestrator:
         embedder: EmbeddingClient,
         vector_store: VectorStore,
         prediction_repo: PredictionRepository,
+        relevance_threshold: float | None = None,
     ) -> None:
         self._embedder = embedder
         self._vector_store = vector_store
         self._prediction_repo = prediction_repo
+        self._relevance_threshold = relevance_threshold
 
     async def search(self, question: str, limit: int = 10) -> QueryResult:
         embedding = await self._embedder.embed(question)
         matches = await self._vector_store.search_similar(embedding, limit=limit)
+        if self._relevance_threshold is not None:
+            matches = [m for m in matches if m.distance <= self._relevance_threshold]
         by_id = {
             p.id: p
             for p in await self._prediction_repo.get_by_ids([m.prediction_id for m in matches])

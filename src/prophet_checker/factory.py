@@ -89,7 +89,9 @@ async def build_query_orchestrator(settings: Settings, stack: AsyncExitStack) ->
     vector_store = PostgresVectorStore(session_factory)
     embedder = EmbeddingClient(model=settings.embedding_model, api_key=settings.openai_api_key)
 
-    return QueryOrchestrator(embedder, vector_store, prediction_repo)
+    return QueryOrchestrator(
+        embedder, vector_store, prediction_repo, relevance_threshold=settings.relevance_threshold
+    )
 
 
 async def build_answer_orchestrator(
