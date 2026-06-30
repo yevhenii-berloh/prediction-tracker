@@ -462,7 +462,13 @@ def category_breakdown(runs, t: float) -> list[CategoryBreakdown]:
 def sweep_thresholds(runs, recall_target: float = 0.9) -> ThresholdReport:
     """Retrieval-only sweep: для кожного спостереженого distance рахує (answer-rate, recall,
     off-refusal); обирає T = max off-refusal за умови recall ≥ target (trust-first)."""
-    grid = sorted({r.distance for run in runs if run.result is not None for r in run.result.results})
+    distances: set[float] = set()
+    for run in runs:
+        if run.result is None:
+            continue
+        for r in run.result.results:
+            distances.add(r.distance)
+    grid = sorted(distances)  # спостережені distance = точки переходу метрик
     curve = [_point(runs, t) for t in grid]
 
     eligible = [p for p in curve if p.recall >= recall_target]
