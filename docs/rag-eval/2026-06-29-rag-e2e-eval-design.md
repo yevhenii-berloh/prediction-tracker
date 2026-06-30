@@ -13,7 +13,7 @@
 ## Залежності (чому парк)
 
 - **Поріг із A** — щоб refusal був детермінованим (інакше B покладається на self-refusal Gemini). Тож B стартує **після** A.
-- **Backfill embeddings** на проді (як в A) — жива retrieval.
+- **Backfill embeddings** — ✅ виконано (жива retrieval працює).
 
 ## Eval — `scripts/rag/e2e_eval.py`
 

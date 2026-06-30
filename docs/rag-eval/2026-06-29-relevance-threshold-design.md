@@ -15,9 +15,9 @@
 1. **Офлайн-eval** (`scripts/rag/threshold_eval.py`) — sweep порогів на gold → рекомендоване значення + крива + перший вимір **абсолютного** retrieval-recall.
 2. **Прод-механізм** (`src/`) — `Settings.relevance_threshold` + фільтр у `QueryOrchestrator.search`; виставити налаштоване значення.
 
-## Передумова (критична)
+## Передумова
 
-Eval робить **живий vector-search по прод-корпусу** → потрібні **backfill embeddings** (історично всі `embedding IS NULL`). Backfill-скрипт ідемпотентний (`is_embedding_present`); прогнати на проді — крок 0.
+Eval робить **живий vector-search по прод-корпусу** → потрібні embeddings у БД. **✅ Backfill уже виконано** — передумова задоволена, eval можна ганяти на проді одразу після збірки.
 
 ## Рамка рішень
 
