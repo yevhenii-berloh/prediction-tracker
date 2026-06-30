@@ -37,7 +37,7 @@ Eval робить **живий vector-search по прод-корпусу** → 
 
 - **Об'єктив порога — trust-first:** max off-corpus-refusal за умови answerable retrieval-recall ≥ ~0.9. Краще зайва відмова, ніж впевнена відповідь на off-topic. Звіт — **повна крива** по всіх T; об'єктив лише обирає робочу точку.
 - **Питання — prediction-centric:** ретроспективна перевірка прогнозу, не форкастинг/факт (див. секцію вище); промпт `build_query_gold.py` переформульовано + gold перегенеровано.
-- **Переюз gold:** наявний `scripts/data/generation/gold.json` (92 answerable з `expected_sources` + 20 off-corpus: 10 off_domain + 10 near_domain).
+- **Gold — структура та сама, питання перегенеровані:** набір кейсів `generation/gold.json` (92 answerable з `expected_sources` + 20 off-corpus: 10 off_domain + 10 near_domain) лишається, але **single_source-питання перегенеровуються prediction-centric** (нова версія промпту, див. секцію вище) — стару форкастинг/факт-версію НЕ переюзуємо. synthesis (ручні) вже prediction-centric; off_domain/near_domain — refusal-проби (їхнє формулювання навмисне, не чіпаємо). A ганяється на дато-суфіксованій перегенерованій версії (`gold_YYYY-MM-DD.json`).
 - **Поріг — у конфіг** (`Settings.relevance_threshold`); дефолт `None` = поточна поведінка (без порога). Eval передає `None` (сирий top-k для sweep); прод бере налаштоване.
 
 ## Eval — `scripts/rag/threshold_eval.py` (retrieval-only)
