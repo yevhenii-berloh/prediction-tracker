@@ -469,27 +469,39 @@ def category_breakdown(runs: list[EvalRun], t: float) -> list[CategoryBreakdown]
     return out
 
 
-def sweep_thresholds(runs: list[EvalRun], recall_target: float = 0.9) -> ThresholdReport:
-    """Retrieval-only sweep: для кожного спостереженого distance рахує (answer-rate, recall,
-    off-refusal); обирає T = max off-refusal за умови recall ≥ target (trust-first)."""
+def _observed_distances(runs: list[EvalRun]) -> list[float]:
+    """Відсортовані унікальні distance з усіх прогонів — точки переходу метрик."""
     distances: set[float] = set()
     for run in runs:
         if run.result is None:
             continue
-        for r in run.result.results:
-            distances.add(r.distance)
-    grid = sorted(distances)  # спостережені distance = точки переходу метрик
-    curve = [_point(runs, t) for t in grid]
+        distances.update(r.distance for r in run.result.results)
+    return sorted(distances)
 
+
+def _choose_threshold(curve: list[ThresholdPoint], recall_target: float) -> float | None:
+    """Trust-first: серед T із recall ≥ target бере max off-refusal (найменший T при нічиї);
+    None — якщо жоден T не дотягує до target."""
     eligible = [p for p in curve if p.recall >= recall_target]
-    chosen = None
-    if eligible:
-        best_refusal = max(p.refusal_rate for p in eligible)
-        chosen = min(p.threshold for p in eligible if p.refusal_rate == best_refusal)
+    if not eligible:
+        return None
+    best_refusal = max(p.refusal_rate for p in eligible)
+    return min(p.threshold for p in eligible if p.refusal_rate == best_refusal)
 
+
+def sweep_thresholds(runs: list[EvalRun], recall_target: float = 0.9) -> ThresholdReport:
+    """Retrieval-only sweep: будує криву метрик по спостережених distance й обирає поріг
+    trust-first. Кроки винесено в хелпери, щоб тіло лишалось плоским (низька cognitive
+    complexity — нема вкладених циклів/розгалужень)."""
+    grid = _observed_distances(runs)
+    curve = [_point(runs, t) for t in grid]
+    chosen = _choose_threshold(curve, recall_target)
     breakdown = category_breakdown(runs, chosen) if chosen is not None else []
     return ThresholdReport(
-        curve=curve, chosen_threshold=chosen, recall_target=recall_target, by_category_at_chosen=breakdown
+        curve=curve,
+        chosen_threshold=chosen,
+        recall_target=recall_target,
+        by_category_at_chosen=breakdown,
     )
 ```
 
@@ -547,7 +559,7 @@ from prophet_checker.storage.postgres import (  # noqa: E402
     PostgresPredictionRepository,
     PostgresVectorStore,
 )
-from rag.threshold_sweep import sweep_thresholds  # noqa: E402
+from rag.threshold_sweep import ThresholdReport, sweep_thresholds  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -555,6 +567,18 @@ logger = logging.getLogger(__name__)
 DEFAULT_GOLD = PROJECT_ROOT / "scripts" / "data" / "generation" / "gold.json"
 OUT_DIR = PROJECT_ROOT / "scripts" / "outputs" / "threshold_eval"
 TOP_N = 20  # стелю беремо з запасом, щоб sweep мав де відсікати
+
+
+def _write_report(report: ThresholdReport, recall_target: float) -> None:
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    out = OUT_DIR / "threshold_report.json"
+    out.write_text(report.model_dump_json(indent=2), encoding="utf-8")
+    logger.info(
+        "chosen relevance_threshold = %s (recall_target=%.2f)", report.chosen_threshold, recall_target
+    )
+    if report.chosen_threshold is None:
+        logger.warning("жоден поріг не дає recall ≥ %.2f → retrieval слабкий (див. криву у звіті)", recall_target)
+    print(f"report → {out}")
 
 
 async def _main(gold_path: Path, limit: int, concurrency: int, recall_target: float) -> None:
@@ -581,14 +605,7 @@ async def _main(gold_path: Path, limit: int, concurrency: int, recall_target: fl
         runs = await run_cases(cases, run_one, concurrency=concurrency, min_interval_s=0.05)
 
     report = sweep_thresholds(runs, recall_target=recall_target)
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    (OUT_DIR / "threshold_report.json").write_text(report.model_dump_json(indent=2), encoding="utf-8")
-    logger.info(
-        "chosen relevance_threshold = %s (recall_target=%.2f)", report.chosen_threshold, recall_target
-    )
-    if report.chosen_threshold is None:
-        logger.warning("жоден поріг не дає recall ≥ %.2f → retrieval слабкий (див. криву у звіті)", recall_target)
-    print(f"report → {OUT_DIR}/threshold_report.json")
+    _write_report(report, recall_target)
 
 
 def main() -> None:
