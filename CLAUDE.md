@@ -37,6 +37,11 @@ curl -X POST localhost:8000/ingest/run     # trigger one ingestion cycle
 .venv/bin/ruff check .
 .venv/bin/ruff format .
 
+# Cognitive complexity (complexipy; threshold in [tool.complexipy] = 12)
+.venv/bin/complexipy src                          # full audit — 3 functions currently over 12 (grandfathered)
+.venv/bin/complexipy --diff HEAD --ratchet src    # the gate: fails only on a NEW or worsened function over 12
+.venv/bin/pre-commit install                      # one-time per clone — activates the gate as a git pre-commit hook
+
 # New migration after changing models/db.py
 .venv/bin/alembic revision --autogenerate -m "description"
 
@@ -91,7 +96,7 @@ Optimise new code for the next reader. A green linter is a floor, not proof of r
   - **Recursion isn't free** — each method in a recursion cycle is charged (cyclomatic ignores it); prefer iteration when it reads as clearly.
   - **Use language shorthand** (`x if c else y`, `a or b`, `a.get(...)`) — ignored by the metric because it condenses lines readably.
   - Each `break in linear flow` (loop, conditional, `except`, `match`, labelled jump) is +1; `try`/`finally` and a plain early `return` are free.
-  - Ruff does **not** enforce this (`C901` is cyclomatic) — it's on you, or wire SonarLint / `flake8-cognitive-complexity` / `complexipy`.
+  - Enforced by a **`complexipy` gate** (threshold 12 in `[tool.complexipy]`, **ratchet / new-code-only** via pre-commit) — Ruff's `C901` is cyclomatic and does *not* catch this. Three functions are already over 12 and grandfathered (`extract`=15, `IngestionOrchestrator::_process_channel`=19, `parse_verification_response_v2`=13); don't add new ones or push these higher. Audit: `complexipy src`.
 - **Reuse first; rule of three**: use an existing helper before writing new logic; extract a shared helper on the *third* repetition, not the first — don't add speculative abstraction.
 - **Edit in place, small diffs**: modify the existing function rather than adding a parallel v2; don't reformat or refactor unrelated code in the same change.
 - **Don't unit-test pure Pydantic models**: a class that is only field declarations (no validators, no methods, no computed properties) is tested by Pydantic itself — don't write a test that just constructs it and reads fields back. Test the code that *uses* the model (orchestrators, endpoints, prompts) instead.

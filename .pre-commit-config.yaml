@@ -1,0 +1,17 @@
+# Cognitive-complexity gate. Enable once per clone with:  pre-commit install
+#
+# Ratchet mode: fails ONLY on a new function over the threshold, or an existing
+# function that regresses further above it. Functions already over the limit that
+# don't get worse are grandfathered. Threshold lives in [tool.complexipy] (= 12).
+# Full audit of current offenders:  complexipy src
+repos:
+  - repo: local
+    hooks:
+      - id: complexipy
+        name: cognitive complexity (ratchet — new code only)
+        entry: complexipy
+        args: ["--diff", "HEAD", "--ratchet", "src"]
+        language: python
+        additional_dependencies: ["complexipy==6.0.0"]
+        pass_filenames: false
+        always_run: true

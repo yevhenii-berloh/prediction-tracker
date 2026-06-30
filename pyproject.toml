@@ -40,6 +40,8 @@ dev = [
     "pytest-asyncio>=0.24.0", # Async test support (async def test_... just works)
     "pytest-cov>=5.0.0",      # Coverage reporting
     "ruff>=0.6.0",            # Linter + formatter (replaces flake8/black/isort)
+    "complexipy>=6.0.0",      # Cognitive-complexity gate (ratchet mode — fails only on new/worsened code)
+    "pre-commit>=3.5.0",      # Runs the complexipy gate as a git pre-commit hook
 ]
 
 # -- Pytest configuration --
@@ -52,6 +54,10 @@ pythonpath = ["src", "scripts", "tests"]  # src for production code; scripts for
 [tool.ruff]
 target-version = "py311"  # Match requires-python
 line-length = 100         # Wider than default 88 — better for long SQL/prompt strings
+
+# -- Cognitive-complexity gate (complexipy) — enforces the "Minimise cognitive complexity" rule --
+[tool.complexipy]
+max-complexity-allowed = 12  # SonarSource-style cognitive complexity per function
 
 # -- Build system --
 [build-system]
