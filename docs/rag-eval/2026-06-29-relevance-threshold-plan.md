@@ -48,8 +48,9 @@
 ```python
 async def _store_repo_p1_p2():
     store = FakeVectorStore()
-    await store.store_embedding("p1", [0.1, 0.1, 0.1])  # FakeVectorStore: distance = індекс → 0.0
-    await store.store_embedding("p2", [0.2, 0.2, 0.2])  # → 1.0
+    # FakeVectorStore: distance = порядок вставки (0-based) → p1=0.0, p2=1.0
+    await store.store_embedding("p1", [0.1, 0.1, 0.1])
+    await store.store_embedding("p2", [0.2, 0.2, 0.2])
     repo = FakePredictionRepo()
     for pid in ("p1", "p2"):
         await repo.save(
@@ -160,14 +161,23 @@ git commit -m "feat(query): поріг релевантності у QueryOrches
 - Modify: `scripts/retrieval/build_query_gold.py` (`build_query_prompt` + `main` default `--out`)
 - Test: `tests/test_retrieval_query_gold.py`
 
-- [ ] **Step 1: Guard-тест на prediction-centric промпт**
+- [ ] **Step 1: Оновити наявний тест + додати guard**
 
-У `tests/test_retrieval_query_gold.py` додай (імпорт `build_query_prompt` зверху, поряд з наявними імпортами з `retrieval.build_query_gold`):
+У `tests/test_retrieval_query_gold.py` (`build_query_prompt` уже імпортовано зверху файлу):
+
+(a) **Онови наявний** `test_prompt_demands_anchors_and_paraphrase` — рядок `assert "найближчим часом" in p` (стара anti-pattern-фраза, у новому промпті її нема → інакше сюїта червона) заміни на `assert "форкастинг" in p`. Сусідній `assert "перефразуй" in p.lower()` лишається (новий промпт зберігає «перефразуй»). Тіло стає:
+
+```python
+def test_prompt_demands_anchors_and_paraphrase():
+    p = build_query_prompt(_ROW, "claim_text")
+    assert "перефразуй" in p.lower()  # не копіювати формулювання
+    assert "форкастинг" in p  # форкастинг присутній лише як заборона (негативний приклад)
+```
+
+(b) **Додай** новий guard-тест:
 
 ```python
 def test_query_prompt_is_prediction_centric():
-    from retrieval.build_query_gold import build_query_prompt
-
     prompt = build_query_prompt(
         {
             "claim_text": "війна закінчиться у 2025",
@@ -187,8 +197,8 @@ def test_query_prompt_is_prediction_centric():
 
 - [ ] **Step 2: Запусти — має впасти**
 
-Run: `.venv/bin/python -m pytest tests/test_retrieval_query_gold.py::test_query_prompt_is_prediction_centric -q`
-Expected: FAIL — старий промпт не містить ретроспективної рамки.
+Run: `.venv/bin/python -m pytest tests/test_retrieval_query_gold.py -q`
+Expected: FAIL — старий промпт не має ретроспективної рамки (`test_query_prompt_is_prediction_centric`) і не містить «форкастинг» (оновлений `test_prompt_demands_anchors_and_paraphrase`). Решта тестів файлу лишаються зеленими (контекст/emphasis новий промпт зберігає).
 
 - [ ] **Step 3: Переписати `build_query_prompt`**
 
@@ -228,7 +238,15 @@ def build_query_prompt(row: dict, source_field: str) -> str:
 
 - [ ] **Step 4: Дато-суфікс на вихід**
 
-У `scripts/retrieval/build_query_gold.py`: додай імпорт `from datetime import date` (у блок stdlib-імпортів зверху, якщо ще нема), і заміни дефолт `--out` у `main` (рядок `parser.add_argument("--out", type=Path, default=GOLD_PATH)`) на:
+У `scripts/retrieval/build_query_gold.py`:
+
+(a) додай у блок stdlib-імпортів зверху (файл наразі `datetime` НЕ імпортує):
+
+```python
+from datetime import date
+```
+
+(b) заміни дефолт `--out` у `main` (рядок `parser.add_argument("--out", type=Path, default=GOLD_PATH)`) на:
 
 ```python
     parser.add_argument(
@@ -385,6 +403,8 @@ def _point(runs, t: float) -> ThresholdPoint:
     off_n = off_refused = 0
     for run in runs:
         labels = run.case.labels
+        if labels is None:  # EvalCase.labels номінально nullable; gold завжди їх ставить
+            continue
         kept = _kept_ids(run, t)
         if labels.answerable:
             ans_n += 1
@@ -408,6 +428,8 @@ def _point(runs, t: float) -> ThresholdPoint:
 def category_breakdown(runs, t: float) -> list[CategoryBreakdown]:
     cats: dict[str, list] = {}
     for run in runs:
+        if run.case.labels is None:
+            continue
         cats.setdefault(run.case.labels.category, []).append(run)
     out: list[CategoryBreakdown] = []
     for cat, crs in sorted(cats.items()):
@@ -505,6 +527,7 @@ from rag.threshold_sweep import sweep_thresholds  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
+# pre-regeneration stub — після Task 5 передавай дато-суфіксований gold через --gold
 DEFAULT_GOLD = PROJECT_ROOT / "scripts" / "data" / "generation" / "gold.json"
 OUT_DIR = PROJECT_ROOT / "scripts" / "outputs" / "threshold_eval"
 TOP_N = 20  # стелю беремо з запасом, щоб sweep мав де відсікати
@@ -531,7 +554,7 @@ async def _main(gold_path: Path, limit: int, concurrency: int, recall_target: fl
         async def run_one(case):
             return await orchestrator.search(case.input.question, limit=TOP_N)
 
-        runs = await run_cases(cases, run_one, concurrency=concurrency)
+        runs = await run_cases(cases, run_one, concurrency=concurrency, min_interval_s=0.05)
 
     report = sweep_thresholds(runs, recall_target=recall_target)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
