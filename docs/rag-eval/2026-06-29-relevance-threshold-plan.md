@@ -426,44 +426,46 @@ def _group_by_category(runs: list[EvalRun]) -> dict[str, list[EvalRun]]:
     return groups
 
 
+def _metrics(
+    runs: list[EvalRun], t: float
+) -> tuple[float | None, float | None, float | None]:
+    """(answer_rate, recall, refusal_rate) за порога t; кожна над своєю підмножиною
+    (answerable / off-corpus), None — якщо підмножина порожня."""
+    answerable = [r for r in runs if r.case.labels is not None and r.case.labels.answerable]
+    offcorpus = [r for r in runs if r.case.labels is not None and not r.case.labels.answerable]
+    answer_rate = recall = refusal_rate = None
+    if answerable:
+        kept = [_kept_ids(r, t) for r in answerable]
+        answer_rate = sum(1 for k in kept if k) / len(answerable)
+        recall = sum(_run_recall(r, k) for r, k in zip(answerable, kept, strict=True)) / len(answerable)
+    if offcorpus:
+        refusal_rate = sum(1 for r in offcorpus if not _kept_ids(r, t)) / len(offcorpus)
+    return answer_rate, recall, refusal_rate
+
+
 def _point(runs: list[EvalRun], t: float) -> ThresholdPoint:
-    ans_n = ans_answered = 0
-    recall_sum = 0.0
-    off_n = off_refused = 0
-    for run in runs:
-        labels = run.case.labels
-        if labels is None:
-            continue
-        kept = _kept_ids(run, t)
-        if labels.answerable:
-            ans_n += 1
-            if kept:
-                ans_answered += 1
-            recall_sum += _run_recall(run, kept)
-        else:
-            off_n += 1
-            if not kept:
-                off_refused += 1
+    answer_rate, recall, refusal_rate = _metrics(runs, t)
     return ThresholdPoint(
         threshold=t,
-        answer_rate=(ans_answered / ans_n) if ans_n else 0.0,
-        recall=(recall_sum / ans_n) if ans_n else 0.0,
-        refusal_rate=(off_refused / off_n) if off_n else 0.0,
+        answer_rate=answer_rate or 0.0,
+        recall=recall or 0.0,
+        refusal_rate=refusal_rate or 0.0,
     )
 
 
 def category_breakdown(runs: list[EvalRun], t: float) -> list[CategoryBreakdown]:
     out: list[CategoryBreakdown] = []
     for cat, crs in sorted(_group_by_category(runs).items()):
-        n = len(crs)
-        kept_per = [_kept_ids(r, t) for r in crs]
-        if crs[0].case.labels.answerable:  # категорії однорідні за answerable (gold-дизайн)
-            answered = sum(1 for k in kept_per if k)
-            recall = sum(_run_recall(r, k) for r, k in zip(crs, kept_per, strict=True)) / n
-            out.append(CategoryBreakdown(category=cat, n=n, answer_rate=answered / n, recall=recall))
-        else:
-            refused = sum(1 for k in kept_per if not k)
-            out.append(CategoryBreakdown(category=cat, n=n, refusal_rate=refused / n))
+        answer_rate, recall, refusal_rate = _metrics(crs, t)
+        out.append(
+            CategoryBreakdown(
+                category=cat,
+                n=len(crs),
+                answer_rate=answer_rate,
+                recall=recall,
+                refusal_rate=refusal_rate,
+            )
+        )
     return out
 
 
