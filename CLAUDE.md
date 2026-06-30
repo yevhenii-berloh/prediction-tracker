@@ -71,6 +71,7 @@ Ingestion-cycle flow: `IngestionOrchestrator.run_cycle()` (`ingestion/orchestrat
 - **Migrations**: any change to `models/db.py` needs an Alembic revision; the schema uses pgvector, so the Postgres container must be up to autogenerate/apply.
 - **Config**: everything flows through `config.py` (`pydantic-settings`, reads `.env`). `extra="ignore"` lets eval-only keys (e.g. `ANTHROPIC_API_KEY`) live in `.env` without bloating the schema.
 - **Commits**: history uses `type(scope): subject` (conventional commits), written in Ukrainian.
+- **Data files**: new files under `scripts/data/` get an ISO **creation-date suffix** — `<name>_YYYY-MM-DD.json` (e.g. `gold_2026-06-29.json`). Versioning is by keeping snapshots, not overwriting. Consumers reference the **explicit dated path** (a path constant / CLI default), updated when a newer version is generated — no auto "latest" resolution. Historical (pre-convention) files are left as-is; don't rename them.
 - **Never commit**: `.env` and the Telethon `tg_session*` file (a logged-in account session).
 
 ## Coding rules (new code)
