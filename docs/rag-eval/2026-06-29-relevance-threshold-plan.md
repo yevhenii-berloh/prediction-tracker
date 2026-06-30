@@ -373,7 +373,12 @@ Expected: FAIL — `rag.threshold_sweep` ще не існує (`ModuleNotFoundEr
 # scripts/rag/threshold_sweep.py
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from eval_common.models import EvalRun
 
 
 class ThresholdPoint(BaseModel):
@@ -398,27 +403,43 @@ class ThresholdReport(BaseModel):
     by_category_at_chosen: list[CategoryBreakdown]
 
 
-def _kept_ids(run, t: float) -> set[str]:
+def _kept_ids(run: EvalRun, t: float) -> set[str]:
+    """Id прогнозів, знайдених у межах порога t."""
     results = run.result.results if run.result is not None else []
     return {r.prediction.id for r in results if r.distance <= t}
 
 
-def _point(runs, t: float) -> ThresholdPoint:
+def _run_recall(run: EvalRun, kept: set[str]) -> float:
+    """Частка очікуваних джерел кейса серед знайдених (kept), 0..1."""
+    expected = [es.prediction.id for es in run.case.labels.expected_sources]
+    if not expected:
+        return 0.0
+    return sum(1 for e in expected if e in kept) / len(expected)
+
+
+def _group_by_category(runs: list[EvalRun]) -> dict[str, list[EvalRun]]:
+    groups: dict[str, list[EvalRun]] = {}
+    for run in runs:
+        if run.case.labels is None:  # EvalCase.labels номінально nullable; gold завжди їх ставить
+            continue
+        groups.setdefault(run.case.labels.category, []).append(run)
+    return groups
+
+
+def _point(runs: list[EvalRun], t: float) -> ThresholdPoint:
     ans_n = ans_answered = 0
     recall_sum = 0.0
     off_n = off_refused = 0
     for run in runs:
         labels = run.case.labels
-        if labels is None:  # EvalCase.labels номінально nullable; gold завжди їх ставить
+        if labels is None:
             continue
         kept = _kept_ids(run, t)
         if labels.answerable:
             ans_n += 1
             if kept:
                 ans_answered += 1
-            expected = [es.prediction.id for es in labels.expected_sources]
-            if expected:
-                recall_sum += sum(1 for e in expected if e in kept) / len(expected)
+            recall_sum += _run_recall(run, kept)
         else:
             off_n += 1
             if not kept:
@@ -431,35 +452,22 @@ def _point(runs, t: float) -> ThresholdPoint:
     )
 
 
-def category_breakdown(runs, t: float) -> list[CategoryBreakdown]:
-    cats: dict[str, list] = {}
-    for run in runs:
-        if run.case.labels is None:
-            continue
-        cats.setdefault(run.case.labels.category, []).append(run)
+def category_breakdown(runs: list[EvalRun], t: float) -> list[CategoryBreakdown]:
     out: list[CategoryBreakdown] = []
-    for cat, crs in sorted(cats.items()):
-        answerable = crs[0].case.labels.answerable
-        if answerable:
-            answered = sum(1 for r in crs if _kept_ids(r, t))
-            rec = 0.0
-            for r in crs:
-                expected = [es.prediction.id for es in r.case.labels.expected_sources]
-                kept = _kept_ids(r, t)
-                if expected:
-                    rec += sum(1 for e in expected if e in kept) / len(expected)
-            out.append(
-                CategoryBreakdown(
-                    category=cat, n=len(crs), answer_rate=answered / len(crs), recall=rec / len(crs)
-                )
-            )
+    for cat, crs in sorted(_group_by_category(runs).items()):
+        n = len(crs)
+        kept_per = [_kept_ids(r, t) for r in crs]
+        if crs[0].case.labels.answerable:  # категорії однорідні за answerable (gold-дизайн)
+            answered = sum(1 for k in kept_per if k)
+            recall = sum(_run_recall(r, k) for r, k in zip(crs, kept_per, strict=True)) / n
+            out.append(CategoryBreakdown(category=cat, n=n, answer_rate=answered / n, recall=recall))
         else:
-            refused = sum(1 for r in crs if not _kept_ids(r, t))
-            out.append(CategoryBreakdown(category=cat, n=len(crs), refusal_rate=refused / len(crs)))
+            refused = sum(1 for k in kept_per if not k)
+            out.append(CategoryBreakdown(category=cat, n=n, refusal_rate=refused / n))
     return out
 
 
-def sweep_thresholds(runs, recall_target: float = 0.9) -> ThresholdReport:
+def sweep_thresholds(runs: list[EvalRun], recall_target: float = 0.9) -> ThresholdReport:
     """Retrieval-only sweep: для кожного спостереженого distance рахує (answer-rate, recall,
     off-refusal); обирає T = max off-refusal за умови recall ≥ target (trust-first)."""
     distances: set[float] = set()
