@@ -45,7 +45,25 @@ def test_prompt_emphasis_differs_by_source_field():
 def test_prompt_demands_anchors_and_paraphrase():
     p = build_query_prompt(_ROW, "claim_text")
     assert "перефразуй" in p.lower()  # не копіювати формулювання
-    assert "найближчим часом" in p  # приклад-антипатерн присутній як заборона
+    assert "форкастинг" in p  # форкастинг присутній лише як заборона (негативний приклад)
+
+
+def test_query_prompt_is_prediction_centric():
+    prompt = build_query_prompt(
+        {
+            "claim_text": "війна закінчиться у 2025",
+            "situation": "на тлі переговорів",
+            "prediction_date": "2024-01-01",
+            "topic": "війна",
+        },
+        "claim_text",
+    )
+    # ретроспективна рамка перевірки прогнозу присутня
+    assert "РЕТРОСПЕКТИВ" in prompt
+    assert "прогнозував" in prompt
+    assert "НЕ проси спрогнозувати майбутнє" in prompt
+    # форкастинг згадується лише як НЕГАТИВНИЙ приклад
+    assert "(форкастинг)" in prompt
 
 
 async def test_generate_two_queries_when_situation_present():
