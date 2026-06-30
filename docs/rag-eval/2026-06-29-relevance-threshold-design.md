@@ -44,12 +44,24 @@ Eval робить **живий vector-search по прод-корпусу** → 
 
 **Runner** (`eval_common.run_cases`): orchestrator збудований із `threshold=None`; на кожне gold-питання → `QueryOrchestrator.search(question, limit=N)` → `QueryResult` (ранжовані `RetrievedPrediction` з `distance`). Без генерації, без судді. N з запасом (напр. 20).
 
-**Sweep** (`sweep_thresholds(runs, cases) -> ThresholdReport`): для сітки T рахуємо, з розбивкою по category:
-- **off-corpus refusal-rate(T)** = частка off-corpus із 0 matches `distance ≤ T`;
-- **answerable answer-rate(T)** = частка answerable із ≥1 match `≤ T`;
-- **retrieval-recall(T)** = частка answerable, де **очікуване** джерело (`expected_sources[].prediction.id`) серед matches `≤ T`.
+**Sweep** (`sweep_thresholds(runs, cases) -> ThresholdReport`).
 
-**Вибір T:** найбільший off-corpus-refusal-rate за умови `retrieval-recall ≥ 0.9`. Якщо умова недосяжна за жодного T — звіт це показує (retrieval сам слабкий → лагодити retrieval, не поріг; це й сигнал для задачі B та можливого hybrid-search).
+`distance` — косинусна відстань (менше = ближче); поріг T — **максимальна збережена відстань**: при T лишаються matches з `distance ≤ T`. Збільшення T → проходить більше matches.
+
+**Сітка T:** не довільний лінійний крок, а **відсортовані унікальні distance**, що реально спостерігаються в усіх matches (+ 0 і max). Метрики — східчасті функції T, що змінюються рівно на цих точках, тож така сітка дає **точну** криву без пропущених переходів.
+
+**Метрики при кожному T** (denominator у дужках), окремо по category:
+- **off-corpus refusal-rate(T)** = (off-corpus-кейси з **0** matches `≤ T`) / (усі off-corpus). Доповнення `1 − refusal-rate` = **false-answer** (відповіли на off-topic).
+- **answerable answer-rate(T)** = (answerable з **≥1** match `≤ T`) / (усі answerable). Доповнення `1 − answer-rate` = **over-refusal** (відмовили валідному).
+- **retrieval-recall(T)** = середнє по answerable від (**очікувані** джерела `expected_sources[].prediction.id`, що серед matches `≤ T`) / (усі очікувані цього кейса). single_source → бінарно 0/1; synthesis → частка знайдених із кількох очікуваних.
+
+**answer-rate vs recall — ключова різниця:** answer-rate міряє «знайшлось **бодай якесь** джерело» (може бути НЕ те → відповідь з хибного контексту); recall міряє «знайшлось **саме очікуване**». Завжди `recall ≤ answer-rate`. Саме **recall** = «система може відповісти ПРАВИЛЬНО», тож він — в умові вибору, не answer-rate.
+
+**Як рухаються по T:** малий T (суворо) → ↑off-corpus-refusal (добре), але ↓recall/answer-rate (over-refusal); великий T (м'яко) → ↑recall, але ↓off-corpus-refusal (false-answer/галюцинація). Sweep трасує цей компроміс — це і є крива.
+
+**Розбивка по category дає діагностику:** single_source vs synthesis (recall для багатоджерельних — складніший); **off_domain** (явно off-topic, легко відмовити) vs **near_domain** (суміжне-але-непокрите — найжорсткіший дискримінатор: його refusal-rate при обраному T — реальний сигнал робастності порога).
+
+**Вибір T (trust-first):** найбільший off-corpus-refusal-rate за умови `retrieval-recall ≥ 0.9`. Якщо умова недосяжна за жодного T — звіт це показує: значить **retrieval сам слабкий** (очікуване джерело не в top-N навіть без порога) → лагодити retrieval, не поріг; це сигнал для задачі B та можливого hybrid-search.
 
 **Без scorer-ів:** sweep — агрегатна операція над усіма distance, не per-case вердикт. Тож A = `run_cases` + чиста `sweep_thresholds` + markdown/JSON-звіт. Повністю детерміновано (ембединги фіксовані, нуль LLM).
 
