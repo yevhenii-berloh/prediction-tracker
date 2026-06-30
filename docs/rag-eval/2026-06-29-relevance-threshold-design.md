@@ -19,9 +19,24 @@
 
 Eval робить **живий vector-search по прод-корпусу** → потрібні embeddings у БД. **✅ Backfill уже виконано** — передумова задоволена, eval можна ганяти на проді одразу після збірки.
 
+## Якість gold-питань — prediction-centric (data-передумова)
+
+Поточний `retrieval/query_gold.json` (LLM-генерований через `build_query_gold.py`) має ~40% **форкастингових/фактичних** питань («чи звільнить Україна території до 2022?», «які навчання планували?») замість **ретроспективної перевірки прогнозу** («що прогнозували про звільнення територій до 2022?»). Корінь — промпт `build_query_prompt` оптимізував *findability*, а не інтент трекера, і має суперечливі приклади (один форкастинговий). Threshold-tuning на нереалістичних питаннях дав би **міскалібрований поріг**, тож це передумова A.
+
+**Фікс (частина A):** переформулювати `build_query_prompt` на prediction-checking:
+- рамка — користувач питає **РЕТРОСПЕКТИВНО**, що автор прогнозував (і чи справдилось); це трекер прогнозів, не оракул;
+- заборонити форкастинг («чи станеться / звільнить / буде X?») і факти («що планували / відбулося»);
+- акцент `claim_text` → «що [автор] прогнозував про [зміст] [період]?»; акцент `situation` → «які прогнози робив на тлі [обставини] [період]?»;
+- prediction-centric запит лишається семантично близьким до прогнозу → retrieval-findability **не страждає**, реалізм зростає.
+
+Ручні synthesis-питання (`generation/manual_questions.json`) **вже prediction-centric** — не чіпаємо.
+
+**Регенерація (твоя інфра, LLM):** після фіксу промпту перегенерувати `retrieval/query_gold.json` → каскадом `generation/gold.json` (його single_source-питання = ці запити). Далі threshold-sweep ганяється на реалістичних питаннях. Узгоджує інтент: питання ретроспективні ↔ відповідь ретроспективна (прогноз→вердикт).
+
 ## Рамка рішень
 
 - **Об'єктив порога — trust-first:** max off-corpus-refusal за умови answerable retrieval-recall ≥ ~0.9. Краще зайва відмова, ніж впевнена відповідь на off-topic. Звіт — **повна крива** по всіх T; об'єктив лише обирає робочу точку.
+- **Питання — prediction-centric:** ретроспективна перевірка прогнозу, не форкастинг/факт (див. секцію вище); промпт `build_query_gold.py` переформульовано + gold перегенеровано.
 - **Переюз gold:** наявний `scripts/data/generation/gold.json` (92 answerable з `expected_sources` + 20 off-corpus: 10 off_domain + 10 near_domain).
 - **Поріг — у конфіг** (`Settings.relevance_threshold`); дефолт `None` = поточна поведінка (без порога). Eval передає `None` (сирий top-k для sweep); прод бере налаштоване.
 
@@ -60,11 +75,12 @@ Eval робить **живий vector-search по прод-корпусу** → 
 
 - **`sweep_thresholds`** — unit на фікстурах (синтетичні runs+distances): refusal-rate / answer-rate / retrieval-recall на відомих порогах; вибір T за trust-first-правилом; крайові (усі ≤ T; усі > T; recall ≥0.9 недосяжний).
 - **`QueryOrchestrator` threshold** — unit (FakeVectorStore): matches з `distance > threshold` відкидаються; `None` → без фільтра (поточна поведінка незмінна).
+- **`build_query_prompt`** — guard-тест: промпт містить prediction-checking рамку + приклади й НЕ містить форкастингових директив (регрес-запобіжник, як guard у RAG-промпті).
 - **CLI** — без юніту (інтеграція; ручний прогін на проді з backfill).
 
 ## Скоуп
 
-**In:** `scripts/rag/threshold_eval.py` (sweep + вибір + звіт); прод-поріг (`Settings` + `QueryOrchestrator`); unit-тести; виставлення налаштованого значення в конфіг.
+**In:** переформулювання query-gen промпту (`build_query_gold.py`) на prediction-centric + регенерація `query_gold`/`generation/gold.json`; `scripts/rag/threshold_eval.py` (sweep + вибір + звіт); прод-поріг (`Settings` + `QueryOrchestrator`); unit-тести; виставлення налаштованого значення в конфіг.
 
 **Out (deferred):**
 - end-to-end якість (refusal/faithfulness/e2e-recall на живому answer) — задача [B](2026-06-29-rag-e2e-eval-design.md);
