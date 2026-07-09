@@ -16,5 +16,31 @@ services:
       timeout: 3s
       retries: 5
 
+  migrate:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-prophet}:${POSTGRES_PASSWORD:-prophet}@postgres:5432/${POSTGRES_DB:-prophet_checker}
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+
+  app:
+    build: .
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-prophet}:${POSTGRES_PASSWORD:-prophet}@postgres:5432/${POSTGRES_DB:-prophet_checker}
+      APP_HOST: 0.0.0.0
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./tg_session.session:/app/tg_session.session
+    restart: unless-stopped
+
 volumes:
   pgdata:
