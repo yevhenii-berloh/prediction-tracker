@@ -113,6 +113,10 @@ Resources:
           aws s3 cp "s3://${SecretsBucketName}/.env" /opt/app/.env
           aws s3 cp "s3://${SecretsBucketName}/tg_session.session" /opt/app/tg_session.session
 
+          # Telethon пише session-sqlite при конекті; контейнер працює під appuser (uid 1000
+          # у Dockerfile), а cp зробив root — без цього "attempt to write a readonly database"
+          chown 1000:1000 /opt/app/tg_session.session
+
           docker compose up -d --build
 
           signal 0
