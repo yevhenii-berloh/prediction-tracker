@@ -63,3 +63,6 @@ max-complexity-allowed = 12  # SonarSource-style cognitive complexity per functi
 [build-system]
 requires = ["setuptools>=69.0"]
 build-backend = "setuptools.build_meta"  # Standard PEP 517 build backend
+
+[tool.setuptools.packages.find]
+where = ["src"]

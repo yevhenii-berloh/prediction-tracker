@@ -1,0 +1,12 @@
+.git
+.venv
+.env
+.env.*
+tg_session*
+scripts/outputs/
+docs/
+tests/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
