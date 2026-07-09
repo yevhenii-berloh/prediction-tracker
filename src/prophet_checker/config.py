@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     verification_confidence_threshold: float = 0.6
     relevance_threshold: float | None = None  # None = top-k без порога; ставимо після sweep (задача A)
     log_level: str = "INFO"
+    app_host: str = "127.0.0.1"  # 0.0.0.0 у контейнері (compose), інакше застосунок недосяжний ззовні контейнера
 
     model_config = {
         "env_file": ".env",

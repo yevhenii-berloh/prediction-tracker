@@ -12,7 +12,7 @@ if __name__ == "__main__":
     )
     uvicorn.run(
         "prophet_checker.app:app",
-        host="127.0.0.1",
+        host=settings.app_host,
         port=8000,
         log_level=settings.log_level.lower(),
     )
