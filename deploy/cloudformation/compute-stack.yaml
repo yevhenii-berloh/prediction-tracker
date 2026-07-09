@@ -1,0 +1,125 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: prophet-checker — EC2 з Docker Compose, доступ лише SSH
+
+Parameters:
+  SecretsBucketName:
+    Type: String
+    Description: Ім'я бакета з Output секрет-стека
+  SshIngressCidr:
+    Type: String
+    Description: Твій IP у форматі CIDR, напр. 203.0.113.7/32
+  KeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+  InstanceType:
+    Type: String
+    Default: t3.small
+  RepoUrl:
+    Type: String
+    Default: https://github.com/evgeniy44/prediction-tracker.git
+    Description: HTTPS-URL публічного репо для git clone
+  LatestAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+
+Resources:
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: ec2.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: read-secrets-bucket
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: [s3:GetObject]
+                Resource: !Sub "arn:aws:s3:::${SecretsBucketName}/*"
+              - Effect: Allow
+                Action: [s3:ListBucket]
+                Resource: !Sub "arn:aws:s3:::${SecretsBucketName}"
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles: [!Ref InstanceRole]
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: prophet-checker - SSH only from trusted IP
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref SshIngressCidr
+
+  Instance:
+    Type: AWS::EC2::Instance
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT15M
+    Properties:
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyPairName
+      SubnetId: !Ref SubnetId
+      SecurityGroupIds: [!Ref SecurityGroup]
+      IamInstanceProfile: !Ref InstanceProfile
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeType: gp3
+            VolumeSize: 30
+            DeleteOnTermination: true
+      Tags:
+        - Key: Name
+          Value: prophet-checker
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -eo pipefail
+          exec > /var/log/user-data.log 2>&1
+          set -x
+
+          signal() {
+            /opt/aws/bin/cfn-signal -e "$1" \
+              --stack ${AWS::StackName} --resource Instance --region ${AWS::Region}
+          }
+          trap 'signal 1' ERR
+
+          dnf install -y docker git aws-cfn-bootstrap
+          systemctl enable --now docker
+          usermod -aG docker ec2-user
+
+          # docker compose v2 як CLI-плагін (AL2023 docker-пакет його не несе)
+          mkdir -p /usr/local/lib/docker/cli-plugins
+          curl -SL "https://github.com/docker/compose/releases/download/v2.29.7/docker-compose-linux-x86_64" \
+            -o /usr/local/lib/docker/cli-plugins/docker-compose
+          chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+          git clone ${RepoUrl} /opt/app
+          cd /opt/app
+
+          aws s3 cp "s3://${SecretsBucketName}/.env" /opt/app/.env
+          aws s3 cp "s3://${SecretsBucketName}/tg_session.session" /opt/app/tg_session.session
+
+          docker compose up -d --build
+
+          signal 0
+
+Outputs:
+  PublicIp:
+    Description: Публічний IP боксу (для ssh -L тунелю)
+    Value: !GetAtt Instance.PublicIp
+  SshTunnelHint:
+    Value: !Sub "ssh -i <key>.pem -L 8000:localhost:8000 ec2-user@${Instance.PublicIp}"
