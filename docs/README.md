@@ -66,6 +66,12 @@ Smart Verifier з Dumb Trigger: 4-status output (confirmed/refuted/unresolved/pr
 |----------|-------------|
 | [`annotation-guidelines.md`](annotation/annotation-guidelines.md) | Rubric: YES/NO criteria, anti-patterns. Використовується для gold_labels.json і extraction-eval judge prompt. |
 
+## 🚀 [`aws-deploy/`](aws-deploy/) — мінімальний деплой на AWS (EC2 + Docker Compose, SSH-only)
+
+| Документ | Призначення |
+|----------|-------------|
+| [`README.md`](aws-deploy/README.md) | Index: статус, документи, артефакти, відхилення від плану |
+
 ---
 
 ## Чому ця структура
