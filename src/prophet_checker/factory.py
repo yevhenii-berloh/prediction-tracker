@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from contextlib import AsyncExitStack
 
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker
 from telethon import TelegramClient
 
 from prophet_checker.analysis.extractor import PredictionExtractor
@@ -14,6 +14,7 @@ from prophet_checker.models.domain import SourceType
 from prophet_checker.query import QueryOrchestrator
 from prophet_checker.query.answer_orchestrator import AnswerOrchestrator
 from prophet_checker.sources.telegram import TelegramSource
+from prophet_checker.storage.engine import make_engine
 from prophet_checker.storage.postgres import (
     PostgresPredictionRepository,
     PostgresSourceRepository,
@@ -23,7 +24,7 @@ from prophet_checker.verification import VerificationOrchestrator
 
 
 async def build_orchestrator(settings: Settings, stack: AsyncExitStack) -> IngestionOrchestrator:
-    engine = create_async_engine(settings.database_url, echo=False)
+    engine = make_engine(settings.database_url, settings.db_ssl_mode)
     stack.push_async_callback(engine.dispose)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
@@ -65,7 +66,7 @@ async def build_orchestrator(settings: Settings, stack: AsyncExitStack) -> Inges
 async def build_verification_orchestrator(
     settings: Settings, stack: AsyncExitStack
 ) -> VerificationOrchestrator:
-    engine = create_async_engine(settings.database_url, echo=False)
+    engine = make_engine(settings.database_url, settings.db_ssl_mode)
     stack.push_async_callback(engine.dispose)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
@@ -81,7 +82,7 @@ async def build_verification_orchestrator(
 
 
 async def build_query_orchestrator(settings: Settings, stack: AsyncExitStack) -> QueryOrchestrator:
-    engine = create_async_engine(settings.database_url, echo=False)
+    engine = make_engine(settings.database_url, settings.db_ssl_mode)
     stack.push_async_callback(engine.dispose)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
