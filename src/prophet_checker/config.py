@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://prophet:prophet@localhost:5432/prophet_checker"
+    db_ssl_mode: str = "disable"  # disable | require | verify-full; require на RDS (rds.force_ssl=1)
     llm_provider: str = "openai"
     llm_model: str = "gpt-4o-mini"
     llm_api_key: str = ""
