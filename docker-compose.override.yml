@@ -1,0 +1,33 @@
+# Локальний dev-оверрайд. Compose авто-підхоплює його при `docker compose up`.
+# Бокс запускає `docker compose -f docker-compose.yml up` (явно → без цього файлу → без Postgres).
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: prophet_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-prophet}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-prophet}
+      POSTGRES_DB: ${POSTGRES_DB:-prophet_checker}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-prophet} -d ${POSTGRES_DB:-prophet_checker}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  migrate:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-prophet}:${POSTGRES_PASSWORD:-prophet}@postgres:5432/${POSTGRES_DB:-prophet_checker}
+
+  app:
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-prophet}:${POSTGRES_PASSWORD:-prophet}@postgres:5432/${POSTGRES_DB:-prophet_checker}
+
+volumes:
+  pgdata:
