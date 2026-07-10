@@ -5,15 +5,14 @@ Parameters:
   SecretsBucketName:
     Type: String
     Description: Ім'я бакета з Output секрет-стека
-  SshIngressCidr:
+  DataStackName:
     Type: String
-    Description: Твій IP у форматі CIDR, напр. 203.0.113.7/32
+    Description: Name of the data stack that exports the app SG, e.g. prophet-data
   KeyPairName:
     Type: AWS::EC2::KeyPair::KeyName
-  VpcId:
-    Type: AWS::EC2::VPC::Id
   SubnetId:
     Type: AWS::EC2::Subnet::Id
+    Description: Must be inside the data stack's VPC (the imported app SG belongs to that VPC), else RunInstances rejects the SG
   InstanceType:
     Type: String
     Default: t3.small
@@ -52,17 +51,6 @@ Resources:
     Properties:
       Roles: [!Ref InstanceRole]
 
-  SecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: prophet-checker - SSH only from trusted IP
-      VpcId: !Ref VpcId
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: !Ref SshIngressCidr
-
   Instance:
     Type: AWS::EC2::Instance
     CreationPolicy:
@@ -73,7 +61,9 @@ Resources:
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyPairName
       SubnetId: !Ref SubnetId
-      SecurityGroupIds: [!Ref SecurityGroup]
+      SecurityGroupIds:
+        - !ImportValue
+            Fn::Sub: "${DataStackName}-AppSecurityGroupId"
       IamInstanceProfile: !Ref InstanceProfile
       BlockDeviceMappings:
         - DeviceName: /dev/xvda
@@ -117,7 +107,7 @@ Resources:
           # у Dockerfile), а cp зробив root — без цього "attempt to write a readonly database"
           chown 1000:1000 /opt/app/tg_session.session
 
-          docker compose up -d --build
+          docker compose -f docker-compose.yml up -d --build
 
           signal 0
 
