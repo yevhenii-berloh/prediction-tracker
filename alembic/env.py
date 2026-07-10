@@ -7,6 +7,7 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from prophet_checker.models.db import Base
+from prophet_checker.storage.engine import ssl_connect_args
 
 config = context.config
 if config.config_file_name is not None:
@@ -15,6 +16,8 @@ if config.config_file_name is not None:
 _db_url = os.environ.get("DATABASE_URL")
 if _db_url:
     config.set_main_option("sqlalchemy.url", _db_url)
+
+_ssl_mode = os.environ.get("DB_SSL_MODE", "disable")
 
 target_metadata = Base.metadata
 
@@ -37,6 +40,7 @@ async def run_migrations_online() -> None:
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args=ssl_connect_args(_ssl_mode),
     )
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
