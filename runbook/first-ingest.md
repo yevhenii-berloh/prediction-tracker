@@ -6,6 +6,15 @@
 
 **Бокс:** `ec2-user@18.197.68.220` (стек `prophet-compute`, eu-central-1).
 
+## RDS cutover (порядок стеків)
+
+1. `deploy` `secrets`-стек (якщо ще нема) — залити `.env` + `tg_session` у бакет.
+2. `deploy` `data`-стек (VpcId, SubnetIds ≥2 AZ, SshIngressCidr, DbPassword). Дочекатись RDS `available`.
+   Пароль піде в `DATABASE_URL`, тож **уникай `#`, `%`, `/`, `@`, пробілів** — вони або ламають URL, або відхиляються RDS (CFN `AllowedPattern` ловить `/ @ " ` + пробіл, але не `# %`).
+3. Оновити `.env` у S3: `DATABASE_URL` на RDS-endpoint (Output `DbEndpoint`), додати `DB_SSL_MODE=require`.
+4. `deploy` `compute`-стек (SecretsBucketName, DataStackName, KeyPairName, SubnetId — **у тій самій VPC, що й data-стек**, RepoUrl). Дочекатись cfn-signal.
+5. SSH-тунель → `POST /ingest/run` (re-ingest наповнює RDS).
+
 ## Важливо про вартість — прочитати перед стартом
 
 `POST /ingest/run` **не приймає ліміт** — збирає всі пости каналу від `last_collected_at`.
@@ -18,12 +27,17 @@
 ```bash
 ssh -i ~/.ssh/prophet-checker-key.pem ec2-user@18.197.68.220
 cd /opt/app
+
+# На боксі нема локального postgres — psql проти RDS через одноразовий контейнер.
+# DSN береться з .env: прибираємо +asyncpg, додаємо sslmode.
+DB_DSN=$(grep '^DATABASE_URL=' .env | cut -d= -f2- | sed 's/+asyncpg//')
+pg() { sudo docker run --rm -i postgres:16 psql "${DB_DSN}?sslmode=require" "$@"; }
 ```
 
 ## Крок 2 — засіяти Person + Source
 
 ```bash
-sudo docker compose exec -T postgres psql -U prophet -d prophet_checker <<'SQL'
+pg <<'SQL'
 WITH p AS (
   INSERT INTO persons (id, name, description)
   VALUES (gen_random_uuid()::text, 'Олексій Арестович', 'Ukrainian public figure')
@@ -38,7 +52,7 @@ SQL
 Перевірити, що джерело з'явилось:
 
 ```bash
-sudo docker compose exec -T postgres psql -U prophet -d prophet_checker \
+pg \
   -c "SELECT source_type, source_identifier, enabled, last_collected_at FROM person_sources;"
 ```
 
@@ -60,12 +74,12 @@ sudo docker compose logs -f app
 ## Крок 4 — верифікувати результат
 
 ```bash
-sudo docker compose exec -T postgres psql -U prophet -d prophet_checker -c "
+pg -c "
   SELECT count(*) AS predictions FROM predictions;
   SELECT count(*) AS documents  FROM raw_documents;
 "
 # приклад кількох прогнозів:
-sudo docker compose exec -T postgres psql -U prophet -d prophet_checker -c "
+pg -c "
   SELECT left(claim_text,80), prediction_date, status FROM predictions LIMIT 5;"
 ```
 
@@ -77,7 +91,7 @@ sudo docker compose exec -T postgres psql -U prophet -d prophet_checker -c "
 Щоб забрати глибшу історію — відмотати курсор назад і знову тригернути ingest:
 
 ```bash
-sudo docker compose exec -T postgres psql -U prophet -d prophet_checker \
+pg \
   -c "UPDATE person_sources SET last_collected_at = now() - interval '30 days' WHERE source_identifier='@arestovich';"
 # далі знову curl -X POST .../ingest/run  (більше вікно = більше $ і часу)
 ```

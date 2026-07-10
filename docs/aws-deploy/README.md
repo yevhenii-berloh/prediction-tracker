@@ -1,17 +1,21 @@
 # `aws-deploy/` — мінімальний деплой на AWS
 
-Статус: «воно живе» — один EC2 з Docker Compose (Postgres+pgvector+app),
-доступ лише SSH-тунелем, секрети з приватного S3, інфра як CloudFormation.
+Статус: «воно живе» — один EC2 з Docker Compose (app+migrate), БД на
+**RDS PostgreSQL (pgvector)**, доступ лише SSH-тунелем, секрети з приватного S3,
+інфра як CloudFormation. (До RDS-міграції БД крутилась Postgres-контейнером на боксі.)
 
 | Документ | Призначення |
 |----------|-------------|
 | [`2026-07-04-minimal-aws-deploy-design.md`](2026-07-04-minimal-aws-deploy-design.md) | Design: рішення, компроміси, acceptance |
 | [`2026-07-04-minimal-aws-deploy-plan.md`](2026-07-04-minimal-aws-deploy-plan.md) | Implementation plan — 8 задач |
+| [`2026-07-10-rds-migration-design.md`](2026-07-10-rds-migration-design.md) | Design: RDS-міграція БД (Phase B durability) |
+| [`2026-07-10-rds-migration-plan.md`](2026-07-10-rds-migration-plan.md) | Implementation plan — 9 задач |
 
-Артефакти: `Dockerfile`, `docker-compose.yml` (сервіси migrate/app),
-`deploy/cloudformation/{secrets,compute}-stack.yaml`.
+Артефакти: `Dockerfile`, `docker-compose.yml` (migrate/app) +
+`docker-compose.override.yml` (локальний Postgres для dev),
+`deploy/cloudformation/{secrets,data,compute}-stack.yaml`.
 
-Поза скоупом (майбутнє): розклад ingestion, RDS, публічний RAG/бот — Phase B/C.
+Поза скоупом (майбутнє): розклад ingestion, публічний RAG/бот — Phase B/C.
 
 ## Відхилення від плану / знахідки
 
