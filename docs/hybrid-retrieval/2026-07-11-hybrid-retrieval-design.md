@@ -136,8 +136,9 @@ class QueryPlanner:
   - відносні дати прив'язувати до переданої сьогоднішньої дати;
   - `semantic_query` — питання без автора й дат; якщо після зняття нічого не
     лишилось — переказ теми питання.
-- `parse_query_plan(raw, known_person_ids) -> QueryPlan` — typed boundary
-  (Pydantic, не dict); список відомих id потрібен для валідації `person_id` (§7).
+- `parse_query_plan(raw, known_person_ids, question) -> QueryPlan` — typed boundary
+  (Pydantic, не dict); список відомих id потрібен для валідації `person_id` (§7),
+  `question` — для нормалізації порожнього `semantic_query` (§7).
   Валідації парсера — в таблиці помилок (§7).
 
 ### 5.4 `VectorStore` Protocol (`storage/interfaces.py`)
