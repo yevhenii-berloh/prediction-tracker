@@ -14,6 +14,10 @@ REFUSAL_NO_DATA = (
     "Аналіз автоматизований і може містити неточності."
 )
 
+REFUSAL_UNKNOWN_AUTHOR = (
+    "У базі немає прогнозів автора «{author}». Аналіз автоматизований і може містити неточності."
+)
+
 
 class AnswerOrchestrator:
     def __init__(self, llm: LLMClient, query_orchestrator: QueryOrchestrator | None = None) -> None:
@@ -33,6 +37,15 @@ class AnswerOrchestrator:
 
     async def answer(self, question: str, limit: int = 10) -> AnswerResult:
         if self._query_orchestrator is None:
-            raise RuntimeError("answer() requires a query_orchestrator (this instance is generate-only)")
+            raise RuntimeError(
+                "answer() requires a query_orchestrator (this instance is generate-only)"
+            )
         result = await self._query_orchestrator.search(question, limit=limit)
+        if result.unknown_author is not None:
+            logger.info("answer: unknown author, refusing")
+            return AnswerResult(
+                query=question,
+                answer=REFUSAL_UNKNOWN_AUTHOR.format(author=result.unknown_author),
+                sources=[],
+            )
         return await self.answer_from_sources(question, result.results)

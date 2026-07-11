@@ -4,8 +4,12 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fakes import FakePredictionRepo, FakeVectorStore
 
-from prophet_checker.models.domain import Prediction, RetrievedPrediction
-from prophet_checker.query.answer_orchestrator import REFUSAL_NO_DATA, AnswerOrchestrator
+from prophet_checker.models.domain import Prediction, QueryResult, RetrievedPrediction
+from prophet_checker.query.answer_orchestrator import (
+    REFUSAL_NO_DATA,
+    REFUSAL_UNKNOWN_AUTHOR,
+    AnswerOrchestrator,
+)
 from prophet_checker.query.orchestrator import QueryOrchestrator
 
 
@@ -38,6 +42,21 @@ async def test_answer_refuses_without_calling_llm_when_no_sources():
     result = await orch.answer("q")
 
     assert result.answer == REFUSAL_NO_DATA
+    assert result.sources == []
+    llm.complete.assert_not_awaited()
+
+
+async def test_answer_unknown_author_refuses_without_llm():
+    llm = _llm("не має викликатись")
+    qo = MagicMock()
+    qo.search = AsyncMock(
+        return_value=QueryResult(query="q", results=[], unknown_author="Портников")
+    )
+    orch = AnswerOrchestrator(llm, qo)
+
+    result = await orch.answer("Що прогнозував Портников?")
+
+    assert result.answer == REFUSAL_UNKNOWN_AUTHOR.format(author="Портников")
     assert result.sources == []
     llm.complete.assert_not_awaited()
 
