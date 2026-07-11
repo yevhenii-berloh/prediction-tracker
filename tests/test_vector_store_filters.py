@@ -72,3 +72,48 @@ async def test_last_filters_recorded():
     filters = SearchFilters(person_id="a1")
     await store.search_similar([0.0], limit=10, filters=filters)
     assert store.last_filters == filters
+
+
+async def test_range_bounds_are_inclusive():
+    # Дата рівно на межі from == to має включатись (семантика >=/<=)
+    store = await _store_with_three()
+    filters = SearchFilters(
+        prediction_date_from=date(2022, 3, 1), prediction_date_to=date(2022, 3, 1)
+    )
+    matches = await store.search_similar([0.0], limit=10, filters=filters)
+    assert [m.prediction_id for m in matches] == ["p1"]
+
+
+async def test_limit_applies_after_filtering():
+    # limit=1 при двох відфільтрованих збігах → рівно перший, не порожньо і не обидва
+    store = await _store_with_three()
+    filters = SearchFilters(person_id="a1")
+    matches = await store.search_similar([0.0], limit=1, filters=filters)
+    assert [m.prediction_id for m in matches] == ["p1"]
+
+    # Перший запис (p1) не проходить фільтр → limit рахує збіги, а не проскановані рядки
+    matches = await store.search_similar([0.0], limit=1, filters=SearchFilters(person_id="a2"))
+    assert [m.prediction_id for m in matches] == ["p2"]
+
+
+async def test_null_prediction_date_is_excluded_by_range():
+    # prediction_date=None валить предикат як у SQL (null_inclusive=False)
+    store = FakeVectorStore()
+    await store.store_embedding(
+        "p_null",
+        [0.1],
+        person_id="a1",
+        prediction_date=None,
+        target_date=None,
+    )
+    filters = SearchFilters(prediction_date_from=date(2022, 1, 1))
+    matches = await store.search_similar([0.0], limit=10, filters=filters)
+    assert matches == []
+
+
+async def test_one_sided_range_only_from():
+    # Тільки from без to: відсікає все раніше from, решта проходить
+    store = await _store_with_three()
+    filters = SearchFilters(prediction_date_from=date(2023, 1, 1))
+    matches = await store.search_similar([0.0], limit=10, filters=filters)
+    assert [m.prediction_id for m in matches] == ["p2", "p3"]
