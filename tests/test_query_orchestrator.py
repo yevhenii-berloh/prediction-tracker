@@ -2,6 +2,7 @@ from datetime import date
 from unittest.mock import AsyncMock, MagicMock
 
 from fakes import FakePredictionRepo, FakeVectorStore
+import pytest
 
 from prophet_checker.models.domain import Prediction, QueryPlan, SearchFilters
 from prophet_checker.query.orchestrator import QueryOrchestrator
@@ -128,3 +129,13 @@ async def test_search_without_planner_passes_empty_filters():
     result = await orch.search("q", limit=10)
     assert [r.prediction.id for r in result.results] == ["p1", "p2"]
     assert store.last_filters == SearchFilters()
+
+
+async def test_search_propagates_planner_error():
+    from prophet_checker.query.planner import QueryPlanningError
+
+    planner = MagicMock()
+    planner.plan = AsyncMock(side_effect=QueryPlanningError("boom"))
+    orch = QueryOrchestrator(_embedder(), FakeVectorStore(), FakePredictionRepo(), planner=planner)
+    with pytest.raises(QueryPlanningError):
+        await orch.search("питання")

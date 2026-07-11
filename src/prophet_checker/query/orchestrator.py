@@ -28,6 +28,7 @@ class QueryOrchestrator:
 
     async def search(self, question: str, limit: int = 10) -> QueryResult:
         plan = await self._resolve_plan(question)
+        # short-circuit: план уже знає, що автор невідомий — embed/пошук зайві (design §5.5/Р3)
         if plan.filters.unknown_author is not None:
             return QueryResult(
                 query=question, results=[], unknown_author=plan.filters.unknown_author
