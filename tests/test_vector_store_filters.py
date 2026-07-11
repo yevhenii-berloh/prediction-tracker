@@ -3,6 +3,7 @@ from datetime import date
 from fakes import FakeVectorStore
 
 from prophet_checker.models.domain import SearchFilters
+from prophet_checker.storage.postgres import _filter_predicates
 
 
 async def _store_with_three() -> FakeVectorStore:
@@ -117,3 +118,31 @@ async def test_one_sided_range_only_from():
     filters = SearchFilters(prediction_date_from=date(2023, 1, 1))
     matches = await store.search_similar([0.0], limit=10, filters=filters)
     assert [m.prediction_id for m in matches] == ["p2", "p3"]
+
+
+def _sql(filters: SearchFilters) -> str:
+    return " ; ".join(str(p) for p in _filter_predicates(filters))
+
+
+def test_predicates_empty_filters():
+    assert _filter_predicates(SearchFilters()) == []
+
+
+def test_predicates_person():
+    sql = _sql(SearchFilters(person_id="a1"))
+    assert "predictions.person_id =" in sql
+
+
+def test_predicates_prediction_date_bounds():
+    sql = _sql(
+        SearchFilters(prediction_date_from=date(2022, 1, 1), prediction_date_to=date(2022, 12, 31))
+    )
+    assert "predictions.prediction_date >=" in sql
+    assert "predictions.prediction_date <=" in sql
+
+
+def test_predicates_target_date_null_inclusive():
+    sql = _sql(SearchFilters(target_date_from=date(2023, 1, 1)))
+    assert "predictions.target_date >=" in sql
+    assert "predictions.target_date IS NULL" in sql
+    assert " OR " in sql

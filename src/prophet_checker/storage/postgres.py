@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 
-from sqlalchemy import select, func
+from sqlalchemy import ColumnElement, and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 logger = logging.getLogger(__name__)
@@ -22,6 +22,7 @@ from prophet_checker.models.domain import (
     PredictionStrength,
     PredictionValue,
     RawDocument,
+    SearchFilters,
     SourceType,
     VectorMatch,
 )
@@ -333,6 +334,26 @@ class PostgresPredictionRepository:
             return prediction
 
 
+def _filter_predicates(filters: SearchFilters) -> list[ColumnElement[bool]]:
+    preds: list[ColumnElement[bool]] = []
+    if filters.person_id is not None:
+        preds.append(PredictionDB.person_id == filters.person_id)
+    if filters.prediction_date_from is not None:
+        preds.append(PredictionDB.prediction_date >= filters.prediction_date_from)
+    if filters.prediction_date_to is not None:
+        preds.append(PredictionDB.prediction_date <= filters.prediction_date_to)
+
+    target_bounds: list[ColumnElement[bool]] = []
+    if filters.target_date_from is not None:
+        target_bounds.append(PredictionDB.target_date >= filters.target_date_from)
+    if filters.target_date_to is not None:
+        target_bounds.append(PredictionDB.target_date <= filters.target_date_to)
+    if target_bounds:
+        # null-inclusive (design Р2): невідомий target_date не відсікаємо
+        preds.append(or_(and_(*target_bounds), PredictionDB.target_date.is_(None)))
+    return preds
+
+
 class PostgresVectorStore:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
         self._session_factory = session_factory
@@ -350,7 +371,10 @@ class PostgresVectorStore:
             return db_obj is not None and db_obj.embedding is not None
 
     async def search_similar(
-        self, query_embedding: list[float], limit: int = 10
+        self,
+        query_embedding: list[float],
+        limit: int = 10,
+        filters: SearchFilters | None = None,
     ) -> list[VectorMatch]:
         async with self._session_factory() as session:
             dist = PredictionDB.embedding.cosine_distance(query_embedding)
@@ -361,5 +385,7 @@ class PostgresVectorStore:
                 .order_by(dist)
                 .limit(limit)
             )
+            if filters is not None:
+                stmt = stmt.where(*_filter_predicates(filters))
             result = await session.execute(stmt)
             return [VectorMatch(prediction_id=r[0], distance=r[1]) for r in result.all()]
