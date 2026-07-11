@@ -98,6 +98,20 @@ class VectorMatch(BaseModel):
     distance: float  # cosine-distance: менше = ближче
 
 
+class SearchFilters(BaseModel):
+    person_id: str | None = None
+    unknown_author: str | None = None  # ім'я, як згадано в питанні; взаємовиключне з person_id
+    prediction_date_from: date | None = None
+    prediction_date_to: date | None = None
+    target_date_from: date | None = None
+    target_date_to: date | None = None
+
+
+class QueryPlan(BaseModel):
+    semantic_query: str
+    filters: SearchFilters
+
+
 class RetrievedPrediction(BaseModel):
     prediction: Prediction
     distance: float
@@ -107,6 +121,7 @@ class RetrievedPrediction(BaseModel):
 class QueryResult(BaseModel):
     query: str
     results: list[RetrievedPrediction]
+    unknown_author: str | None = None  # сигнал для явної відмови в answer-шарі (design Р3)
 
 
 class AnswerResult(BaseModel):
