@@ -3,7 +3,9 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://prophet:prophet@localhost:5432/prophet_checker"
-    db_ssl_mode: str = "disable"  # disable | require | verify-full; require на RDS (rds.force_ssl=1)
+    db_ssl_mode: str = (
+        "disable"  # disable | require | verify-full; require на RDS (rds.force_ssl=1)
+    )
     llm_provider: str = "openai"
     llm_model: str = "gpt-4o-mini"
     llm_api_key: str = ""
@@ -16,7 +18,10 @@ class Settings(BaseSettings):
     embeddings_enabled: bool = True
     tg_session_path: str = "tg_session"
     verification_confidence_threshold: float = 0.6
-    relevance_threshold: float | None = None  # None = top-k без порога; ставимо після sweep (задача A)
+    relevance_threshold: float | None = (
+        None  # None = top-k без порога; ставимо після sweep (задача A)
+    )
+    query_planner_enabled: bool = True  # False = аварійний обхід: пошук без фільтрів (design Р4)
     log_level: str = "INFO"
     app_host: str = "127.0.0.1"  # 0.0.0.0 у контейнері (compose), інакше застосунок недосяжний ззовні контейнера
 
