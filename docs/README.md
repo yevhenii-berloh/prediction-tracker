@@ -72,6 +72,15 @@ Smart Verifier з Dumb Trigger: 4-status output (confirmed/refuted/unresolved/pr
 |----------|-------------|
 | [`README.md`](aws-deploy/README.md) | Index: статус, документи, артефакти, відхилення від плану |
 
+## 🔎 [`hybrid-retrieval/`](hybrid-retrieval/) — hybrid structured+vector retrieval (Частина B)
+
+Self-querying LLM-планер + typed фільтри (автор + дві дати) поверх exact-скану pgvector. Розв'язує 4 retrieval-проблеми: ім'я автора, дата-коли-сказано, дата-прогнозу, слабка entity-дискримінація embedding.
+
+| Документ | Призначення |
+|----------|-------------|
+| [`2026-07-11-hybrid-retrieval-design.md`](hybrid-retrieval/2026-07-11-hybrid-retrieval-design.md) | Design: QueryPlanner + SearchFilters, `WHERE` на exact-скані, null-inclusive target_date, fail-fast, REFUSAL_UNKNOWN_AUTHOR (рішення Р1–Р7) |
+| [`2026-07-11-hybrid-retrieval-plan.md`](hybrid-retrieval/2026-07-11-hybrid-retrieval-plan.md) | Implementation plan — 9 tasks, TDD, квіз самоперевірки в кожному таску |
+
 ---
 
 ## Чому ця структура
