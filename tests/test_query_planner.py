@@ -7,15 +7,17 @@ from fakes import FakePersonRepo
 from prophet_checker.models.domain import Person
 from prophet_checker.query.planner import QueryPlanner, QueryPlanningError
 
-VALID_PLAN = json.dumps({
-    "semantic_query": "прогнози про Крим",
-    "person_id": "a1",
-    "unknown_author": None,
-    "prediction_date_from": "2022-01-01",
-    "prediction_date_to": "2022-12-31",
-    "target_date_from": None,
-    "target_date_to": None,
-})
+VALID_PLAN = json.dumps(
+    {
+        "semantic_query": "прогнози про Крим",
+        "person_id": "a1",
+        "unknown_author": None,
+        "prediction_date_from": "2022-01-01",
+        "prediction_date_to": "2022-12-31",
+        "target_date_from": None,
+        "target_date_to": None,
+    }
+)
 
 
 def _llm(response: str | Exception) -> MagicMock:
