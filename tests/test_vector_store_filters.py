@@ -1,7 +1,9 @@
 from datetime import date
 
 from fakes import FakeVectorStore
+from sqlalchemy import select
 
+from prophet_checker.models.db import PredictionDB
 from prophet_checker.models.domain import SearchFilters
 from prophet_checker.storage.postgres import _filter_predicates
 
@@ -146,3 +148,20 @@ def test_predicates_target_date_null_inclusive():
     assert "predictions.target_date >=" in sql
     assert "predictions.target_date IS NULL" in sql
     assert " OR " in sql
+
+
+def test_predicates_full_where_groups_target_date_or():
+    # Групування в ПОВНОМУ WHERE: person AND (from AND to OR IS NULL), а не a AND b OR c.
+    # Дужки рендеряться лише при композиції — поодинокий str(or_(...)) їх не показує.
+    filters = SearchFilters(
+        person_id="a1",
+        target_date_from=date(2023, 1, 1),
+        target_date_to=date(2023, 12, 31),
+    )
+    sql = str(select(PredictionDB.id).where(*_filter_predicates(filters)))
+    # відкриваюча дужка ПЕРЕД target_date-блоком (після зовнішнього AND)
+    assert " AND (predictions.target_date >= " in sql
+    # внутрішнє AND між межами — розплющення and_ у or_ дало б тут OR
+    assert " AND predictions.target_date <= " in sql
+    # закриваюча дужка ПІСЛЯ IS NULL
+    assert " OR predictions.target_date IS NULL)" in sql
