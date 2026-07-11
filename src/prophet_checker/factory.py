@@ -7,6 +7,7 @@ from telethon import TelegramClient
 
 from prophet_checker.analysis.extractor import PredictionExtractor
 from prophet_checker.analysis.verifier import Verifier
+from prophet_checker.bot.runner import BotRunner, build_bot_runner
 from prophet_checker.config import Settings
 from prophet_checker.ingestion import IngestionOrchestrator
 from prophet_checker.llm import EmbeddingClient, LLMClient
@@ -106,3 +107,15 @@ async def build_answer_orchestrator(
         temperature=0,
     )
     return AnswerOrchestrator(llm, query_orchestrator)
+
+
+async def build_bot(
+    settings: Settings, stack: AsyncExitStack, answer_orchestrator: AnswerOrchestrator
+) -> BotRunner | None:
+    if not settings.bot_enabled:
+        return None
+    if not settings.telegram_bot_token:
+        raise ValueError("bot_enabled=True, але telegram_bot_token порожній")
+    runner = build_bot_runner(settings.telegram_bot_token, answer_orchestrator)
+    stack.push_async_callback(runner.stop)
+    return runner
