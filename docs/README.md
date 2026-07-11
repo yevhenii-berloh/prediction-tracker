@@ -72,6 +72,16 @@ Smart Verifier з Dumb Trigger: 4-status output (confirmed/refuted/unresolved/pr
 |----------|-------------|
 | [`README.md`](aws-deploy/README.md) | Index: статус, документи, артефакти, відхилення від плану |
 
+## 🤖 [`telegram-bot/`](telegram-bot/) — Telegram-бот (user-facing Q&A)
+
+Остання миля продукту: тонкий фронтенд над `AnswerOrchestrator` — aiogram,
+long-polling у процесі API. Stateless, author-agnostic, публічний без лімітів.
+
+| Документ | Призначення |
+|----------|-------------|
+| [`2026-07-11-telegram-bot-design.md`](telegram-bot/2026-07-11-telegram-bot-design.md) | Spec: рішення й чому, компоненти, UX-таблиця, помилки |
+| [`2026-07-11-telegram-bot-plan.md`](telegram-bot/2026-07-11-telegram-bot-plan.md) | Implementation plan — 7 тасків TDD |
+
 ---
 
 ## Чому ця структура
