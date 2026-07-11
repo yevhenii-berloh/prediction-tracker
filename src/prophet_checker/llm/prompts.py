@@ -588,6 +588,8 @@ def _parse_plan_dates(data: dict) -> dict[str, date | None]:
     dates: dict[str, date | None] = {}
     for field in _QUERY_PLAN_DATE_FIELDS:
         value = data.get(field)
+        if value is not None and not isinstance(value, str):
+            raise ValueError(f"date field {field} must be an ISO string, got {type(value).__name__}")
         dates[field] = date.fromisoformat(value) if value is not None else None
 
     for prefix in ("prediction_date", "target_date"):

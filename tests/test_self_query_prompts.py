@@ -81,3 +81,14 @@ def test_parse_inverted_range_raises():
 def test_parse_empty_semantic_query_falls_back_to_question():
     plan = parse_query_plan(_raw(semantic_query="  "), KNOWN_IDS, question="оригінал")
     assert plan.semantic_query == "оригінал"
+
+
+def test_parse_fenced_json_plan():
+    raw = f"```json\n{_raw(person_id='a1')}\n```"
+    plan = parse_query_plan(raw, KNOWN_IDS, question="q")
+    assert plan.filters.person_id == "a1"
+
+
+def test_parse_non_string_date_raises():
+    with pytest.raises(ValueError, match="must be an ISO string"):
+        parse_query_plan(_raw(prediction_date_from=20220101), KNOWN_IDS, question="q")
