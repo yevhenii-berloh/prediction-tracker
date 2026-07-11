@@ -12,6 +12,11 @@
 
 **Гейти на кожен коміт:** pre-commit хук жене complexipy ratchet автоматично; перед комітом руками — `.venv/bin/ruff check src tests` (зелений на змінених файлах).
 
+**Пояснення після кожного таска:** останній крок кожного таска — скіл `explain-diff-html`
+на свіжому коміті таска (HTML-розбір змін + квіз). Цей крок виконує **головна сесія, не
+імплементаційний субагент** (квіз — інтерактив з користувачем). Наступний таск не
+стартує, доки користувач не пройшов квіз попереднього.
+
 ---
 
 ### Task 1: Доменні моделі — `SearchFilters`, `QueryPlan`, `QueryResult.unknown_author`
@@ -60,6 +65,11 @@ Expected: `312 passed`, ruff чистий.
 git add src/prophet_checker/models/domain.py
 git commit -m "feat(query): доменні моделі SearchFilters/QueryPlan + QueryResult.unknown_author"
 ```
+
+- [ ] **Step 4: Explain-diff з квізом (головна сесія)**
+
+Викликати скіл `explain-diff-html` на коміті таска (діф: `git show HEAD`).
+Дочекатися проходження квізу користувачем перед Task 2.
 
 ---
 
@@ -262,6 +272,11 @@ git add src/prophet_checker/storage/interfaces.py tests/fakes.py tests/test_vect
 git commit -m "feat(storage): фільтри у VectorStore Protocol + FakeVectorStore"
 ```
 
+- [ ] **Step 7: Explain-diff з квізом (головна сесія)**
+
+Викликати скіл `explain-diff-html` на коміті таска (діф: `git show HEAD`).
+Дочекатися проходження квізу користувачем перед Task 3.
+
 ---
 
 ### Task 3: `WHERE`-предикати у `PostgresVectorStore.search_similar`
@@ -373,6 +388,11 @@ Expected: все зелене.
 git add src/prophet_checker/storage/postgres.py tests/test_vector_store_filters.py
 git commit -m "feat(storage): typed WHERE-предикати у PostgresVectorStore.search_similar"
 ```
+
+- [ ] **Step 6: Explain-diff з квізом (головна сесія)**
+
+Викликати скіл `explain-diff-html` на коміті таска (діф: `git show HEAD`).
+Дочекатися проходження квізу користувачем перед Task 4.
 
 ---
 
@@ -586,6 +606,11 @@ git add src/prophet_checker/llm/prompts.py tests/test_self_query_prompts.py
 git commit -m "feat(llm): self-query промпт і parse_query_plan"
 ```
 
+- [ ] **Step 6: Explain-diff з квізом (головна сесія)**
+
+Викликати скіл `explain-diff-html` на коміті таска (діф: `git show HEAD`).
+Дочекатися проходження квізу користувачем перед Task 5.
+
 ---
 
 ### Task 5: `QueryPlanner` + `QueryPlanningError`
@@ -724,6 +749,11 @@ Expected: нові 4 PASS, сюїта зелена.
 git add src/prophet_checker/query/planner.py tests/test_query_planner.py
 git commit -m "feat(query): QueryPlanner з fail-fast QueryPlanningError"
 ```
+
+- [ ] **Step 6: Explain-diff з квізом (головна сесія)**
+
+Викликати скіл `explain-diff-html` на коміті таска (діф: `git show HEAD`).
+Дочекатися проходження квізу користувачем перед Task 6.
 
 ---
 
@@ -864,6 +894,11 @@ git add src/prophet_checker/query/orchestrator.py tests/test_query_orchestrator.
 git commit -m "feat(query): planner-гілка в QueryOrchestrator"
 ```
 
+- [ ] **Step 6: Explain-diff з квізом (головна сесія)**
+
+Викликати скіл `explain-diff-html` на коміті таска (діф: `git show HEAD`).
+Дочекатися проходження квізу користувачем перед Task 7.
+
 ---
 
 ### Task 7: Явна відмова `REFUSAL_UNKNOWN_AUTHOR` в `AnswerOrchestrator`
@@ -941,6 +976,11 @@ git add src/prophet_checker/query/answer_orchestrator.py tests/test_answer_orche
 git commit -m "feat(query): явна відмова REFUSAL_UNKNOWN_AUTHOR в AnswerOrchestrator"
 ```
 
+- [ ] **Step 6: Explain-diff з квізом (головна сесія)**
+
+Викликати скіл `explain-diff-html` на коміті таска (діф: `git show HEAD`).
+Дочекатися проходження квізу користувачем перед Task 8.
+
 ---
 
 ### Task 8: Wiring — `query_planner_enabled` + factory
@@ -1003,6 +1043,11 @@ Expected: сюїта зелена.
 git add src/prophet_checker/config.py src/prophet_checker/factory.py
 git commit -m "feat(config): query_planner_enabled + wiring QueryPlanner у factory"
 ```
+
+- [ ] **Step 5: Explain-diff з квізом (головна сесія)**
+
+Викликати скіл `explain-diff-html` на коміті таска (діф: `git show HEAD`).
+Дочекатися проходження квізу користувачем перед Task 9.
 
 ---
 
@@ -1087,6 +1132,12 @@ Expected: 1–3 — змістовні відповіді (перевірити 
 git add progress.md docs/README.md
 git commit -m "docs: hybrid retrieval Частина B v1 — смоук і закриття треку"
 ```
+
+- [ ] **Step 7: Explain-diff з квізом (головна сесія) — фінальний огляд**
+
+Викликати скіл `explain-diff-html` на всьому діфі гілки
+(`git diff main...feat/hybrid-retrieval`) — підсумковий розбір фічі цілком + квіз.
+Це закриває трек.
 
 ---
 
