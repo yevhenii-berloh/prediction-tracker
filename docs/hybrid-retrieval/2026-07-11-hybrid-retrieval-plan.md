@@ -12,10 +12,9 @@
 
 **Гейти на кожен коміт:** pre-commit хук жене complexipy ratchet автоматично; перед комітом руками — `.venv/bin/ruff check src tests` (зелений на змінених файлах).
 
-**Пояснення після кожного таска:** останній крок кожного таска — скіл `explain-diff-html`
-на свіжому коміті таска (HTML-розбір змін + квіз). Цей крок виконує **головна сесія, не
-імплементаційний субагент** (квіз — інтерактив з користувачем). Наступний таск не
-стартує, доки користувач не пройшов квіз попереднього.
+**Квіз у кожному таску:** наприкінці кожного таска — блок самоперевірки для рев'юера
+плану. Мета: пройти квіз ДО погодження виконання і впевнитись, що суть зміни зрозуміла.
+Відповіді сховані в розгортці під питаннями. Виконавця плану квізи не стосуються.
 
 ---
 
@@ -66,10 +65,23 @@ git add src/prophet_checker/models/domain.py
 git commit -m "feat(query): доменні моделі SearchFilters/QueryPlan + QueryResult.unknown_author"
 ```
 
-- [ ] **Step 4: Explain-diff з квізом (головна сесія)**
+**Квіз (самоперевірка перед виконанням)**
 
-Викликати скіл `explain-diff-html` на коміті таска (діф: `git show HEAD`).
-Дочекатися проходження квізу користувачем перед Task 2.
+1. Чому для `SearchFilters`/`QueryPlan` не пишемо юніт-тестів?
+   - А) Забули — треба додати
+   - Б) Це чисті field-декларації; репо-правило: їх тестує сам Pydantic, тести пишуться на консумерів
+   - В) Моделі тестуються інтеграційно на реальній БД
+2. Навіщо `unknown_author` живе у ДВОХ місцях — `SearchFilters` і `QueryResult`?
+   - А) Дублювання, лишити тільки в SearchFilters
+   - Б) У SearchFilters — вихід планера; у QueryResult — транспорт сигналу до answer-шару, який формулює відмову
+   - В) QueryResult.unknown_author — кеш для повторних запитів
+
+<details><summary>Відповіді</summary>
+
+1. **Б** — «Don't unit-test pure Pydantic models»; поведінку перевіряють Tasks 2–7.
+2. **Б** — планер не знає про AnswerOrchestrator; сигнал їде через QueryResult (design §5.1, §5.6).
+
+</details>
 
 ---
 
@@ -272,10 +284,26 @@ git add src/prophet_checker/storage/interfaces.py tests/fakes.py tests/test_vect
 git commit -m "feat(storage): фільтри у VectorStore Protocol + FakeVectorStore"
 ```
 
-- [ ] **Step 7: Explain-diff з квізом (головна сесія)**
+**Квіз (самоперевірка перед виконанням)**
 
-Викликати скіл `explain-diff-html` на коміті таска (діф: `git show HEAD`).
-Дочекатися проходження квізу користувачем перед Task 3.
+1. Чому meta-аргументи `store_embedding` у фейку — keyword-only і їх нема в Protocol?
+   - А) Помилка плану, Protocol теж треба розширити
+   - Б) Це тест-інфраструктура: прод-код кличе двома позиційними аргументами, структурна сумісність збережена; у прод-схемі метадані і так у БД
+   - В) Keyword-only швидші
+2. Прогноз із `target_date=None` при фільтрі `target_date_from=2023-01-01`…`to=2023-12-31` — що з ним?
+   - А) Відсікається — дата не в діапазоні
+   - Б) Лишається в кандидатах (null-inclusive, Р2)
+   - В) Падає помилка валідації
+3. А той самий прогноз при фільтрі по `prediction_date`?
+   - А) Лишається — null завжди inclusive
+   - Б) `prediction_date` NOT NULL у схемі, кейс неможливий у проді; фейк мімікрує SQL — NULL валить предикат
+   - В) Фейк кидає KeyError
+
+<details><summary>Відповіді</summary>
+
+1. **Б**. 2. **Б** — фільтр «виключаючий, не вибираючий»: викидаємо лише те, що точно НЕ про період. 3. **Б**.
+
+</details>
 
 ---
 
@@ -389,10 +417,26 @@ git add src/prophet_checker/storage/postgres.py tests/test_vector_store_filters.
 git commit -m "feat(storage): typed WHERE-предикати у PostgresVectorStore.search_similar"
 ```
 
-- [ ] **Step 6: Explain-diff з квізом (головна сесія)**
+**Квіз (самоперевірка перед виконанням)**
 
-Викликати скіл `explain-diff-html` на коміті таска (діф: `git show HEAD`).
-Дочекатися проходження квізу користувачем перед Task 4.
+1. Чому `WHERE`-фільтр поверх нашого векторного пошуку НЕ втрачає recall (славнозвісна pgvector-gotcha)?
+   - А) pgvector 0.8.0 iterative scans рятують
+   - Б) У нас нема ANN-індексу — `search_similar` робить exact scan, тож WHERE звужує пошук до сортування, зі 100% recall
+   - В) Втрачає, але прийнятно
+2. Як виглядає предикат для `target_date` при заданих межах?
+   - А) `target_date BETWEEN from AND to`
+   - Б) `(target_date >= from AND target_date <= to) OR target_date IS NULL`
+   - В) `target_date >= from AND target_date <= to AND target_date IS NOT NULL`
+3. Як юніт-тестуємо SQL без Docker?
+   - А) Мокаємо session.execute
+   - Б) `_filter_predicates` — чиста функція; компілюємо предикати в рядки й асертимо фрагменти; реальна БД — смоук Task 9
+   - В) Ніяк, тільки інтеграційно
+
+<details><summary>Відповіді</summary>
+
+1. **Б** — Р7; overfiltering стане темою лише якщо колись додамо HNSW. 2. **Б** — null-inclusive (Р2). 3. **Б**.
+
+</details>
 
 ---
 
@@ -606,10 +650,30 @@ git add src/prophet_checker/llm/prompts.py tests/test_self_query_prompts.py
 git commit -m "feat(llm): self-query промпт і parse_query_plan"
 ```
 
-- [ ] **Step 6: Explain-diff з квізом (головна сесія)**
+**Квіз (самоперевірка перед виконанням)**
 
-Викликати скіл `explain-diff-html` на коміті таска (діф: `git show HEAD`).
-Дочекатися проходження квізу користувачем перед Task 5.
+1. Чому парсер кидає `ValueError`, а не одразу `QueryPlanningError`?
+   - А) Випадковість, можна й QueryPlanningError
+   - Б) `QueryPlanningError` живе в `query/planner.py`; імпорт його у `llm/prompts.py` дав би цикл (planner імпортує prompts). Планер ловить ValueError-родину і загортає
+   - В) ValueError швидший
+2. LLM повернув `person_id`, якого нема в списку відомих персон. Що станеться?
+   - А) Фільтр тихо скидається
+   - Б) `unknown_author` проставляється автоматично
+   - В) `ValueError` → у планері стане `QueryPlanningError` → 500: LLM порушив контракт (id поза виданим списком = невалідний план)
+3. LLM повернув порожній `semantic_query`. Що станеться?
+   - А) `ValueError` — невалідний план
+   - Б) Підставляється оригінальне питання — детермінована нормалізація без втрати інформації, на відміну від зламаного JSON
+   - В) Ембедимо порожній рядок
+4. «Що казав у 2022» і «прогнози на 2023» — які поля заповнить планер?
+   - А) Обидва в `prediction_date_*`
+   - Б) Перше → `prediction_date_*` (коли сказано), друге → `target_date_*` (про який час) — Р1, focus-time модель
+   - В) Обидва в `target_date_*`
+
+<details><summary>Відповіді</summary>
+
+1. **Б** — плюс `json.JSONDecodeError` і помилка `date.fromisoformat` уже є сабкласами ValueError — один тип на всі збої парсингу. 2. **В**. 3. **Б**. 4. **Б**.
+
+</details>
 
 ---
 
@@ -750,10 +814,26 @@ git add src/prophet_checker/query/planner.py tests/test_query_planner.py
 git commit -m "feat(query): QueryPlanner з fail-fast QueryPlanningError"
 ```
 
-- [ ] **Step 6: Explain-diff з квізом (головна сесія)**
+**Квіз (самоперевірка перед виконанням)**
 
-Викликати скіл `explain-diff-html` на коміті таска (діф: `git show HEAD`).
-Дочекатися проходження квізу користувачем перед Task 6.
+1. LLM-виклик планера впав (транзитна помилка API). Що бачить юзер `/answer`?
+   - А) Відповідь без фільтрів — graceful degradation
+   - Б) HTTP 500 `query failure: QueryPlanningError` — fail fast (Р4); аварійний обхід — вимкнути `query_planner_enabled`
+   - В) REFUSAL_NO_DATA
+2. Чому планер сам не логує помилку?
+   - А) Забули logger
+   - Б) Політика логів «не log-and-raise»: boundary в `app.py` вже робить `logger.exception` один раз
+   - В) Помилки логує LiteLLM
+3. Чому список персон читається з БД на кожен `plan()` без кешу?
+   - А) Недогляд, треба lru_cache
+   - Б) Таблиця персон крихітна; кеш = складність + ризик застарілості після інжесту нової персони
+   - В) SQLAlchemy кешує сам
+
+<details><summary>Відповіді</summary>
+
+1. **Б** — тихий fallback мовчки віддав би результати без фільтрів (не того автора/періоду). 2. **Б**. 3. **Б** — YAGNI.
+
+</details>
 
 ---
 
@@ -894,10 +974,26 @@ git add src/prophet_checker/query/orchestrator.py tests/test_query_orchestrator.
 git commit -m "feat(query): planner-гілка в QueryOrchestrator"
 ```
 
-- [ ] **Step 6: Explain-diff з квізом (головна сесія)**
+**Квіз (самоперевірка перед виконанням)**
 
-Викликати скіл `explain-diff-html` на коміті таска (діф: `git show HEAD`).
-Дочекатися проходження квізу користувачем перед Task 7.
+1. Що ембедиться при активному планері?
+   - А) Оригінальне питання
+   - Б) `plan.semantic_query` — питання без автора/дат: вони вже у фільтрах, у векторі це шум (Р5)
+   - В) Питання + ім'я автора
+2. План повернув `unknown_author="Портников"`. Скільки разів викличеться embedder і vector store?
+   - А) По одному разу
+   - Б) Нуль — short-circuit до embed: результат відомий заздалегідь, порожній
+   - В) Тільки vector store
+3. `planner=None` — чим відрізняється пошук від сьогоднішнього?
+   - А) Нічим семантично: `SearchFilters()` без полів дає нуль предикатів — тотожно відсутності фільтрів
+   - Б) Повільніший на один if
+   - В) Падає без планера
+
+<details><summary>Відповіді</summary>
+
+1. **Б**. 2. **Б** — тест асертить `embed.assert_not_awaited()`. 3. **А** — старі 5 тестів оркестратора проходять без правок.
+
+</details>
 
 ---
 
@@ -976,10 +1072,22 @@ git add src/prophet_checker/query/answer_orchestrator.py tests/test_answer_orche
 git commit -m "feat(query): явна відмова REFUSAL_UNKNOWN_AUTHOR в AnswerOrchestrator"
 ```
 
-- [ ] **Step 6: Explain-diff з квізом (головна сесія)**
+**Квіз (самоперевірка перед виконанням)**
 
-Викликати скіл `explain-diff-html` на коміті таска (діф: `git show HEAD`).
-Дочекатися проходження квізу користувачем перед Task 8.
+1. Чому відмова про невідомого автора формується БЕЗ виклику LLM?
+   - А) Економія токенів насамперед
+   - Б) Результат детермінований (джерел нема і не буде) — генерувати нічого; той самий патерн, що наявний `REFUSAL_NO_DATA` short-circuit
+   - В) LLM може відмовитись відповідати
+2. Чим ця відмова краща за наявний `REFUSAL_NO_DATA` для цього кейсу?
+   - А) Нічим, просто інший текст
+   - Б) Юзер розуміє ПРИЧИНУ: справа в авторі («немає прогнозів автора N»), а не в темі питання — генерична відмова це приховує (Р3)
+   - В) Вона коротша
+
+<details><summary>Відповіді</summary>
+
+1. **Б**. 2. **Б**.
+
+</details>
 
 ---
 
@@ -1044,10 +1152,22 @@ git add src/prophet_checker/config.py src/prophet_checker/factory.py
 git commit -m "feat(config): query_planner_enabled + wiring QueryPlanner у factory"
 ```
 
-- [ ] **Step 5: Explain-diff з квізом (головна сесія)**
+**Квіз (самоперевірка перед виконанням)**
 
-Викликати скіл `explain-diff-html` на коміті таска (діф: `git show HEAD`).
-Дочекатися проходження квізу користувачем перед Task 9.
+1. `query_planner_enabled=False` — що саме відбувається?
+   - А) Планер створюється, але ігнорується
+   - Б) Планер не створюється у factory → `QueryOrchestrator` отримує `planner=None` → пошук як сьогодні. Аварійний вимикач без деплою коду
+   - В) `/query` вимикається
+2. Яка модель у планера і чому?
+   - А) GPT-4o — найрозумніша
+   - Б) Gemini Flash Lite, temperature 0 — production-модель проєкту: дешева, повністю детермінована (Р6), той самий конфіг, що вже стоїть у `build_answer_orchestrator`
+   - В) text-embedding-3-small
+
+<details><summary>Відповіді</summary>
+
+1. **Б**. 2. **Б**.
+
+</details>
 
 ---
 
@@ -1133,11 +1253,30 @@ git add progress.md docs/README.md
 git commit -m "docs: hybrid retrieval Частина B v1 — смоук і закриття треку"
 ```
 
-- [ ] **Step 7: Explain-diff з квізом (головна сесія) — фінальний огляд**
+**Квіз (самоперевірка перед виконанням) — підсумковий, по всій фічі**
 
-Викликати скіл `explain-diff-html` на всьому діфі гілки
-(`git diff main...feat/hybrid-retrieval`) — підсумковий розбір фічі цілком + квіз.
-Це закриває трек.
+1. Смоук-запит 2 («прогнози на 2024») повернув у sources прогноз із `target_date=null`. Це баг?
+   - А) Баг — фільтр не спрацював
+   - Б) Ні, це Р2 за дизайном: null-inclusive — викидаємо лише те, що точно НЕ про 2024; невідомі дати лишаються й ранжуються векторно
+   - В) Баг у backfill
+2. Смоук-запит 1 повернув порожню відповідь на свіжій/незаповненій БД. Що робимо?
+   - А) Фіксуємо «смоук зелений» — код же працює
+   - Б) Чесно пишемо в progress.md: фільтр працює, даних нема; це НЕ провал коду, але й не «зелений смоук»
+   - В) Відкочуємо фічу
+3. Який шлях у запиту «Що Арестович казав про Крим у 2022?» через систему?
+   - А) embed(питання) → пошук → генерація
+   - Б) planner (LLM₁: person_id=a1 + prediction_date 2022 + semantic «прогнози про Крим») → embed(semantic) → exact scan з WHERE → threshold/rank → build_rag_prompt → LLM₂ → відповідь
+   - В) BM25 → RRF → генерація
+4. Що з чотирьох retrieval-проблем дослідження ця ітерація НЕ закриває повністю?
+   - А) Ім'я автора
+   - Б) Дати
+   - В) Власні назви В ТЕКСТІ ЗАПИТУ поза автором (топоніми тощо) — це BM25/lexical, запарковано як окрема ітерація
+
+<details><summary>Відповіді</summary>
+
+1. **Б**. 2. **Б** — принцип «report outcomes faithfully». 3. **Б** — два LLM-виклики на запит. 4. **В** — park-список у design §3.
+
+</details>
 
 ---
 
