@@ -51,6 +51,11 @@ def test_parse_unknown_author_passes_through():
     assert plan.filters.person_id is None
 
 
+def test_parse_empty_unknown_author_normalized_to_none():
+    plan = parse_query_plan(_raw(unknown_author="   "), KNOWN_IDS, question="q")
+    assert plan.filters.unknown_author is None
+
+
 def test_parse_broken_json_raises():
     with pytest.raises(ValueError):
         parse_query_plan("не json", KNOWN_IDS, question="q")

@@ -608,7 +608,7 @@ def parse_query_plan(raw: str, known_person_ids: set[str], question: str) -> Que
         raise ValueError(f"planner returned non-object JSON: {type(data).__name__}")
 
     person_id = data.get("person_id")
-    unknown_author = data.get("unknown_author")
+    unknown_author = (data.get("unknown_author") or "").strip() or None
     if person_id is not None and person_id not in known_person_ids:
         raise ValueError(f"unknown person_id from planner: {person_id!r}")
     if person_id is not None and unknown_author is not None:
