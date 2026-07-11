@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from datetime import datetime
+from dataclasses import dataclass
+from datetime import date, datetime
 from typing import TYPE_CHECKING
 
 from prophet_checker.models.domain import (
@@ -9,6 +10,7 @@ from prophet_checker.models.domain import (
     Prediction,
     PredictionStatus,
     RawDocument,
+    SearchFilters,
     SourceType,
     VectorMatch,
 )
@@ -130,20 +132,78 @@ class FakePredictionRepo(PredictionRepository):
         return prediction
 
 
+@dataclass
+class _VectorMeta:
+    person_id: str | None = None
+    prediction_date: date | None = None
+    target_date: date | None = None
+
+
+def _date_in_range(
+    value: date | None, lo: date | None, hi: date | None, *, null_inclusive: bool
+) -> bool:
+    if lo is None and hi is None:
+        return True
+    if value is None:
+        return null_inclusive
+    if lo is not None and value < lo:
+        return False
+    if hi is not None and value > hi:
+        return False
+    return True
+
+
 class FakeVectorStore(VectorStore):
     def __init__(self):
         self._entries: list[tuple[str, list[float]]] = []
+        self._meta: dict[str, _VectorMeta] = {}
+        self.last_filters: SearchFilters | None = None
 
-    async def store_embedding(self, prediction_id: str, embedding: list[float]) -> None:
+    async def store_embedding(
+        self,
+        prediction_id: str,
+        embedding: list[float],
+        *,
+        person_id: str | None = None,
+        prediction_date: date | None = None,
+        target_date: date | None = None,
+    ) -> None:
         self._entries.append((prediction_id, embedding))
+        self._meta[prediction_id] = _VectorMeta(person_id, prediction_date, target_date)
 
     async def is_embedding_present(self, prediction_id: str) -> bool:
         return any(pid == prediction_id for pid, _ in self._entries)
 
     async def search_similar(
-        self, query_embedding: list[float], limit: int = 10
+        self,
+        query_embedding: list[float],
+        limit: int = 10,
+        filters: SearchFilters | None = None,
     ) -> list[VectorMatch]:
-        return [
-            VectorMatch(prediction_id=pid, distance=float(i))
-            for i, (pid, _) in enumerate(self._entries[:limit])
-        ]
+        self.last_filters = filters
+        matches: list[VectorMatch] = []
+        for i, (pid, _) in enumerate(self._entries):
+            if filters is not None and not self._passes(pid, filters):
+                continue
+            matches.append(VectorMatch(prediction_id=pid, distance=float(i)))
+            if len(matches) == limit:
+                break
+        return matches
+
+    def _passes(self, pid: str, f: SearchFilters) -> bool:
+        meta = self._meta.get(pid, _VectorMeta())
+        if f.person_id is not None and meta.person_id != f.person_id:
+            return False
+        if not _date_in_range(
+            meta.prediction_date,
+            f.prediction_date_from,
+            f.prediction_date_to,
+            null_inclusive=False,  # prediction_date NOT NULL у схемі; NULL валить предикат як у SQL
+        ):
+            return False
+        return _date_in_range(
+            meta.target_date,
+            f.target_date_from,
+            f.target_date_to,
+            null_inclusive=True,  # Р2 дизайну
+        )

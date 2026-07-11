@@ -12,6 +12,7 @@ from prophet_checker.models.domain import (
     Prediction,
     PredictionStatus,
     RawDocument,
+    SearchFilters,
     SourceType,
     VectorMatch,
 )
@@ -63,5 +64,8 @@ class VectorStore(Protocol):
     async def store_embedding(self, prediction_id: str, embedding: list[float]) -> None: ...
     async def is_embedding_present(self, prediction_id: str) -> bool: ...
     async def search_similar(
-        self, query_embedding: list[float], limit: int = 10
+        self,
+        query_embedding: list[float],
+        limit: int = 10,
+        filters: SearchFilters | None = None,
     ) -> list[VectorMatch]: ...
