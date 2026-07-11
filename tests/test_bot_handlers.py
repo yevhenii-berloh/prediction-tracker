@@ -52,9 +52,7 @@ async def test_handle_non_text_replies_with_hint():
 
 def _orchestrator(answer_text="відповідь"):
     orch = MagicMock()
-    orch.answer = AsyncMock(
-        return_value=AnswerResult(query="q", answer=answer_text, sources=[])
-    )
+    orch.answer = AsyncMock(return_value=AnswerResult(query="q", answer=answer_text, sources=[]))
     return orch
 
 
@@ -74,9 +72,7 @@ async def test_question_replies_with_answer():
 async def test_question_sends_typing_before_answering():
     calls = []
     message = _message()
-    message.bot.send_chat_action = AsyncMock(
-        side_effect=lambda **_: calls.append("typing")
-    )
+    message.bot.send_chat_action = AsyncMock(side_effect=lambda **_: calls.append("typing"))
 
     async def _answer(_question):
         calls.append("answer")
