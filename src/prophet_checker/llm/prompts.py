@@ -3,10 +3,13 @@ from __future__ import annotations
 import json
 import logging
 import re
+from datetime import date
 from typing import TYPE_CHECKING
 
+from prophet_checker.models.domain import QueryPlan, SearchFilters
+
 if TYPE_CHECKING:
-    from prophet_checker.models.domain import RetrievedPrediction
+    from prophet_checker.models.domain import Person, RetrievedPrediction
 
 logger = logging.getLogger(__name__)
 
@@ -228,6 +231,54 @@ Answer the user's question following the rules in the system prompt: lead with w
 (plain language, with context and timing), then state the verdict in plain Ukrainian. Weave multiple
 predictions into one coherent answer. Keep it short. No internal IDs, no confidence numbers, no raw
 status labels, no invented statistics. End with the single disclaimer line."""
+
+
+SELF_QUERY_SYSTEM = """You are a query planner for a database of predictions made by Ukrainian public figures.
+
+Convert the user question (Ukrainian/Russian/English) into a JSON retrieval plan with a
+semantic query and structured filters. You do NOT answer the question.
+
+Filterable fields:
+- person_id (string): prediction author. Match author mentions against the provided list
+  of known persons (name variants and transliterations count as a match).
+- prediction_date (date): when the prediction was MADE ("що казав у 2022" → this field).
+- target_date (date): the time the prediction is ABOUT ("прогнози на 2023" → this field).
+
+Rules:
+1. semantic_query: the question stripped of author names and date constraints — keep only
+   the topic. If nothing remains, restate the topic of the question in a few words.
+2. Author mentioned and found in the list → person_id = its id, unknown_author = null.
+3. Author mentioned but NOT in the list → unknown_author = the name exactly as mentioned
+   in the question, person_id = null.
+4. No author mentioned → person_id = null and unknown_author = null.
+5. "When it was said" constraints → prediction_date_from/to. "About what time" constraints
+   → target_date_from/to. A bare year YYYY expands to YYYY-01-01 .. YYYY-12-31.
+6. Relative expressions ("минулого року", "нещодавно", "last month") resolve against
+   today's date from the prompt.
+7. Dates are ISO YYYY-MM-DD or null. Never invent constraints absent from the question.
+
+Examples (assume known person "Олексій Арестович" id=a1, today 2026-07-11):
+Q: "Що Арестович казав про Крим у 2022?"
+{"semantic_query": "прогнози про Крим", "person_id": "a1", "unknown_author": null,
+ "prediction_date_from": "2022-01-01", "prediction_date_to": "2022-12-31",
+ "target_date_from": null, "target_date_to": null}
+Q: "Які були прогнози на 2024 рік щодо завершення війни?"
+{"semantic_query": "завершення війни", "person_id": null, "unknown_author": null,
+ "prediction_date_from": null, "prediction_date_to": null,
+ "target_date_from": "2024-01-01", "target_date_to": "2024-12-31"}
+Q: "Що прогнозував Портников про вибори?"
+{"semantic_query": "прогнози про вибори", "person_id": null, "unknown_author": "Портников",
+ "prediction_date_from": null, "prediction_date_to": null,
+ "target_date_from": null, "target_date_to": null}
+
+Respond with ONLY the JSON object — no markdown fence, no commentary."""
+
+SELF_QUERY_TEMPLATE = """Today: {today}
+
+Known persons:
+{persons}
+
+Question: {question}"""
 
 
 VERIFICATION_SYSTEM_V2 = """You are a fact-checker who verifies political/economic predictions about Ukraine
@@ -516,3 +567,43 @@ def parse_assessment_response_v2(response: str) -> dict:
         )
 
     return {"prediction_strength": data["prediction_strength"]}
+
+
+def build_self_query_prompt(question: str, persons: list[Person], today: date) -> str:
+    lines = [f"- {p.name} (id: {p.id})" for p in persons]
+    return SELF_QUERY_TEMPLATE.format(
+        today=today.isoformat(), persons="\n".join(lines), question=question
+    )
+
+
+_QUERY_PLAN_DATE_FIELDS = (
+    "prediction_date_from",
+    "prediction_date_to",
+    "target_date_from",
+    "target_date_to",
+)
+
+
+def parse_query_plan(raw: str, known_person_ids: set[str], question: str) -> QueryPlan:
+    data = json.loads(_strip_code_fence(raw))
+
+    person_id = data.get("person_id")
+    unknown_author = data.get("unknown_author")
+    if person_id is not None and person_id not in known_person_ids:
+        raise ValueError(f"unknown person_id from planner: {person_id!r}")
+    if person_id is not None and unknown_author is not None:
+        raise ValueError("person_id and unknown_author are mutually exclusive")
+
+    dates: dict[str, date | None] = {}
+    for field in _QUERY_PLAN_DATE_FIELDS:
+        value = data.get(field)
+        dates[field] = date.fromisoformat(value) if value is not None else None
+
+    for prefix in ("prediction_date", "target_date"):
+        lo, hi = dates[f"{prefix}_from"], dates[f"{prefix}_to"]
+        if lo is not None and hi is not None and lo > hi:
+            raise ValueError(f"inverted {prefix} range: {lo} > {hi}")
+
+    semantic_query = (data.get("semantic_query") or "").strip() or question
+    filters = SearchFilters(person_id=person_id, unknown_author=unknown_author, **dates)
+    return QueryPlan(semantic_query=semantic_query, filters=filters)
