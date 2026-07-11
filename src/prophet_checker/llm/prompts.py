@@ -584,16 +584,7 @@ _QUERY_PLAN_DATE_FIELDS = (
 )
 
 
-def parse_query_plan(raw: str, known_person_ids: set[str], question: str) -> QueryPlan:
-    data = json.loads(_strip_code_fence(raw))
-
-    person_id = data.get("person_id")
-    unknown_author = data.get("unknown_author")
-    if person_id is not None and person_id not in known_person_ids:
-        raise ValueError(f"unknown person_id from planner: {person_id!r}")
-    if person_id is not None and unknown_author is not None:
-        raise ValueError("person_id and unknown_author are mutually exclusive")
-
+def _parse_plan_dates(data: dict) -> dict[str, date | None]:
     dates: dict[str, date | None] = {}
     for field in _QUERY_PLAN_DATE_FIELDS:
         value = data.get(field)
@@ -604,6 +595,22 @@ def parse_query_plan(raw: str, known_person_ids: set[str], question: str) -> Que
         if lo is not None and hi is not None and lo > hi:
             raise ValueError(f"inverted {prefix} range: {lo} > {hi}")
 
+    return dates
+
+
+def parse_query_plan(raw: str, known_person_ids: set[str], question: str) -> QueryPlan:
+    data = json.loads(_strip_code_fence(raw))
+    if not isinstance(data, dict):
+        raise ValueError(f"planner returned non-object JSON: {type(data).__name__}")
+
+    person_id = data.get("person_id")
+    unknown_author = data.get("unknown_author")
+    if person_id is not None and person_id not in known_person_ids:
+        raise ValueError(f"unknown person_id from planner: {person_id!r}")
+    if person_id is not None and unknown_author is not None:
+        raise ValueError("person_id and unknown_author are mutually exclusive")
+
+    dates = _parse_plan_dates(data)
     semantic_query = (data.get("semantic_query") or "").strip() or question
     filters = SearchFilters(person_id=person_id, unknown_author=unknown_author, **dates)
     return QueryPlan(semantic_query=semantic_query, filters=filters)

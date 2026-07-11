@@ -56,6 +56,11 @@ def test_parse_broken_json_raises():
         parse_query_plan("не json", KNOWN_IDS, question="q")
 
 
+def test_parse_non_object_json_raises():
+    with pytest.raises(ValueError, match="non-object"):
+        parse_query_plan("[1, 2, 3]", KNOWN_IDS, question="q")
+
+
 def test_parse_person_id_outside_list_raises():
     with pytest.raises(ValueError, match="unknown person_id"):
         parse_query_plan(_raw(person_id="ghost"), KNOWN_IDS, question="q")
