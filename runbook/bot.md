@@ -21,8 +21,8 @@
 
 - **`.venv` (uv) і Postgres.** `docker compose up -d` (контейнер `prophet_postgres`),
   далі `.venv/bin/alembic upgrade head`.
-- **Дані в БД.** Порожній корпус → бот на кожне питання відповідає відмовою. Це
-  коректно, але не те, що хочеш побачити на смоуку. Засівання — `runbook/first-ingest.md`.
+- **Дані в БД.** Порожній корпус → бот на кожне питання відповідає відмовою. Наповни
+  локальну БД перед смоуком — див. [`ingest.md`](ingest.md).
 - **Ключі в `.env`:**
   - `OPENAI_API_KEY`, `GEMINI_API_KEY` — мозок відповідей (embeddings + генерація);
   - `TELEGRAM_API_ID`, `TELEGRAM_API_HASH` + файл `tg_session.session` — потрібні **не
@@ -90,7 +90,7 @@ curl -s -X POST localhost:8000/answer \
 |---------|---------------|
 | `CRITICAL ... bot polling task died: ... Unauthorized` | Невірний `TELEGRAM_BOT_TOKEN`. HTTP-API живе далі — мертвий тільки бот. Онови токен, перезапусти. |
 | `ValueError: bot_enabled=True, але telegram_bot_token порожній` (падає на старті) | `BOT_ENABLED=true`, але токен не заданий. Додай `TELEGRAM_BOT_TOKEN`. |
-| Бот на все відповідає відмовою | У БД нема прогнозів (засій — `first-ingest.md`) або relevance-поріг усе відсіює. |
+| Бот на все відповідає відмовою | У БД нема прогнозів (наповни — [`ingest.md`](ingest.md)) або relevance-поріг усе відсіює. |
 | Кожне питання → `⚠️ Щось пішло не так...` | `answer()` кинув (LLM / БД / ключі). Дивись `logger.exception` у логах застосунку. |
 | Застосунок висить або падає на старті (до `Start polling`) | Колектор: нема `tg_session.session` чи `TELEGRAM_API_ID/HASH`, сесія відкликана, або auth-key конфлікт із живим боксом. |
 
