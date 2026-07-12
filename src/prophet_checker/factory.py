@@ -15,6 +15,7 @@ from prophet_checker.models.domain import SourceType
 from prophet_checker.query import QueryOrchestrator
 from prophet_checker.query.answer_orchestrator import AnswerOrchestrator
 from prophet_checker.query.planner import QueryPlanner
+from prophet_checker.sources.base import Source
 from prophet_checker.sources.telegram import TelegramSource
 from prophet_checker.storage.engine import make_engine
 from prophet_checker.storage.postgres import (
@@ -47,14 +48,16 @@ async def build_orchestrator(settings: Settings, stack: AsyncExitStack) -> Inges
         )
     extractor = PredictionExtractor(llm)
 
-    tg_client = TelegramClient(
-        session=settings.tg_session_path,
-        api_id=settings.telegram_api_id,
-        api_hash=settings.telegram_api_hash,
-    )
-    await tg_client.start()
-    stack.push_async_callback(tg_client.disconnect)
-    telegram_source = TelegramSource(tg_client)
+    sources: dict[SourceType, Source] = {}
+    if settings.telegram_source_enabled:
+        tg_client = TelegramClient(
+            session=settings.tg_session_path,
+            api_id=settings.telegram_api_id,
+            api_hash=settings.telegram_api_hash,
+        )
+        await tg_client.start()
+        stack.push_async_callback(tg_client.disconnect)
+        sources[SourceType.TELEGRAM] = TelegramSource(tg_client)
 
     return IngestionOrchestrator(
         session_factory=session_factory,
@@ -62,7 +65,7 @@ async def build_orchestrator(settings: Settings, stack: AsyncExitStack) -> Inges
         prediction_repo=prediction_repo,
         extractor=extractor,
         embedder=embedder,
-        sources={SourceType.TELEGRAM: telegram_source},
+        sources=sources,
     )
 
 

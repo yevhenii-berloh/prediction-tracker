@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     embeddings_enabled: bool = True
     tg_session_path: str = "tg_session"
+    telegram_source_enabled: bool = True  # False = локальний запуск без Telethon user-сесії (щоб не ділити auth-key з деплоєм → AuthKeyDuplicatedError)
     verification_confidence_threshold: float = 0.6
     relevance_threshold: float | None = (
         None  # None = top-k без порога; ставимо після sweep (задача A)

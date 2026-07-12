@@ -22,6 +22,7 @@ def _settings_with_test_env(monkeypatch) -> Settings:
     monkeypatch.setenv("TELEGRAM_API_HASH", "test-hash")
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test-openai")
     monkeypatch.setenv("TG_SESSION_PATH", "/tmp/test_session")
+    monkeypatch.setenv("TELEGRAM_SOURCE_ENABLED", "true")
     return Settings()
 
 
@@ -50,6 +51,23 @@ async def test_build_orchestrator_registers_cleanup(monkeypatch):
             await build_orchestrator(settings, stack)
 
         mock_tg_instance.disconnect.assert_called_once()
+
+
+async def test_build_orchestrator_skips_telegram_when_source_disabled(monkeypatch):
+    settings = _settings_with_test_env(monkeypatch).model_copy(
+        update={"telegram_source_enabled": False}
+    )
+
+    with patch("prophet_checker.factory.TelegramClient") as MockTg:
+        mock_tg_instance = MockTg.return_value
+        mock_tg_instance.start = AsyncMock()
+        mock_tg_instance.disconnect = AsyncMock()
+
+        async with AsyncExitStack() as stack:
+            orchestrator = await build_orchestrator(settings, stack)
+
+    MockTg.assert_not_called()
+    assert isinstance(orchestrator, IngestionOrchestrator)
 
 
 # --- build_bot ---
