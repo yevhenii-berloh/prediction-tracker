@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     llm_api_key: str = ""
     gemini_api_key: str = ""
     telegram_bot_token: str = ""
+    bot_enabled: bool = False  # вмикає Telegram-бота (long-polling у процесі API)
     telegram_api_id: int = 0
     telegram_api_hash: str = ""
     embedding_model: str = "text-embedding-3-small"

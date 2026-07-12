@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from prophet_checker.config import Settings
 from prophet_checker.factory import (
     build_answer_orchestrator,
+    build_bot,
     build_orchestrator,
     build_query_orchestrator,
 )
@@ -26,6 +27,9 @@ async def lifespan(app: FastAPI):
         app.state.orchestrator = orchestrator
         app.state.query_orchestrator = await build_query_orchestrator(settings, stack)
         app.state.answer_orchestrator = await build_answer_orchestrator(settings, stack)
+        bot_runner = await build_bot(settings, stack, app.state.answer_orchestrator)
+        if bot_runner is not None:
+            await bot_runner.start()
         yield
 
 

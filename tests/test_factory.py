@@ -5,7 +5,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from prophet_checker.bot.runner import BotRunner
 from prophet_checker.config import Settings
+from prophet_checker.factory import build_bot
 from prophet_checker.factory import build_orchestrator
 from prophet_checker.ingestion import IngestionOrchestrator
 
@@ -48,3 +50,32 @@ async def test_build_orchestrator_registers_cleanup(monkeypatch):
             await build_orchestrator(settings, stack)
 
         mock_tg_instance.disconnect.assert_called_once()
+
+
+# --- build_bot ---
+
+
+async def test_build_bot_disabled_returns_none():
+    settings = Settings(bot_enabled=False)
+    async with AsyncExitStack() as stack:
+        assert await build_bot(settings, stack, MagicMock()) is None
+
+
+async def test_build_bot_enabled_without_token_fails_fast():
+    settings = Settings(bot_enabled=True, telegram_bot_token="")
+    async with AsyncExitStack() as stack:
+        with pytest.raises(ValueError, match="telegram_bot_token"):
+            await build_bot(settings, stack, MagicMock())
+
+
+async def test_build_bot_registers_stop_on_stack():
+    settings = Settings(bot_enabled=True, telegram_bot_token="123456:TEST-TOKEN")
+    fake_runner = MagicMock(spec=BotRunner)
+    fake_runner.stop = AsyncMock()
+
+    with patch("prophet_checker.factory.build_bot_runner", return_value=fake_runner):
+        async with AsyncExitStack() as stack:
+            runner = await build_bot(settings, stack, MagicMock())
+            assert runner is fake_runner
+
+    fake_runner.stop.assert_awaited_once()
