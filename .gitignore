@@ -5,6 +5,7 @@ __pycache__/
 dist/
 .ruff_cache/
 .env
+ec2.env
 *.session
 *.session-journal
 .superpowers/
