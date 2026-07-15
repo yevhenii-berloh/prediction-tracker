@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from contextlib import AsyncExitStack, asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from prophet_checker.config import Settings
@@ -12,9 +12,11 @@ from prophet_checker.factory import (
     build_bot,
     build_orchestrator,
     build_query_orchestrator,
+    build_verification_orchestrator,
 )
 from prophet_checker.ingestion import CycleReport
 from prophet_checker.models.domain import AnswerResult, QueryResult
+from prophet_checker.verification.report import VerificationCycleReport
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +27,7 @@ async def lifespan(app: FastAPI):
     async with AsyncExitStack() as stack:
         orchestrator = await build_orchestrator(settings, stack)
         app.state.orchestrator = orchestrator
+        app.state.verification_orchestrator = await build_verification_orchestrator(settings, stack)
         app.state.query_orchestrator = await build_query_orchestrator(settings, stack)
         app.state.answer_orchestrator = await build_answer_orchestrator(settings, stack)
         bot_runner = await build_bot(settings, stack, app.state.answer_orchestrator)
@@ -56,6 +59,26 @@ async def run_ingestion(request: Request) -> CycleReport:
         raise HTTPException(
             status_code=500,
             detail=f"unexpected orchestrator failure: {type(exc).__name__}",
+        )
+
+
+@app.post("/verify/run", response_model=VerificationCycleReport)
+async def run_verification(
+    request: Request, limit: int | None = Query(default=None, ge=1)
+) -> VerificationCycleReport:
+    orchestrator = getattr(request.app.state, "verification_orchestrator", None)
+    if orchestrator is None:
+        raise HTTPException(
+            status_code=503,
+            detail="verification orchestrator not initialized — server is starting up or shutting down",
+        )
+    try:
+        return await orchestrator.run_cycle(limit=limit)
+    except Exception as exc:
+        logger.exception("verification run_cycle failed catastrophically")
+        raise HTTPException(
+            status_code=500,
+            detail=f"unexpected verification failure: {type(exc).__name__}",
         )
 
 

@@ -211,3 +211,93 @@ async def test_answer_503_when_not_initialized():
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post("/answer", json={"question": "q"})
     assert resp.status_code == 503
+
+
+@pytest.fixture(autouse=True)
+def _clear_verification_orchestrator_state():
+    yield
+    if hasattr(app.state, "verification_orchestrator"):
+        delattr(app.state, "verification_orchestrator")
+
+
+def _verification_report(**kwargs):
+    from prophet_checker.verification.report import VerificationCycleReport
+
+    defaults = dict(started_at=datetime.now(UTC), finished_at=datetime.now(UTC))
+    return VerificationCycleReport(**{**defaults, **kwargs})
+
+
+async def test_verify_run_returns_report():
+    from prophet_checker.verification.report import VerificationEntry
+
+    orchestrator = MagicMock()
+    orchestrator.run_cycle = AsyncMock(
+        return_value=_verification_report(
+            verified=2,
+            failed=1,
+            skipped=3,
+            entries=[
+                VerificationEntry(prediction_id="p1", status="confirmed"),
+                VerificationEntry(prediction_id="p2", error="RuntimeError: boom"),
+            ],
+        )
+    )
+    app.state.verification_orchestrator = orchestrator
+
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post("/verify/run")
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["verified"] == 2
+    assert body["failed"] == 1
+    assert body["skipped"] == 3
+    assert len(body["entries"]) == 2
+    assert body["entries"][0]["prediction_id"] == "p1"
+    assert body["entries"][0]["status"] == "confirmed"
+    orchestrator.run_cycle.assert_awaited_once_with(limit=None)
+
+
+async def test_verify_run_passes_limit():
+    orchestrator = MagicMock()
+    orchestrator.run_cycle = AsyncMock(return_value=_verification_report(verified=5))
+    app.state.verification_orchestrator = orchestrator
+
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post("/verify/run?limit=5")
+
+    assert resp.status_code == 200
+    orchestrator.run_cycle.assert_awaited_once_with(limit=5)
+
+
+async def test_verify_run_503_when_orchestrator_not_initialized():
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post("/verify/run")
+
+    assert resp.status_code == 503
+    assert "verification orchestrator not initialized" in resp.json()["detail"]
+
+
+async def test_verify_run_500_on_catastrophic_exception():
+    orchestrator = MagicMock()
+    orchestrator.run_cycle = AsyncMock(side_effect=RuntimeError("boom"))
+    app.state.verification_orchestrator = orchestrator
+
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post("/verify/run")
+
+    assert resp.status_code == 500
+    detail = resp.json()["detail"]
+    assert "RuntimeError" in detail
+    assert "boom" not in detail
+
+
+async def test_verify_run_422_on_limit_below_one():
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        resp = await client.post("/verify/run?limit=0")
+    assert resp.status_code == 422
