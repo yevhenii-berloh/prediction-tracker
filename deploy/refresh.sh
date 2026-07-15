@@ -2,14 +2,15 @@
 #
 # refresh.sh — підтягнути свіжі секрети з S3 на живий бокс і перезапустити застосунок.
 #
-# Драйвить бокс по SSH: резолвить бокс (як deploy.sh) → тягне `.env` із приватного
-# S3-бакета в `/opt/app/.env` → `docker compose up -d --force-recreate` → перевіряє
-# exit-code migrate і health-loop. Потрібен, бо бокс копіює `.env` з S3 ЛИШЕ на
-# bootstrap (user-data), а `deploy.sh` `.env` не чіпає — тож правка секрета в S3
-# сама собою на живий бокс не долітає (див. runbook/bot.md «Прод»).
+# Драйвить бокс по SSH: резолвить бокс (як deploy.sh) → тягне `.env` і
+# `tg_session.session` із S3-бакета в `/opt/app/` → `docker compose up -d
+# --force-recreate` → перевіряє exit-code migrate і health-loop. Потрібен, бо бокс
+# копіює секрети з S3 ЛИШЕ на bootstrap (user-data), а `deploy.sh` їх не чіпає —
+# тож правка в S3 сама собою на живий бокс не долітає (див. runbook/bot.md «Прод»).
 #
-# СВІДОМО тягне лише `.env`. `tg_session.session` не чіпає: його перезалив вимагає
-# `chown 1000:1000` і ризикує auth-key живої user-сесії (див. runbook/deploy.md).
+# `tg_session.session` тягнеться після релогіну (S3 = джерело правди): root пише
+# файл → `chown 1000:1000` під uid контейнера (інакше Telethon «readonly database»).
+# Нема обʼєкта в бакеті — не фатально, лишає наявну сесію на боксі.
 #
 # Приклади:
 #   ./deploy/refresh.sh                # підтягнути секрети + рестарт, з підтвердженням
@@ -32,7 +33,7 @@ SECRETS_STACK="${SECRETS_STACK:-prophet-secrets}"
 ASSUME_YES=0
 DRY_RUN=0
 
-usage() { sed -n '3,20p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '3,21p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
 die() { echo "ERROR: $*" >&2; exit 1; }
 
 # --- аргументи ---
@@ -58,6 +59,15 @@ cd /opt/app
 
 echo "== свіжі секрети з S3 (роль інстансу читає бакет) =="
 sudo aws s3 cp "s3://$BUCKET/.env" /opt/app/.env
+
+echo "== свіжа Telethon-сесія з S3 (root пише → chown на uid контейнера 1000) =="
+# aws s3 cp на провал НЕ чіпає призначення, тож наявна сесія переживе відсутність обʼєкта.
+if sudo aws s3 cp "s3://$BUCKET/tg_session.session" /opt/app/tg_session.session 2>/dev/null; then
+  sudo chown 1000:1000 /opt/app/tg_session.session
+  echo "tg_session.session оновлено"
+else
+  echo "note: tg_session.session нема в бакеті — лишаю наявну на боксі" >&2
+fi
 
 echo "== recreate, щоб перечитати env_file (на t3.small небистро) =="
 if ! compose up -d --force-recreate; then
