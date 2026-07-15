@@ -67,6 +67,18 @@ docker exec prophet_postgres psql -U prophet -d prophet_checker -tA \
   @arestovich ≈ 5572 пости = стільки ж LLM-викликів). Спершу постав джерелу вузьке вікно
   (див. [`first-ingest.md`](first-ingest.md), крок «засіяти Person + Source»).
 
+- **На проді (боксі)** — те саме, але через SSH, однією командою:
+
+  ```
+  ./deploy/ingest.sh              # з підтвердженням; -y щоб пропустити
+  ./deploy/ingest.sh --dry-run    # надрукувати план, нічого не робити
+  ```
+
+  Резолвить бокс → SSH → той самий `curl -X POST /ingest/run` **на боксі** (порт 8000 лише
+  на localhost боксу) → чекає `CycleReport` і друкує підсумок. Той самий ⚠️ no-limit
+  застосовний — вузьке вікно джерела став заздалегідь. Таймаут циклу — `--timeout <сек>`
+  (дефолт 900). Побратими: `deploy.sh`, `logs.sh`, `status.sh`.
+
 Передумови пайплайну: `TELEGRAM_API_ID/HASH` + `tg_session.session` (колектор),
 `GEMINI_API_KEY` (екстракція).
 
