@@ -184,7 +184,10 @@ if [ "$ASSUME_YES" -eq 0 ]; then
 fi
 
 # --- виконання (REMOTE — літерал; REF=$1, BUCKET=$2) ---
+# ssh склеює аргументи після хоста в один рядок і віддалений shell парсить їх заново —
+# порожній REF інакше зник би й BUCKET з'їхав би в $1. printf %q → порожній стає літералом ''.
 # shellcheck disable=SC2086
-printf '%s' "$REMOTE" | ssh $SSH_OPTS -i "$SSH_KEY" "$SSH_USER@$IP" bash -s -- "$REF" "$BUCKET"
+printf '%s' "$REMOTE" | ssh $SSH_OPTS -i "$SSH_KEY" "$SSH_USER@$IP" \
+  bash -s -- "$(printf '%q' "$REF")" "$(printf '%q' "$BUCKET")"
 
 echo "✅ Деплой OK: $BOX ($IP), версія ${REF:-latest main}"
