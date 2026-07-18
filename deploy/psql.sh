@@ -62,10 +62,16 @@ group by p.name
 order by predictions desc;
 
 -- Курсор інжесту (person_sources.last_collected_at): часовий фронтир, до якого
--- зібрано й опрацьовано пости кожного джерела. lag = наскільки курсор відстає
--- від «тепер» — великий lag означає великий беклог непідтягнутих постів. Джерела
--- з найстарішим курсором ідуть першими. docs/processed рахуються на автора (не на
--- джерело — у авторів зазвичай одне джерело).
+-- зібрано й опрацьовано пости кожного джерела.
+--
+-- ⚠️ Курсор зберігає published_at ОСТАННЬОГО ОБРОБЛЕНОГО ПОСТА, а не час прогону
+-- (orchestrator: update_source_cursor(ps.id, raw_doc.published_at)). Тому lag міряє
+-- свіжість КОНТЕНТУ, не свіжість прогону: якщо автор мовчить тиждень, lag росте на
+-- тиждень навіть при щоденному інжесті. Щоб дізнатись, чи ганявся інжест, дивись
+-- last_ingest_write (max(collected_at)) у наступному запиті, не цей lag.
+--
+-- Джерела з найстарішим курсором ідуть першими. docs/processed рахуються на автора
+-- (не на джерело — у авторів зазвичай одне джерело).
 with doc_counts as (
   select person_id,
          count(*)                          as docs,
@@ -87,8 +93,14 @@ order by ps.last_collected_at asc, author;
 
 select status, count(*) from predictions group by status order by 2 desc;
 
-select count(*) as docs,
-       count(*) filter (where processed) as processed
+-- Свіжість прогону проти свіжості контенту (див. застереження про курсор вище):
+--   last_ingest_write — коли інжест востаннє РЕАЛЬНО щось записав (collected_at);
+--   newest_post       — коли вийшов найновіший зібраний пост (published_at).
+-- Якщо newest_post близький до last_ingest_write, канал догнано під нуль.
+select count(*)                                as docs,
+       count(*) filter (where processed)       as processed,
+       max(collected_at)::timestamp(0)         as last_ingest_write,
+       max(published_at)::timestamp(0)         as newest_post
 from raw_documents;
 "
 
