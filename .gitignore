@@ -19,6 +19,8 @@ scripts/data/raw/zhdanov/
 scripts/data/_legacy/
 scripts/outputs/
 scripts/smoke_results.json
+scenarios/
+uv.lock
 .DS_Store
 .coverage
 .pytest_cache/
