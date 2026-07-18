@@ -16,7 +16,7 @@
 #   ./deploy/psql.sh                                    # інтерактивна сесія
 #   ./deploy/psql.sh -c 'select count(*) from predictions'
 #   ./deploy/psql.sh -f scripts/data/report.sql
-#   ./deploy/psql.sh --stats                            # зріз: автори / доки / прогнози
+#   ./deploy/psql.sh --stats                            # зріз: автори / курсор інжесту / доки / прогнози
 #
 # Конфіг через env (є дефолти): REGION, SSH_KEY, SSH_USER, BOX_TAG, SSH_OPTS,
 #   SECRETS_STACK, SECRETS_BUCKET, ENV_KEY, LOCAL_PORT.
@@ -60,6 +60,30 @@ left join raw_documents d on d.person_id = p.id
 left join predictions  pr on pr.person_id = p.id
 group by p.name
 order by predictions desc;
+
+-- Курсор інжесту (person_sources.last_collected_at): часовий фронтир, до якого
+-- зібрано й опрацьовано пости кожного джерела. lag = наскільки курсор відстає
+-- від «тепер» — великий lag означає великий беклог непідтягнутих постів. Джерела
+-- з найстарішим курсором ідуть першими. docs/processed рахуються на автора (не на
+-- джерело — у авторів зазвичай одне джерело).
+with doc_counts as (
+  select person_id,
+         count(*)                          as docs,
+         count(*) filter (where processed) as processed
+  from raw_documents
+  group by person_id
+)
+select p.name                                             as author,
+       ps.source_identifier                               as channel,
+       ps.enabled,
+       ps.last_collected_at                               as ingest_cursor,
+       date_trunc('second', now() - ps.last_collected_at) as lag,
+       coalesce(c.docs, 0)                                as docs,
+       coalesce(c.processed, 0)                           as processed
+from person_sources ps
+join persons p         on p.id = ps.person_id
+left join doc_counts c on c.person_id = ps.person_id
+order by ps.last_collected_at asc, author;
 
 select status, count(*) from predictions group by status order by 2 desc;
 
