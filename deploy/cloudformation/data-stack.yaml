@@ -1,5 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: prophet-checker - RDS PostgreSQL (pgvector) + app/db security groups
+Transform: AWS::LanguageExtensions
 
 Parameters:
   VpcId:
@@ -7,19 +8,23 @@ Parameters:
   SubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
     Description: Two or more subnets in different AZs for the DB subnet group
-  SshIngressCidr:
-    Type: String
-    Description: Your IP in CIDR form, e.g. 203.0.113.7/32
+  SshIngressCidrs:
+    Type: CommaDelimitedList
+    Description: Trusted IPs allowed to SSH, comma-separated CIDRs, e.g. 203.0.113.7/32,198.51.100.4/32
   DbInstanceClass:
     Type: String
     Default: db.t4g.micro
   DbAllocatedStorage:
     Type: Number
     Default: 20
+  DbBackupRetention:
+    Type: Number
+    Default: 7
+    Description: Automated backup retention (days); free-tier plan caps this, pass 1 on a free-tier account
   DbEngineVersion:
     Type: String
-    Default: "16.8"
-    Description: RDS PostgreSQL version; must be >= 16.5 for pgvector 0.8.0
+    Default: "16.9"
+    Description: RDS PostgreSQL version; must be >= 16.5 for pgvector 0.8.0 (16.8 is deprecated on RDS)
   DbName:
     Type: String
     Default: prophet_checker
@@ -38,13 +43,26 @@ Resources:
   AppSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
+      # Do not reword: GroupDescription is immutable, so any edit replaces the SG.
+      # That changes its id, which is exported and imported by the compute stack.
       GroupDescription: prophet-checker app box - SSH only from trusted IP
       VpcId: !Ref VpcId
-      SecurityGroupIngress:
-        - IpProtocol: tcp
+
+  # One rule per trusted CIDR, as standalone resources rather than an inline
+  # SecurityGroupIngress list: Fn::ForEach expands to a map, not a list, so it
+  # cannot generate the inline list. '&{}' permits the dots and slash of a CIDR
+  # in the generated logical id.
+  'Fn::ForEach::SshIngressRules':
+    - Cidr
+    - !Ref SshIngressCidrs
+    - 'AppSshIngress&{Cidr}':
+        Type: AWS::EC2::SecurityGroupIngress
+        Properties:
+          GroupId: !Ref AppSecurityGroup
+          IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-          CidrIp: !Ref SshIngressCidr
+          CidrIp: !Ref Cidr
 
   DbSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -76,7 +94,7 @@ Resources:
       MultiAZ: false
       PubliclyAccessible: false
       StorageEncrypted: true
-      BackupRetentionPeriod: 7
+      BackupRetentionPeriod: !Ref DbBackupRetention
       DBName: !Ref DbName
       MasterUsername: !Ref DbUsername
       MasterUserPassword: !Ref DbPassword
