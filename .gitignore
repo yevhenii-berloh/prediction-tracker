@@ -8,7 +8,9 @@ dist/
 ec2.env
 *.session
 *.session-journal
+tg_session*
 .superpowers/
+/.claude/
 /.idea/
 scripts/data/raw/samples/sample_posts.json
 scripts/data/raw/samples/sample_posts_100.json
