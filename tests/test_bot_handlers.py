@@ -66,7 +66,8 @@ async def test_question_replies_with_answer():
     await handle_question(message, orch)
 
     orch.answer.assert_awaited_once_with("що казав про Крим?")
-    message.answer.assert_awaited_once_with("прогноз справдився")
+    # HTML-режим потрібен для клікабельних посилань у блоці джерел
+    message.answer.assert_awaited_once_with("прогноз справдився", parse_mode="HTML")
 
 
 async def test_question_sends_typing_before_answering():

@@ -13,7 +13,7 @@ from prophet_checker.bot.texts import (
     NOT_TEXT_TEXT,
     START_TEXT,
     UNKNOWN_COMMAND_TEXT,
-    truncate_for_telegram,
+    compose_answer_message,
 )
 from prophet_checker.query.answer_orchestrator import AnswerOrchestrator
 
@@ -47,7 +47,9 @@ async def handle_question(message: Message, answer_orchestrator: AnswerOrchestra
         time.monotonic() - started,
     )
     logger.debug("bot question: %s", message.text)
-    await message.answer(truncate_for_telegram(result.answer))
+    await message.answer(
+        compose_answer_message(result.answer, result.citations), parse_mode="HTML"
+    )
 
 
 async def handle_non_text(message: Message) -> None:
