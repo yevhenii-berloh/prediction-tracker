@@ -24,6 +24,7 @@ class Settings(BaseSettings):
         None  # None = top-k без порога; ставимо після sweep (задача A)
     )
     query_planner_enabled: bool = True  # False = аварійний обхід: пошук без фільтрів (design Р4)
+    citations_enabled: bool = False  # посилання на пости у відповіді (design 2026-07-18)
     log_level: str = "INFO"
     app_host: str = "127.0.0.1"  # 0.0.0.0 у контейнері (compose), інакше застосунок недосяжний ззовні контейнера
 
