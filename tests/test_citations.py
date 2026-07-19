@@ -1,12 +1,13 @@
 from datetime import UTC, date, datetime
 
 from prophet_checker.models.domain import (
+    CitationRef,
     Prediction,
     RawDocument,
     RetrievedPrediction,
     SourceType,
 )
-from prophet_checker.query.citations import resolve
+from prophet_checker.query.citations import drop_markers, materialize, resolve
 from tests.fakes import FakeSourceRepo
 
 ID_A = "7c9f4e21-3a8b-4d15-9e02-6b1f8a4c7d33"
@@ -116,3 +117,65 @@ async def test_fake_repo_returns_documents_by_ids():
     found = await repo.get_documents_by_ids(["d1", "missing"])
 
     assert [d.id for d in found] == ["d1"]
+
+
+def _document(doc_id: str, url: str, day: int = 12) -> RawDocument:
+    return RawDocument(
+        id=doc_id,
+        person_id="p1",
+        source_type=SourceType.TELEGRAM,
+        url=url,
+        published_at=datetime(2020, 8, day, tzinfo=UTC),
+        raw_text="текст",
+    )
+
+
+async def test_two_predictions_from_one_post_share_one_citation():
+    repo = FakeSourceRepo(documents=[_document("d1", "https://t.me/@ch/1")])
+    refs = [
+        CitationRef(marker=1, prediction_id=ID_A, document_id="d1", offset=0),
+        CitationRef(marker=3, prediction_id=ID_B, document_id="d1", offset=10),
+    ]
+
+    citations = await materialize(refs, repo)
+
+    assert len(citations) == 1
+    assert citations[0].markers == [1, 3]
+    assert citations[0].prediction_ids == [ID_A, ID_B]
+    assert citations[0].published_at == date(2020, 8, 12)
+
+
+async def test_missing_document_yields_no_citation():
+    repo = FakeSourceRepo(documents=[])
+    refs = [CitationRef(marker=1, prediction_id=ID_A, document_id="gone", offset=0)]
+
+    assert await materialize(refs, repo) == []
+
+
+async def test_empty_url_yields_no_citation():
+    repo = FakeSourceRepo(documents=[_document("d1", "")])
+    refs = [CitationRef(marker=1, prediction_id=ID_A, document_id="d1", offset=0)]
+
+    assert await materialize(refs, repo) == []
+
+
+async def test_citations_ordered_by_first_appearance_in_text():
+    repo = FakeSourceRepo(
+        documents=[_document("d1", "https://t.me/@ch/1"), _document("d2", "https://t.me/@ch/2", 13)]
+    )
+    refs = [
+        CitationRef(marker=1, prediction_id=ID_B, document_id="d2", offset=0),
+        CitationRef(marker=2, prediction_id=ID_A, document_id="d1", offset=20),
+    ]
+
+    citations = await materialize(refs, repo)
+
+    assert [c.url for c in citations] == ["https://t.me/@ch/2", "https://t.me/@ch/1"]
+
+
+def test_drop_markers_removes_only_unlisted():
+    assert drop_markers("а [1] б [2] в", keep={1}) == "а [1] б  в"
+
+
+def test_drop_markers_with_empty_keep_removes_all():
+    assert drop_markers("а [1] б [2] в", keep=set()) == "а  б  в"
