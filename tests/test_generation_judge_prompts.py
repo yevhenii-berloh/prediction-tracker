@@ -107,3 +107,20 @@ def test_citation_prompt_contains_sentence_and_source():
 
     assert "Речення [1]." in prompt
     assert "Росія розпадеться до 2024 року" in prompt
+
+
+def test_parse_citation_response_ignores_trailing_prose():
+    raw = '{"supported": true, "reason": "збіг"}\n\nПояснюю: джерело прямо містить це твердження.'
+
+    supported, reason = parse_citation_response(raw)
+
+    assert supported is True
+    assert reason == "збіг"
+
+
+def test_parse_faithfulness_response_ignores_trailing_prose():
+    raw = '{"claims": [{"claim": "к", "supported": true, "reason": ""}]}\n\nКоментар судді.'
+
+    claims = parse_faithfulness_response(raw)
+
+    assert len(claims) == 1

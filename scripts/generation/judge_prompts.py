@@ -36,9 +36,18 @@ CITATION_SYSTEM = (
 
 
 def _extract_json(text: str) -> dict:
+    """Перший JSON-обʼєкт із відповіді судді, з ігноруванням хвоста.
+
+    raw_decode зупиняється на кінці першого значення, тож пояснювальна проза після
+    обʼєкта (яку модель час від часу додає попри інструкцію) більше не валить розбір.
+    """
     m = _FENCE_RE.match(text.strip())
-    payload = m.group(1) if m else text
-    return json.loads(payload)
+    payload = (m.group(1) if m else text).strip()
+    start = payload.find("{")
+    if start > 0:
+        payload = payload[start:]
+    data, _ = json.JSONDecoder().raw_decode(payload)
+    return data
 
 
 def build_faithfulness_prompt(answer: str, sources: list) -> str:
