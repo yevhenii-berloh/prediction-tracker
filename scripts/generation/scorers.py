@@ -4,6 +4,8 @@ from __future__ import annotations
 from eval_common.judge import Judge
 from eval_common.models import EvalRun, ScoreCard
 from generation.gen_models import (
+    CitationDetail,
+    CitationVerdict,
     CompletenessDetail,
     FaithfulnessDetail,
     SourceCoverage,
@@ -106,17 +108,32 @@ class CitationPrecisionScorer:
     async def score(self, run: EvalRun) -> ScoreCard:
         if run.result is None or not run.result.refs:
             return ScoreCard(scorer=self.name, score=None)
-        supported = 0
+        verdicts: list[CitationVerdict] = []
         for ref in run.result.refs:
             sentence = sentence_at(run.result.answer, ref.offset)
             source = _source_by_id(run.result.sources, ref.prediction_id)
             raw = await self._judge.assess(
                 build_citation_prompt(sentence, source), system=CITATION_SYSTEM
             )
-            verdict, _ = parse_citation_response(raw)
-            if verdict:
-                supported += 1
-        return ScoreCard(scorer=self.name, score=supported / len(run.result.refs))
+            supported, reason = parse_citation_response(raw)
+            verdicts.append(
+                CitationVerdict(
+                    marker=ref.marker,
+                    prediction_id=ref.prediction_id,
+                    sentence=sentence,
+                    supported=supported,
+                    reason=reason,
+                )
+            )
+        hits = 0
+        for verdict in verdicts:
+            if verdict.supported:
+                hits += 1
+        return ScoreCard(
+            scorer=self.name,
+            score=hits / len(verdicts),
+            detail=CitationDetail(citations=verdicts),
+        )
 
 
 class CitationCoverageScorer:

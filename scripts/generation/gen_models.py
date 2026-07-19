@@ -31,6 +31,20 @@ class FaithfulnessDetail(BaseModel):
     claims: list[ClaimVerdict]
 
 
+class CitationVerdict(BaseModel):
+    """Вердикт судді по ОДНОМУ входженню маркера — одиниця citation-precision."""
+
+    marker: int
+    prediction_id: str
+    sentence: str
+    supported: bool
+    reason: str = ""
+
+
+class CitationDetail(BaseModel):
+    citations: list[CitationVerdict]
+
+
 class SourceCoverage(BaseModel):
     prediction_id: str
     covered: bool

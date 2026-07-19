@@ -238,3 +238,23 @@ async def test_faithfulness_judge_sees_text_without_markers():
 
     assert "[1]" not in judge.prompts[0]
     assert "Речення" in judge.prompts[0]
+
+
+async def test_precision_detail_records_each_marker_verdict():
+    refs = [
+        CitationRef(marker=1, prediction_id="p1", document_id="d", offset=8),
+        CitationRef(marker=2, prediction_id="p1", document_id="d", offset=20),
+    ]
+    judge = _SeqJudge(
+        '{"supported": true, "reason": "збіг"}',
+        '{"supported": false, "reason": "джерело про інше"}',
+    )
+
+    card = await CitationPrecisionScorer(judge).score(_cit_run("Речення [1]. Друге [2].", refs))
+
+    verdicts = card.detail.citations
+    assert [v.marker for v in verdicts] == [1, 2]
+    assert [v.supported for v in verdicts] == [True, False]
+    assert verdicts[1].reason == "джерело про інше"
+    assert verdicts[1].prediction_id == "p1"
+    assert "Друге" in verdicts[1].sentence
