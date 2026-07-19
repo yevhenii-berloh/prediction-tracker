@@ -133,3 +133,22 @@ Living indexes to orient from:
 - `progress.md` (repo root) — project-wide progress log; per-track status in each `docs/<track>/README.md`.
 
 Most docs are written in Ukrainian. `progress.md` (project root) is the project-wide progress log — time, cost, milestones; `architecture-current.md` holds module/flow detail and the per-track READMEs hold per-task detail.
+
+### How a design doc is structured
+
+Every section goes **top-down**, in this order:
+
+1. **Why it exists** — the problem it closes.
+2. **What it gives** — what it produces or guarantees.
+3. **What counts as success** — the gate or acceptance criterion, where one applies.
+4. **How it works inside** — seams, fields, wiring.
+5. **What can go wrong** — failure modes and the rule that handles them.
+6. **What covers it** — unit tests, eval, or both.
+
+Rules that follow from that order:
+
+- **Never open a section with an implementation detail** — a seam, a field, a function signature. Those answer questions the reader only has *after* understanding the point.
+- **One numbering scheme per document**: the end-to-end runtime sequence. A component's internal steps get *names*, not numbers — "step one" inside a section reads as "first step of the system".
+- **A component introduced inside a section about something else is in the wrong place.** If splitting a component is motivated by an eval requirement, it still belongs in the components section; the eval section gets one sentence pointing at it. Otherwise readers conclude the component exists for the eval's sake.
+- **Record reversed decisions together with the reason.** The argument that changed your mind is worth more than the decision itself, and it stops the next person re-litigating it.
+- **Prose over bullet dumps.** Why before what, a concrete example instead of an abstraction, and anticipate the reader's next question. Keep sentences short; a high-altitude doc is not a licence for dense run-ons.
