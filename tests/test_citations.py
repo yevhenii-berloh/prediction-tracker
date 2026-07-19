@@ -1,7 +1,13 @@
-from datetime import date
+from datetime import UTC, date, datetime
 
-from prophet_checker.models.domain import Prediction, RetrievedPrediction
+from prophet_checker.models.domain import (
+    Prediction,
+    RawDocument,
+    RetrievedPrediction,
+    SourceType,
+)
 from prophet_checker.query.citations import resolve
+from tests.fakes import FakeSourceRepo
 
 ID_A = "7c9f4e21-3a8b-4d15-9e02-6b1f8a4c7d33"
 ID_B = "b4e18d70-52ac-4f39-8c61-9d3e7a0f2b5e"
@@ -94,3 +100,19 @@ def test_ref_carries_document_id():
     result = resolve(f"текст [{ID_A}]", sources)
 
     assert result.refs[0].document_id == "doc-42"
+
+
+async def test_fake_repo_returns_documents_by_ids():
+    doc = RawDocument(
+        id="d1",
+        person_id="p1",
+        source_type=SourceType.TELEGRAM,
+        url="https://t.me/@ch/1",
+        published_at=datetime(2020, 8, 12, tzinfo=UTC),
+        raw_text="текст",
+    )
+    repo = FakeSourceRepo(documents=[doc])
+
+    found = await repo.get_documents_by_ids(["d1", "missing"])
+
+    assert [d.id for d in found] == ["d1"]

@@ -218,6 +218,18 @@ class PostgresSourceRepository:
             row = result.scalar_one_or_none()
             return raw_document_db_to_domain(row) if row else None
 
+    async def get_documents_by_ids(self, ids: list[str]) -> list[RawDocument]:
+        if not ids:
+            return []
+        async with self._session_factory() as session:
+            stmt = select(RawDocumentDB).where(RawDocumentDB.id.in_(ids))
+            result = await session.execute(stmt)
+            rows = result.scalars().all()
+        documents = []
+        for row in rows:
+            documents.append(raw_document_db_to_domain(row))
+        return documents
+
     async def get_unprocessed_documents(self) -> list[RawDocument]:
         async with self._session_factory() as session:
             stmt = select(RawDocumentDB).where(RawDocumentDB.processed == False)

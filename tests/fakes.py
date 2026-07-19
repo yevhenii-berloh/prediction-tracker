@@ -41,9 +41,9 @@ class FakePersonRepo(PersonRepository):
 
 
 class FakeSourceRepo(SourceRepository):
-    def __init__(self):
+    def __init__(self, documents: list[RawDocument] | None = None):
         self._sources: list[PersonSource] = []
-        self._documents: list[RawDocument] = []
+        self._documents: list[RawDocument] = documents or []
 
     async def save_person_source(self, ps: PersonSource) -> PersonSource:
         self._sources.append(ps)
@@ -66,6 +66,14 @@ class FakeSourceRepo(SourceRepository):
 
     async def get_document_by_url(self, url: str) -> RawDocument | None:
         return next((d for d in self._documents if d.url == url), None)
+
+    async def get_documents_by_ids(self, ids: list[str]) -> list[RawDocument]:
+        wanted = set(ids)
+        found = []
+        for doc in self._documents:
+            if doc.id in wanted:
+                found.append(doc)
+        return found
 
     async def get_unprocessed_documents(self) -> list[RawDocument]:
         return self._documents
