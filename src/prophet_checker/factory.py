@@ -125,7 +125,18 @@ async def build_answer_orchestrator(
         api_key=settings.gemini_api_key,
         temperature=0,
     )
-    return AnswerOrchestrator(llm, query_orchestrator)
+    # Власний engine, як і в сусідніх білдерах: build_query_orchestrator свій
+    # session_factory назовні не віддає, а source_repo потрібен для цитат.
+    engine = make_engine(settings.database_url, settings.db_ssl_mode)
+    stack.push_async_callback(engine.dispose)
+    source_repo = PostgresSourceRepository(async_sessionmaker(engine, expire_on_commit=False))
+
+    return AnswerOrchestrator(
+        llm,
+        query_orchestrator,
+        source_repo=source_repo,
+        citations_enabled=settings.citations_enabled,
+    )
 
 
 async def build_bot(

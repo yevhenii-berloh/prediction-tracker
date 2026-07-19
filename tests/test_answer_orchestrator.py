@@ -106,3 +106,38 @@ async def test_answer_raises_without_query_orchestrator():
     orch = AnswerOrchestrator(_llm())
     with pytest.raises(RuntimeError):
         await orch.answer("q")
+
+
+# --- цитати (Task 7) ---
+
+CIT_ID = "7c9f4e21-3a8b-4d15-9e02-6b1f8a4c7d33"
+
+
+def _cit_sources():
+    pred = Prediction(
+        id=CIT_ID,
+        document_id="d1",
+        person_id="x",
+        claim_text="claim",
+        prediction_date=date(2024, 1, 1),
+    )
+    return [RetrievedPrediction(prediction=pred, distance=0.1, rank=1)]
+
+
+async def test_answer_from_sources_resolves_markers_when_enabled():
+    orch = AnswerOrchestrator(_llm(f"твердження [{CIT_ID}]"), citations_enabled=True)
+
+    result = await orch.answer_from_sources("питання", _cit_sources())
+
+    assert result.answer == "твердження [1]"
+    assert [r.marker for r in result.refs] == [1]
+    assert result.citations == []  # generate-only гілка в базу не ходить
+
+
+async def test_answer_from_sources_leaves_text_alone_when_disabled():
+    orch = AnswerOrchestrator(_llm(f"твердження [{CIT_ID}]"), citations_enabled=False)
+
+    result = await orch.answer_from_sources("питання", _cit_sources())
+
+    assert result.answer == f"твердження [{CIT_ID}]"
+    assert result.refs == []
