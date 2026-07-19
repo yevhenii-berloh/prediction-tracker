@@ -13,30 +13,43 @@ def _cards(run) -> dict:
     return {c.scorer: c for c in run.cards}
 
 
+def _score(cards: dict, name: str) -> float | None:
+    """Оцінка scorer-а за іменем, або None якщо картки нема чи вона N/A."""
+    card = cards.get(name)
+    return card.score if card is not None else None
+
+
+# Які метрики збираємо загалом і які з них ще й розрізаємо за категорією
+_OVERALL = ("faithfulness", "completeness", "citation_precision", "citation_coverage")
+_BUCKETED = {"faithfulness": "faith", "completeness": "recall"}
+
+
+def _collect(cards: dict, totals: dict, bucket: dict) -> None:
+    for name in _OVERALL:
+        score = _score(cards, name)
+        if score is None:
+            continue
+        totals[name].append(score)
+        key = _BUCKETED.get(name)
+        if key is not None:
+            bucket[key].append(score)
+
+
 def aggregate(scored: list[ScoredRun]) -> GenerationMetrics:
     n_total = len(scored)
     n_errors = sum(1 for s in scored if s.run.result is None)
 
-    faith: list[float] = []
-    recall: list[float] = []
+    totals: dict[str, list[float]] = {name: [] for name in _OVERALL}
     by_cat: dict[str, dict[str, list]] = {}
 
     for s in scored:
         cat = s.run.case.labels.category
         bucket = by_cat.setdefault(cat, {"faith": [], "recall": [], "n": 0})
         bucket["n"] += 1
-        cards = _cards(s)
+        _collect(_cards(s), totals, bucket)
 
-        f = cards.get("faithfulness")
-        if f is not None and f.score is not None:
-            faith.append(f.score)
-            bucket["faith"].append(f.score)
-
-        c = cards.get("completeness")
-        if c is not None and c.score is not None:
-            recall.append(c.score)
-            bucket["recall"].append(c.score)
-
+    faith = totals["faithfulness"]
+    recall = totals["completeness"]
     faithfulness_mean = _mean(faith)
     by_category = {
         cat: CategoryMetrics(
@@ -52,5 +65,7 @@ def aggregate(scored: list[ScoredRun]) -> GenerationMetrics:
         faithfulness_mean=faithfulness_mean,
         hallucination_rate=(1 - faithfulness_mean) if faithfulness_mean is not None else None,
         recall_mean=_mean(recall),
+        citation_precision_mean=_mean(totals["citation_precision"]),
+        citation_coverage_mean=_mean(totals["citation_coverage"]),
         by_category=by_category,
     )

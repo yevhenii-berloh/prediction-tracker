@@ -53,4 +53,6 @@ class GenerationMetrics(BaseModel):
     faithfulness_mean: float | None
     hallucination_rate: float | None
     recall_mean: float | None
+    citation_precision_mean: float | None = None
+    citation_coverage_mean: float | None = None
     by_category: dict[str, CategoryMetrics]
