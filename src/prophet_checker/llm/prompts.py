@@ -212,7 +212,12 @@ For each relevant prediction:
 
 If several predictions are relevant, weave them into one coherent answer, each with its own verdict.
 
-Do NOT put in the answer: internal source IDs, the confidence number, the raw English status label
+Cite your sources: put the prediction's identifier in square brackets immediately after the
+statement it supports, e.g. "…розпадеться до 2024 року [7c9f4e21-3a8b-4d15-9e02-6b1f8a4c7d33]".
+Use ONLY identifiers that appear in the source block. Every prediction you discuss gets its
+identifier. An identifier may appear ONLY inside square brackets, never in running prose.
+
+Do NOT put in the answer: the confidence number, the raw English status label
 (confirmed/refuted/unresolved/premature), invented statistics (e.g. "0% успішності"), or
 meta-statements about the database. Use the provided dates and status only to inform the wording —
 never recite them as labelled fields.
@@ -229,8 +234,10 @@ Relevant predictions:
 
 Answer the user's question following the rules in the system prompt: lead with what was predicted
 (plain language, with context and timing), then state the verdict in plain Ukrainian. Weave multiple
-predictions into one coherent answer. Keep it short. No internal IDs, no confidence numbers, no raw
-status labels, no invented statistics. End with the single disclaimer line."""
+predictions into one coherent answer. Keep it short. Cite each prediction you discuss by putting
+its identifier in square brackets right after the statement — inside brackets only, never in
+running prose. No confidence numbers, no raw status labels, no invented statistics. End with the
+single disclaimer line."""
 
 
 SELF_QUERY_SYSTEM = """You are a query planner for a database of predictions made by Ukrainian public figures.

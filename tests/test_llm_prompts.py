@@ -113,6 +113,19 @@ def test_rag_prompt_contract_drops_leak_directives():
     assert "ще зарано" in RAG_SYSTEM
 
 
+def test_rag_prompt_allows_identifier_only_inside_brackets():
+    from prophet_checker.llm.prompts import RAG_SYSTEM, RAG_TEMPLATE
+
+    for text in (RAG_SYSTEM, RAG_TEMPLATE):
+        # промпти загорнуті по ширині, тож фраза може бути розірвана переносом:
+        # пінимо зміст, а не розкладку рядків
+        normalized = " ".join(text.split())
+        # цитування дозволене
+        assert "square brackets" in normalized
+        # але лише в дужках — заборона на голий ідентифікатор у прозі лишається
+        assert "never in running prose" in normalized
+
+
 def test_render_predictions_includes_all_fields():
     from datetime import date
 
