@@ -20,6 +20,7 @@ from generation.judge_prompts import (
     parse_faithfulness_response,
 )
 from generation.sentences import sentence_at
+from prophet_checker.query.citations import drop_markers
 from prophet_checker.models.domain import CitationRef, RetrievedPrediction
 
 
@@ -33,7 +34,11 @@ class FaithfulnessScorer:
         labels = run.case.labels
         if run.result is None or not labels.answerable:
             return ScoreCard(scorer=self.name, score=None)
-        prompt = build_faithfulness_prompt(run.result.answer, run.result.sources)
+        # Суддя оцінює твердження, а не розмітку: маркери [1] прибираються, щоб вхід
+        # лишався тотожним доцитатному й базлайн 0.947 не зсунувся
+        prompt = build_faithfulness_prompt(
+            drop_markers(run.result.answer, keep=set()), run.result.sources
+        )
         raw = await self._judge.assess(prompt, system=FAITHFULNESS_SYSTEM)
         claims = parse_faithfulness_response(raw)
         if not claims:  # відмова / нефактична відповідь → N/A

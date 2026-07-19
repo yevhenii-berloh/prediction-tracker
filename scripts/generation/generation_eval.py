@@ -18,7 +18,12 @@ from eval_common.judge import LLMJudge, fingerprint_prompt  # noqa: E402
 from generation.gold import load_generation_gold  # noqa: E402
 from generation.judge_prompts import COMPLETENESS_SYSTEM, FAITHFULNESS_SYSTEM  # noqa: E402
 from generation.metrics import aggregate  # noqa: E402
-from generation.scorers import CompletenessScorer, FaithfulnessScorer  # noqa: E402
+from generation.scorers import (  # noqa: E402
+    CitationCoverageScorer,
+    CitationPrecisionScorer,
+    CompletenessScorer,
+    FaithfulnessScorer,
+)
 from prophet_checker.config import Settings  # noqa: E402
 from prophet_checker.llm import LLMClient  # noqa: E402
 from prophet_checker.models.domain import RetrievedPrediction  # noqa: E402
@@ -37,7 +42,12 @@ async def _main(judge_model: str, limit: int, concurrency: int) -> None:
     if limit:  # 0 = усі; інакше — перші N
         cases = cases[:limit]
     judge = LLMJudge(build_eval_llm(judge_model, temperature=0), judge_id=judge_model)
-    scorers = [FaithfulnessScorer(judge), CompletenessScorer(judge)]
+    scorers = [
+        FaithfulnessScorer(judge),
+        CompletenessScorer(judge),
+        CitationPrecisionScorer(judge),
+        CitationCoverageScorer(),
+    ]
     logger.info(
         "generation eval: %d cases, judge=%s, concurrency=%d", len(cases), judge_model, concurrency
     )
@@ -61,7 +71,9 @@ async def _main(judge_model: str, limit: int, concurrency: int) -> None:
         api_key=settings.gemini_api_key,
         temperature=0,
     )
-    orchestrator = AnswerOrchestrator(llm)  # generate-only: query_orchestrator=None
+    # citations_enabled вмикає сам скрипт, а не навколишній .env: у проді прапорець
+    # спершу False, і eval мовчки міряв би відповіді без цитат з coverage 0
+    orchestrator = AnswerOrchestrator(llm, citations_enabled=True)  # generate-only
 
     async def run_one(case):
         sources = [

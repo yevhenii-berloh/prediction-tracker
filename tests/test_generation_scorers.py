@@ -215,3 +215,26 @@ async def test_coverage_scorer_reads_expected_from_labels():
     card = await CitationCoverageScorer().score(_cit_run("текст [1]", refs, ("p1", "p2")))
 
     assert card.score == 0.5
+
+
+class _CapturingJudge:
+    """Запам'ятовує промпт, щоб перевірити, ЩО саме побачив суддя."""
+
+    id = "capture"
+
+    def __init__(self) -> None:
+        self.prompts: list[str] = []
+
+    async def assess(self, prompt: str, *, system: str) -> str:
+        self.prompts.append(prompt)
+        return '{"claims": [{"claim": "твердження", "supported": true, "reason": ""}]}'
+
+
+async def test_faithfulness_judge_sees_text_without_markers():
+    refs = [CitationRef(marker=1, prediction_id="p1", document_id="d", offset=8)]
+    judge = _CapturingJudge()
+
+    await FaithfulnessScorer(judge).score(_cit_run("Речення [1] далі.", refs))
+
+    assert "[1]" not in judge.prompts[0]
+    assert "Речення" in judge.prompts[0]
