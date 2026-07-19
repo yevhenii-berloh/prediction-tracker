@@ -118,6 +118,30 @@ class RetrievedPrediction(BaseModel):
     rank: int  # 1-based, порядок за схожістю
 
 
+class CitationRef(BaseModel):
+    """Посилання з тексту відповіді на прогноз. Вихід resolve, вхід materialize."""
+
+    marker: int
+    prediction_id: str
+    document_id: str
+    offset: int  # позиція маркера в ResolvedAnswer.text
+
+
+class ResolvedAnswer(BaseModel):
+    text: str  # ідентифікатори замінено на [1], [2] — у бот і citation-судді
+    text_unmarked: str  # без маркерів — faithfulness-судді
+    refs: list[CitationRef] = []
+
+
+class Citation(BaseModel):
+    """Один пост, на який веде одне або кілька посилань."""
+
+    markers: list[int]
+    url: str
+    published_at: date
+    prediction_ids: list[str]
+
+
 class QueryResult(BaseModel):
     query: str
     results: list[RetrievedPrediction]
@@ -128,3 +152,5 @@ class AnswerResult(BaseModel):
     query: str
     answer: str
     sources: list[RetrievedPrediction]
+    refs: list[CitationRef] = []  # заповнює resolve; порожні при citations_enabled=False
+    citations: list[Citation] = []  # заповнює materialize; порожні в generate-only гілці
