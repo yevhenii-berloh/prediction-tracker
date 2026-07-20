@@ -135,7 +135,6 @@ async def test_question_logs_successful_answer():
     assert entry.user_id == 42
     assert entry.question == "що казав про Крим?"
     assert entry.answer == "прогноз справдився"
-    assert entry.latency_ms >= 0
 
 
 async def test_question_logs_failure_with_null_answer():

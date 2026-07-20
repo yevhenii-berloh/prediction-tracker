@@ -29,12 +29,12 @@ async def handle_unknown_command(message: Message) -> None:
     await message.answer(UNKNOWN_COMMAND_TEXT)
 
 
-async def _log_query(
+async def _record_query(
     repo: QueryLogRepository,
     user_id: int,
     question: str,
     answer: str | None,
-    started: float,
+    latency_ms: int,
 ) -> None:
     """Свій try/except: збій моніторингу не має права зламати відповідь юзеру."""
     try:
@@ -42,7 +42,7 @@ async def _log_query(
             user_id=user_id,
             question=question,
             answer=answer,
-            latency_ms=int((time.monotonic() - started) * 1000),
+            latency_ms=latency_ms,
         )
     except Exception:
         logger.exception("query log write failed (user_id=%s)", user_id)
@@ -61,17 +61,20 @@ async def handle_question(
     try:
         result = await answer_orchestrator.answer(message.text)
     except Exception:
+        elapsed = time.monotonic() - started
         logger.exception("bot answer failed (user_id=%s)", user_id)
-        await _log_query(query_log_repo, user_id, message.text, None, started)
+        await _record_query(query_log_repo, user_id, message.text, None, int(elapsed * 1000))
         await message.answer(ERROR_TEXT)
         return
-    # логуємо сиру відповідь моделі, а не підрізане під ліміт Telegram повідомлення
-    await _log_query(query_log_repo, user_id, message.text, result.answer, started)
+    # один вимір на обидва числа: метрика не роздуває себе власним записом у БД
+    elapsed = time.monotonic() - started
+    # пишемо сиру відповідь моделі, а не підрізане під ліміт Telegram повідомлення
+    await _record_query(query_log_repo, user_id, message.text, result.answer, int(elapsed * 1000))
     logger.info(
         "bot answer served: user_id=%s question_len=%d elapsed=%.1fs",
         user_id,
         len(message.text),
-        time.monotonic() - started,
+        elapsed,
     )
     logger.debug("bot question: %s", message.text)
     await message.answer(
