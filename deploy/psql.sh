@@ -10,13 +10,14 @@
 # Секрети НЕ друкуються і НЕ потрапляють в argv: psql отримує їх лише через
 # PG*-змінні оточення, а завантажений .env лежить у mktemp-каталозі до виходу.
 #
-# Використання: ./deploy/psql.sh [--stats] [psql-аргументи...]
+# Використання: ./deploy/psql.sh [--stats|--queries] [psql-аргументи...]
 #
 # Приклади:
 #   ./deploy/psql.sh                                    # інтерактивна сесія
 #   ./deploy/psql.sh -c 'select count(*) from predictions'
 #   ./deploy/psql.sh -f scripts/data/report.sql
 #   ./deploy/psql.sh --stats                            # зріз: автори / курсор інжесту / доки / прогнози
+#   ./deploy/psql.sh --queries                          # зріз: запити до бота — хто / що / коли
 #
 # Конфіг через env (є дефолти): REGION, SSH_KEY, SSH_USER, BOX_TAG, SSH_OPTS,
 #   SECRETS_STACK, SECRETS_BUCKET, ENV_KEY, LOCAL_PORT.
@@ -45,7 +46,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-usage() { sed -n '3,22p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '3,23p' "$0" | sed 's/^# \{0,1\}//'; }
 die() { echo "ERROR: $*" >&2; exit 2; }
 
 STATS_SQL="
@@ -102,6 +103,47 @@ select count(*)                                as docs,
        max(collected_at)::timestamp(0)         as last_ingest_write,
        max(published_at)::timestamp(0)         as newest_post
 from raw_documents;
+"
+
+QUERIES_SQL="
+-- Обсяг і аудиторія за два вікна, по рядку на вікно — щоб порівнювати очима.
+-- failed = збій до відповіді (answer is null); частку відмов бота цей зріз не знає
+-- за побудовою (див. дизайн, секція «Що навмисно НЕ входить»).
+select '24h' as window,
+       count(*)                               as queries,
+       count(distinct user_id)                as users,
+       count(*) filter (where answer is null) as failed,
+       percentile_disc(0.5)  within group (order by latency_ms) as p50_ms,
+       percentile_disc(0.95) within group (order by latency_ms) as p95_ms
+from query_logs where created_at > now() - interval '24 hours'
+union all
+select '7d',
+       count(*),
+       count(distinct user_id),
+       count(*) filter (where answer is null),
+       percentile_disc(0.5)  within group (order by latency_ms),
+       percentile_disc(0.95) within group (order by latency_ms)
+from query_logs where created_at > now() - interval '7 days';
+
+-- Найактивніші за тиждень: чи це органіка, чи один ентузіаст робить весь трафік.
+select user_id,
+       count(*)       as queries,
+       max(created_at) as last_seen
+from query_logs
+where created_at > now() - interval '7 days'
+group by user_id
+order by queries desc
+limit 10;
+
+-- Що саме питають. Обрізаємо до 80 символів, інакше таблиця нечитабельна в терміналі.
+select date_trunc('second', created_at)       as at,
+       user_id,
+       left(question, 80)                     as question,
+       coalesce(left(answer, 80), '(збій)')   as answer,
+       latency_ms
+from query_logs
+order by created_at desc
+limit 20;
 "
 
 preflight() {
@@ -192,10 +234,11 @@ open_tunnel() {
 }
 
 main() {
-  local stats=0
+  local sql=""
   case "${1:-}" in
     -h|--help) usage; exit 0 ;;
-    --stats)   stats=1; shift ;;
+    --stats)   sql="$STATS_SQL";   shift ;;
+    --queries) sql="$QUERIES_SQL"; shift ;;
   esac
 
   preflight
@@ -215,10 +258,10 @@ main() {
 
   echo "→ psql $DB_USER@$DB_NAME (RDS $DB_HOST)" >&2
   # Без exec: тунель має померти в trap-і після виходу з psql.
-  # STATS_SQL іде stdin-ом (-f -), а не -c: так psql друкує результат КОЖНОГО
-  # з трьох запитів, а не лише останнього.
-  if [ "$stats" = "1" ]; then
-    psql -v ON_ERROR_STOP=1 "$@" -f - <<<"$STATS_SQL"
+  # SQL іде stdin-ом (-f -), а не -c: так psql друкує результат КОЖНОГО запиту,
+  # а не лише останнього.
+  if [ -n "$sql" ]; then
+    psql -v ON_ERROR_STOP=1 "$@" -f - <<<"$sql"
   else
     psql "$@"
   fi
