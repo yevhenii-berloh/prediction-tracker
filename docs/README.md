@@ -93,6 +93,19 @@ long-polling у процесі API. Stateless, author-agnostic, публічни
 
 ---
 
+## 📊 [`observability/`](observability/) — логування й моніторинг
+
+Прогрес-логування оркестратора, а від 2026-07-20 — слід публічних запитів до бота
+(хто спитав, що, коли) перед відкриттям на загал.
+
+| Документ | Призначення |
+|----------|-------------|
+| [`2026-06-05-orchestrator-progress-logging-design.md`](observability/2026-06-05-orchestrator-progress-logging-design.md) | Spec: прогрес-логування циклу інжесту |
+| [`2026-06-05-orchestrator-progress-logging-plan.md`](observability/2026-06-05-orchestrator-progress-logging-plan.md) | Implementation plan |
+| [`2026-07-20-query-logging-design.md`](observability/2026-07-20-query-logging-design.md) | Spec: таблиця `query_logs` + зріз `psql.sh --queries` |
+
+---
+
 ## Чому ця структура
 
 Документи про одну фічу/задачу часто пишуться парою (`design.md` + `plan.md`) і доповнюються артефактами (cost-comparison, data-flows, reports). Тримати їх у одній subdir дозволяє:
