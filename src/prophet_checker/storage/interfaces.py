@@ -70,3 +70,9 @@ class VectorStore(Protocol):
         limit: int = 10,
         filters: SearchFilters | None = None,
     ) -> list[VectorMatch]: ...
+
+
+class QueryLogRepository(Protocol):
+    async def save(
+        self, user_id: int, question: str, answer: str | None, latency_ms: int
+    ) -> None: ...

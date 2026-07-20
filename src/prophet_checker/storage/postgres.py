@@ -12,6 +12,7 @@ from prophet_checker.models.db import (
     PersonDB,
     PersonSourceDB,
     PredictionDB,
+    QueryLogDB,
     RawDocumentDB,
 )
 from prophet_checker.models.domain import (
@@ -401,3 +402,22 @@ class PostgresVectorStore:
                 stmt = stmt.where(*_filter_predicates(filters))
             result = await session.execute(stmt)
             return [VectorMatch(prediction_id=r[0], distance=r[1]) for r in result.all()]
+
+
+class PostgresQueryLogRepository:
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
+        self._session_factory = session_factory
+
+    async def save(
+        self, user_id: int, question: str, answer: str | None, latency_ms: int
+    ) -> None:
+        async with self._session_factory() as session:
+            session.add(
+                QueryLogDB(
+                    user_id=user_id,
+                    question=question,
+                    answer=answer,
+                    latency_ms=latency_ms,
+                )
+            )
+            await session.commit()

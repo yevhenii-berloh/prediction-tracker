@@ -17,6 +17,7 @@ from prophet_checker.models.domain import (
 from prophet_checker.storage.interfaces import (
     PersonRepository,
     PredictionRepository,
+    QueryLogRepository,
     SourceRepository,
     VectorStore,
 )
@@ -215,3 +216,26 @@ class FakeVectorStore(VectorStore):
             f.target_date_to,
             null_inclusive=True,  # Р2 дизайну
         )
+
+
+@dataclass
+class LoggedQuery:
+    user_id: int
+    question: str
+    answer: str | None
+    latency_ms: int
+
+
+class FakeQueryLogRepo(QueryLogRepository):
+    """`fail=True` імітує лежачу БД — нею перевіряється, що запис не валить відповідь."""
+
+    def __init__(self, fail: bool = False):
+        self.entries: list[LoggedQuery] = []
+        self._fail = fail
+
+    async def save(
+        self, user_id: int, question: str, answer: str | None, latency_ms: int
+    ) -> None:
+        if self._fail:
+            raise RuntimeError("query log write failed")
+        self.entries.append(LoggedQuery(user_id, question, answer, latency_ms))
