@@ -5,6 +5,7 @@ from datetime import date, datetime
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     Date,
     DateTime,
@@ -102,3 +103,21 @@ class PredictionDB(Base):
     __table_args__ = (
         Index("idx_predictions_eligible", "verified_at", "next_check_at", "max_horizon"),
     )
+
+
+class QueryLogDB(Base):
+    """Слід публічного запиту до бота. Пишеться, читається лише через psql."""
+
+    __tablename__ = "query_logs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    # BigInteger, не Integer: Telegram user id виходить за межі int32
+    user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    question: Mapped[str] = mapped_column(Text, nullable=False)
+    answer: Mapped[str | None] = mapped_column(Text, nullable=True)  # NULL = впало до відповіді
+    latency_ms: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    __table_args__ = (Index("ix_query_logs_created_at", "created_at"),)
