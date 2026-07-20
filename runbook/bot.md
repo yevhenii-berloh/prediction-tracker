@@ -129,14 +129,20 @@ auth-key нема:
 ```python
 import asyncio
 from contextlib import AsyncExitStack
+from sqlalchemy.ext.asyncio import async_sessionmaker
 from prophet_checker.config import Settings
 from prophet_checker.factory import build_answer_orchestrator, build_bot_runner
+from prophet_checker.storage.engine import make_engine
+from prophet_checker.storage.postgres import PostgresQueryLogRepository
 
 async def main():
     settings = Settings()
     async with AsyncExitStack() as stack:
         ao = await build_answer_orchestrator(settings, stack)
-        runner = build_bot_runner(settings.telegram_bot_token, ao)
+        engine = make_engine(settings.database_url, settings.db_ssl_mode)
+        stack.push_async_callback(engine.dispose)
+        query_log_repo = PostgresQueryLogRepository(async_sessionmaker(engine, expire_on_commit=False))
+        runner = build_bot_runner(settings.telegram_bot_token, ao, query_log_repo)
         await runner.start()          # реальний токен -> бот слухає; пиши йому з телефона
         await asyncio.Event().wait()  # Ctrl+C щоб зупинити
 
@@ -145,6 +151,33 @@ asyncio.run(main())
 
 Потрібні лише `OPENAI_API_KEY`, `GEMINI_API_KEY`, `TELEGRAM_BOT_TOKEN` і дані в БД —
 `TELEGRAM_API_ID/HASH` і `tg_session.session` не потрібні.
+
+## Моніторинг запитів
+
+Кожне змістовне питання до бота лишає рядок у таблиці `query_logs` (`user_id`,
+`question`, `answer`, `latency_ms`, `created_at`). Дивитись — однією командою:
+
+```bash
+./deploy/psql.sh --queries
+```
+
+Друкує три блоки: за вікна 24г і 7д — кількість запитів, унікальних користувачів,
+збоїв (`answer is null`) і p50/p95 латентності; далі топ-10 активних користувачів за
+тиждень; далі останні 20 запитів текстом.
+
+Що цей зріз **не** знає: частку **відмов** — коли бот відпрацював, але даних не знайшов.
+Свідоме рішення, наслідки записані в [`docs/observability/2026-07-20-query-logging-design.md`](../docs/observability/2026-07-20-query-logging-design.md).
+`failed` у звіті — це збій до відповіді, не відмова.
+
+`/start`, невідомі команди й не-текстові повідомлення не логуються: вони не кажуть,
+що людей цікавить, і лише засмічують вибірку.
+
+**Збій запису не впливає на відповідь юзеру** — це гарантія дизайну, покрита тестом.
+Якщо БД лягла, бот відповідає далі, а в лозі з'являється `query log write failed`:
+
+```bash
+./deploy/logs.sh | grep 'query log write failed'
+```
 
 ---
 
@@ -156,3 +189,5 @@ _Перевірено 2026-07-12 (гілка `feat/telegram-bot`):_
 - _Повний `python -m prophet_checker` з конектом колектора навмисно не ганявся (захист user-сесії від конфлікту з боксом); смоук з телефона — ручний крок._
 
 _Оновлено 2026-07-13: прод-кроки переписані під `deploy/refresh.sh` — рестарт compose сам свіжі секрети з S3 не тягне (бокс копіює `.env` лише на bootstrap)._
+
+_Оновлено 2026-07-20: додано секцію «Моніторинг запитів» (`query_logs` + `psql.sh --queries`). Сніпет у додатку оновлено — `build_bot_runner` тепер приймає третім аргументом `QueryLogRepository`, зі старим викликом на два аргументи він падав би `TypeError`._

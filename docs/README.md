@@ -103,6 +103,7 @@ long-polling у процесі API. Stateless, author-agnostic, публічни
 | [`2026-06-05-orchestrator-progress-logging-design.md`](observability/2026-06-05-orchestrator-progress-logging-design.md) | Spec: прогрес-логування циклу інжесту |
 | [`2026-06-05-orchestrator-progress-logging-plan.md`](observability/2026-06-05-orchestrator-progress-logging-plan.md) | Implementation plan |
 | [`2026-07-20-query-logging-design.md`](observability/2026-07-20-query-logging-design.md) | Spec: таблиця `query_logs` + зріз `psql.sh --queries` |
+| [`2026-07-20-query-logging-plan.md`](observability/2026-07-20-query-logging-plan.md) | Implementation plan — 6 тасків TDD |
 
 ---
 

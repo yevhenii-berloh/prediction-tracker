@@ -138,7 +138,7 @@ Expected: створено файл у `alembic/versions/`. **Відкрий й�
 
 ```bash
 .venv/bin/alembic upgrade head
-docker compose exec -T postgres psql -U prophet -d prophet -c '\d query_logs'
+docker compose exec -T postgres psql -U prophet -d prophet_checker -c '\d query_logs'
 .venv/bin/alembic downgrade -1
 .venv/bin/alembic upgrade head
 ```
@@ -663,7 +663,7 @@ docker compose up -d
 Напиши боту одне питання в Telegram, дочекайся відповіді, тоді:
 
 ```bash
-docker compose exec -T postgres psql -U prophet -d prophet \
+docker compose exec -T postgres psql -U prophet -d prophet_checker \
   -c 'select user_id, left(question,40), left(answer,40), latency_ms, created_at from query_logs;'
 ```
 
@@ -675,7 +675,7 @@ Expected: рівно один рядок, з твоїм `user_id`, твоїм п
 Головна гарантія дизайну, і фейк її доводить лише на рівні юніту. Перевіримо на живому:
 
 ```bash
-docker compose exec -T postgres psql -U prophet -d prophet -c 'alter table query_logs rename to query_logs_tmp;'
+docker compose exec -T postgres psql -U prophet -d prophet_checker -c 'alter table query_logs rename to query_logs_tmp;'
 ```
 
 Перезапусти застосунок, напиши боту ще одне питання.
@@ -684,7 +684,7 @@ Expected: **юзер отримує нормальну відповідь**, у 
 з трейсбеком. Поверни назад:
 
 ```bash
-docker compose exec -T postgres psql -U prophet -d prophet -c 'alter table query_logs_tmp rename to query_logs;'
+docker compose exec -T postgres psql -U prophet -d prophet_checker -c 'alter table query_logs_tmp rename to query_logs;'
 ```
 
 - [ ] **Крок 3: дописати runbook**
