@@ -21,6 +21,7 @@ from prophet_checker.storage.engine import make_engine
 from prophet_checker.storage.postgres import (
     PostgresPersonRepository,
     PostgresPredictionRepository,
+    PostgresQueryLogRepository,
     PostgresSourceRepository,
     PostgresVectorStore,
 )
@@ -146,6 +147,12 @@ async def build_bot(
         return None
     if not settings.telegram_bot_token:
         raise ValueError("bot_enabled=True, але telegram_bot_token порожній")
-    runner = build_bot_runner(settings.telegram_bot_token, answer_orchestrator)
+    # engine будується після guard-ів: при вимкненому боті зайвого конекту до БД нема
+    engine = make_engine(settings.database_url, settings.db_ssl_mode)
+    stack.push_async_callback(engine.dispose)
+    query_log_repo = PostgresQueryLogRepository(
+        async_sessionmaker(engine, expire_on_commit=False)
+    )
+    runner = build_bot_runner(settings.telegram_bot_token, answer_orchestrator, query_log_repo)
     stack.push_async_callback(runner.stop)
     return runner

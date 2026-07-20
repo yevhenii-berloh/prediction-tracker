@@ -8,6 +8,7 @@ from aiogram import Bot, Dispatcher
 
 from prophet_checker.bot.handlers import build_router
 from prophet_checker.query.answer_orchestrator import AnswerOrchestrator
+from prophet_checker.storage.interfaces import QueryLogRepository
 
 logger = logging.getLogger(__name__)
 
@@ -48,8 +49,15 @@ class BotRunner:
         await self.bot.session.close()
 
 
-def build_bot_runner(token: str, answer_orchestrator: AnswerOrchestrator) -> BotRunner:
+def build_bot_runner(
+    token: str,
+    answer_orchestrator: AnswerOrchestrator,
+    query_log_repo: QueryLogRepository,
+) -> BotRunner:
     bot = Bot(token=token)
-    dispatcher = Dispatcher(answer_orchestrator=answer_orchestrator)
+    dispatcher = Dispatcher(
+        answer_orchestrator=answer_orchestrator,
+        query_log_repo=query_log_repo,
+    )
     dispatcher.include_router(build_router())
     return BotRunner(bot, dispatcher)

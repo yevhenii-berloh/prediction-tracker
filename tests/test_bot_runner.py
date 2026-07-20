@@ -21,10 +21,12 @@ def _fake_bot():
 # --- build_bot_runner ---
 
 
-def test_build_bot_runner_wires_orchestrator_into_dispatcher():
+def test_build_bot_runner_wires_dependencies_into_dispatcher():
     orch = MagicMock()
-    runner = build_bot_runner("123456:TEST-TOKEN", orch)
+    repo = MagicMock()
+    runner = build_bot_runner("123456:TEST-TOKEN", orch, repo)
     assert runner.dispatcher["answer_orchestrator"] is orch
+    assert runner.dispatcher["query_log_repo"] is repo
 
 
 # --- BotRunner lifecycle ---
