@@ -1,6 +1,7 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from fakes import FakeQueryLogRepo
 
 from prophet_checker.bot.handlers import (
     build_router,
@@ -63,7 +64,7 @@ async def test_question_replies_with_answer():
     message = _message("що казав про Крим?")
     orch = _orchestrator("прогноз справдився")
 
-    await handle_question(message, orch)
+    await handle_question(message, orch, FakeQueryLogRepo())
 
     orch.answer.assert_awaited_once_with("що казав про Крим?")
     # HTML-режим потрібен для клікабельних посилань у блоці джерел
@@ -82,7 +83,7 @@ async def test_question_sends_typing_before_answering():
     orch = MagicMock()
     orch.answer = AsyncMock(side_effect=_answer)
 
-    await handle_question(message, orch)
+    await handle_question(message, orch, FakeQueryLogRepo())
 
     assert calls == ["typing", "answer"]
 
@@ -92,7 +93,7 @@ async def test_question_ignores_blank_text(text):
     message = _message(text)
     orch = _orchestrator()
 
-    await handle_question(message, orch)
+    await handle_question(message, orch, FakeQueryLogRepo())
 
     orch.answer.assert_not_awaited()
     message.answer.assert_not_awaited()
@@ -102,7 +103,7 @@ async def test_question_truncates_long_answer():
     message = _message()
     orch = _orchestrator("а" * (TELEGRAM_MESSAGE_LIMIT + 500))
 
-    await handle_question(message, orch)
+    await handle_question(message, orch, FakeQueryLogRepo())
 
     sent = message.answer.call_args.args[0]
     assert len(sent) == TELEGRAM_MESSAGE_LIMIT
@@ -114,9 +115,69 @@ async def test_question_replies_with_error_text_on_failure():
     orch = MagicMock()
     orch.answer = AsyncMock(side_effect=RuntimeError("LLM down"))
 
-    await handle_question(message, orch)
+    await handle_question(message, orch, FakeQueryLogRepo())
 
     message.answer.assert_awaited_once_with(ERROR_TEXT)
+
+
+# --- query logging ---
+
+
+async def test_question_logs_successful_answer():
+    message = _message("що казав про Крим?")
+    orch = _orchestrator("прогноз справдився")
+    repo = FakeQueryLogRepo()
+
+    await handle_question(message, orch, repo)
+
+    assert len(repo.entries) == 1
+    entry = repo.entries[0]
+    assert entry.user_id == 42
+    assert entry.question == "що казав про Крим?"
+    assert entry.answer == "прогноз справдився"
+    assert entry.latency_ms >= 0
+
+
+async def test_question_logs_failure_with_null_answer():
+    message = _message()
+    orch = MagicMock()
+    orch.answer = AsyncMock(side_effect=RuntimeError("LLM down"))
+    repo = FakeQueryLogRepo()
+
+    await handle_question(message, orch, repo)
+
+    assert len(repo.entries) == 1
+    assert repo.entries[0].answer is None
+    message.answer.assert_awaited_once_with(ERROR_TEXT)
+
+
+async def test_question_answers_even_if_log_write_fails():
+    """Моніторинг, що кладе продукт, гірший за відсутній."""
+    message = _message()
+    orch = _orchestrator("прогноз справдився")
+
+    await handle_question(message, orch, FakeQueryLogRepo(fail=True))
+
+    message.answer.assert_awaited_once_with("прогноз справдився", parse_mode="HTML")
+
+
+async def test_question_logs_raw_answer_not_truncated_message():
+    long_answer = "а" * (TELEGRAM_MESSAGE_LIMIT + 500)
+    message = _message()
+    repo = FakeQueryLogRepo()
+
+    await handle_question(message, _orchestrator(long_answer), repo)
+
+    assert repo.entries[0].answer == long_answer
+
+
+@pytest.mark.parametrize("text", ["   ", None])
+async def test_question_does_not_log_blank_text(text):
+    repo = FakeQueryLogRepo()
+
+    await handle_question(_message(text), _orchestrator(), repo)
+
+    assert repo.entries == []
 
 
 # --- build_router: порядок матчингу = контракт design §5 ---

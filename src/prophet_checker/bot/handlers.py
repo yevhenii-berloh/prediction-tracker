@@ -16,6 +16,7 @@ from prophet_checker.bot.texts import (
     compose_answer_message,
 )
 from prophet_checker.query.answer_orchestrator import AnswerOrchestrator
+from prophet_checker.storage.interfaces import QueryLogRepository
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,30 @@ async def handle_unknown_command(message: Message) -> None:
     await message.answer(UNKNOWN_COMMAND_TEXT)
 
 
-async def handle_question(message: Message, answer_orchestrator: AnswerOrchestrator) -> None:
+async def _log_query(
+    repo: QueryLogRepository,
+    user_id: int,
+    question: str,
+    answer: str | None,
+    started: float,
+) -> None:
+    """Свій try/except: збій моніторингу не має права зламати відповідь юзеру."""
+    try:
+        await repo.save(
+            user_id=user_id,
+            question=question,
+            answer=answer,
+            latency_ms=int((time.monotonic() - started) * 1000),
+        )
+    except Exception:
+        logger.exception("query log write failed (user_id=%s)", user_id)
+
+
+async def handle_question(
+    message: Message,
+    answer_orchestrator: AnswerOrchestrator,
+    query_log_repo: QueryLogRepository,
+) -> None:
     if message.text is None or not message.text.strip():
         return
     user_id = message.from_user.id if message.from_user else 0
@@ -38,8 +62,11 @@ async def handle_question(message: Message, answer_orchestrator: AnswerOrchestra
         result = await answer_orchestrator.answer(message.text)
     except Exception:
         logger.exception("bot answer failed (user_id=%s)", user_id)
+        await _log_query(query_log_repo, user_id, message.text, None, started)
         await message.answer(ERROR_TEXT)
         return
+    # логуємо сиру відповідь моделі, а не підрізане під ліміт Telegram повідомлення
+    await _log_query(query_log_repo, user_id, message.text, result.answer, started)
     logger.info(
         "bot answer served: user_id=%s question_len=%d elapsed=%.1fs",
         user_id,
