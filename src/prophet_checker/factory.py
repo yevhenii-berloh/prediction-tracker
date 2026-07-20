@@ -150,9 +150,7 @@ async def build_bot(
     # engine будується після guard-ів: при вимкненому боті зайвого конекту до БД нема
     engine = make_engine(settings.database_url, settings.db_ssl_mode)
     stack.push_async_callback(engine.dispose)
-    query_log_repo = PostgresQueryLogRepository(
-        async_sessionmaker(engine, expire_on_commit=False)
-    )
+    query_log_repo = PostgresQueryLogRepository(async_sessionmaker(engine, expire_on_commit=False))
     runner = build_bot_runner(settings.telegram_bot_token, answer_orchestrator, query_log_repo)
     stack.push_async_callback(runner.stop)
     return runner
