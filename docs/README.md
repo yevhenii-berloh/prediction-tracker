@@ -105,6 +105,14 @@ long-polling у процесі API. Stateless, author-agnostic, публічни
 | [`2026-07-20-query-logging-design.md`](observability/2026-07-20-query-logging-design.md) | Spec: таблиця `query_logs` + зріз `psql.sh --queries` |
 | [`2026-07-20-query-logging-plan.md`](observability/2026-07-20-query-logging-plan.md) | Implementation plan — 6 тасків TDD |
 
+## 📺 [`youtube-source/`](youtube-source/) — YouTube як джерело прогнозів
+
+De-ризик перед реалізацією `YouTubeSource`. PoC зняв три ризики (анти-бот, якість транскрипту, щільність прогнозів 27.3% проти ~6% Telegram); повноцінний Source на паузі.
+
+| Документ | Призначення |
+|----------|-------------|
+| [`2026-07-23-youtube-poc-findings.md`](youtube-source/2026-07-23-youtube-poc-findings.md) | PoC-результати: вердикт по ризиках, реальна вартість ($0.053/год), приклади прогнозів, запропонований дизайн Фази 2, open questions |
+
 ---
 
 ## Чому ця структура
