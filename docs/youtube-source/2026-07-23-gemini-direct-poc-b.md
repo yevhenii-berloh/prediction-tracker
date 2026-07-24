@@ -104,5 +104,7 @@ PoC-B викликає **той самий** `EXTRACTION_SYSTEM` і **той с�
 
 ## Артефакти
 
-`poc_gemini_video.py` + сирі відповіді (`poc_gemini_raw_*.json`) — у scratchpad сесії, у репо
-**не закомічені** (викидний de-risking). Параметри, потрібні для відтворення, зафіксовано вище.
+`poc_gemini_video.py` + сирі відповіді по кожному вікну (`artifacts/poc_gemini_raw_*.json`, суфікс =
+start-offset) — у [`scripts/youtube_poc/`](../../scripts/youtube_poc/). Покроковий флоу, включно з
+діагностикою `500 INTERNAL` і командами обох конфігурацій вікон — у
+[`scripts/youtube_poc/README.md`](../../scripts/youtube_poc/README.md).

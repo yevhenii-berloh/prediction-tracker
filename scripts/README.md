@@ -8,9 +8,14 @@ scripts/
   extraction/     run_extraction · sample_posts · extraction_run · detection_eval
                   · extraction_quality_eval · quality_eval · judge_prompts
   verification/   run_verification · run_verification_cycle · verification_eval
+  youtube_poc/    de-risking PoC джерела YouTube (A: yt-dlp+Whisper · B: Gemini-direct)
   data/           eval-входи (gold, sample posts, dumps)
   outputs/        eval-виходи
 ```
+
+`youtube_poc/` — окремий випадок: викидні PoC-скрипти, не пакет (без `__init__.py`, ніхто їх не
+імпортує). Запускаються напряму, деки ставляться ефемерно через `uv run --with`. Вердикти — у
+[`docs/youtube-source/`](../docs/youtube-source/), покроковий флоу — у [`youtube_poc/README.md`](youtube_poc/README.md).
 
 ## Сценарії
 
