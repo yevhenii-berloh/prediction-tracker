@@ -29,6 +29,8 @@ class LLMClient:
         self._api_key = api_key
         self._temperature = temperature
         self._num_retries = num_retries
+        self.prompt_tokens = 0
+        self.completion_tokens = 0
         if temperature is not None and model.startswith(_NO_TEMPERATURE_MODEL_PREFIXES):
             logger.warning(
                 "Model %s does not accept temperature (removed from API) — "
@@ -55,4 +57,16 @@ class LLMClient:
             num_retries=self._num_retries,
             **kwargs,
         )
+        self._record_usage(getattr(response, "usage", None))
         return response.choices[0].message.content
+
+    def _record_usage(self, usage) -> None:
+        # Не всі провайдери повертають usage — тоді ціна просто недорахує цей виклик
+        if usage is None:
+            return
+        self.prompt_tokens += getattr(usage, "prompt_tokens", 0) or 0
+        self.completion_tokens += getattr(usage, "completion_tokens", 0) or 0
+
+    def reset_usage(self) -> None:
+        self.prompt_tokens = 0
+        self.completion_tokens = 0

@@ -1,4 +1,6 @@
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
+
 from prophet_checker.llm.client import LLMClient
 
 
@@ -63,6 +65,40 @@ async def test_temperature_kept_for_opus_4_6():
     with patch("prophet_checker.llm.client.acompletion", return_value=mock_response) as mock_call:
         await client.complete("Test")
         assert mock_call.call_args.kwargs["temperature"] == 0.0
+
+
+async def test_complete_accumulates_usage():
+    """cost_per_post рахується з цих лічильників — інакше токени провайдера губляться."""
+    client = LLMClient(provider="gemini", model="gemini-3.1-flash-lite", api_key="k")
+    mock_response = SimpleNamespace(
+        choices=[SimpleNamespace(message=SimpleNamespace(content="ok"))],
+        usage=SimpleNamespace(prompt_tokens=11, completion_tokens=7),
+    )
+
+    with patch("prophet_checker.llm.client.acompletion", return_value=mock_response):
+        await client.complete("Test")
+        await client.complete("Test")
+
+    assert client.prompt_tokens == 22
+    assert client.completion_tokens == 14
+
+    client.reset_usage()
+    assert client.prompt_tokens == 0
+    assert client.completion_tokens == 0
+
+
+async def test_missing_usage_does_not_break_completion():
+    """Провайдер без usage не має валити прогін — метрика просто недорахує цей виклик."""
+    client = LLMClient(provider="gemini", model="gemini-3.1-flash-lite", api_key="k")
+    mock_response = SimpleNamespace(
+        choices=[SimpleNamespace(message=SimpleNamespace(content="ok"))],
+        usage=None,
+    )
+
+    with patch("prophet_checker.llm.client.acompletion", return_value=mock_response):
+        assert await client.complete("Test") == "ok"
+
+    assert client.prompt_tokens == 0
 
 
 async def test_temperature_none_omits_param():
