@@ -40,6 +40,19 @@ async def test_temperature_dropped_for_opus_4_8():
         assert "temperature" not in mock_call.call_args.kwargs
 
 
+async def test_temperature_dropped_for_opus_5():
+    """Opus 5 теж не приймає temperature — інакше кожен виклик судді eval-v2 дає 400."""
+    client = LLMClient(
+        provider="anthropic", model="claude-opus-5", api_key="sk-test", temperature=0.0
+    )
+    mock_response = AsyncMock()
+    mock_response.choices = [AsyncMock(message=AsyncMock(content="ok"))]
+
+    with patch("prophet_checker.llm.client.acompletion", return_value=mock_response) as mock_call:
+        await client.complete("Test")
+        assert "temperature" not in mock_call.call_args.kwargs
+
+
 async def test_temperature_kept_for_opus_4_6():
     client = LLMClient(
         provider="anthropic", model="claude-opus-4-6", api_key="sk-test", temperature=0.0

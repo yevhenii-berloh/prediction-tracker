@@ -8,7 +8,12 @@ logger = logging.getLogger(__name__)
 
 # Opus 4.7+/Fable: семплінг-параметри (temperature/top_p/top_k) видалені з API —
 # запит, що містить temperature, повертає 400 invalid_request_error.
-_NO_TEMPERATURE_MODEL_PREFIXES = ("claude-opus-4-7", "claude-opus-4-8", "claude-fable")
+_NO_TEMPERATURE_MODEL_PREFIXES = (
+    "claude-opus-4-7",
+    "claude-opus-4-8",
+    "claude-opus-5",
+    "claude-fable",
+)
 
 
 class LLMClient:
