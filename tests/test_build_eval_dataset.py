@@ -7,6 +7,7 @@ from extraction.build_eval_dataset import (
     load_excluded_v1_ids,
     post_id_for,
     sample_channel,
+    shuffle_posts,
 )
 
 
@@ -73,6 +74,25 @@ async def test_sampling_is_deterministic_for_a_seed():
     second = await sample_channel(RecordingExtractor(positives), candidates, 10, seed=5)
 
     assert [p["id"] for p in first] == [p["id"] for p in second]
+
+
+def test_shuffle_mixes_strata_into_the_head_of_the_file():
+    """--limit N має брати змішану вибірку, а не перший блок однієї strata."""
+    posts = [{"id": f"r{i}", "stratum": "random"} for i in range(45)]
+    posts += [{"id": f"p{i}", "stratum": "prefilter"} for i in range(85)]
+
+    head = shuffle_posts(posts, seed=42)[:10]
+
+    assert {p["stratum"] for p in head} == {"random", "prefilter"}
+
+
+def test_shuffle_keeps_every_post():
+    posts = [{"id": f"p{i}", "stratum": "random"} for i in range(20)]
+
+    shuffled = shuffle_posts(posts, seed=1)
+
+    assert sorted(p["id"] for p in shuffled) == sorted(p["id"] for p in posts)
+    assert shuffle_posts(posts, seed=1) == shuffled  # детерміновано за сідом
 
 
 def test_excluded_ids_come_from_the_v1_artifact(tmp_path):

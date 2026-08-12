@@ -59,6 +59,14 @@ def post_id_for(channel: str, message_id: int) -> str:
     return f"{channel.lstrip('@')}_{message_id}"
 
 
+def shuffle_posts(posts: list[dict], seed: int) -> list[dict]:
+    """Перемішує підсумковий список. Без цього файл іде блоками random→prefilter по
+    каналах, і будь-який `--limit N` систематично зрізає лише перший блок."""
+    shuffled = list(posts)
+    random.Random(seed).shuffle(shuffled)
+    return shuffled
+
+
 def _count_by(posts: list[dict], field: str) -> dict[str, int]:
     counts: dict[str, int] = {}
     for post in posts:
@@ -226,7 +234,7 @@ async def _main(seed: int, out_path: Path) -> None:
     excluded = load_excluded_v1_ids()
     logger.info("виключено %d контамінованих постів v1", len(excluded))
 
-    posts = await _collect_all(seed, excluded)
+    posts = shuffle_posts(await _collect_all(seed, excluded), seed)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     channels = [channel for channel, _, _ in CHANNELS]
