@@ -8,7 +8,8 @@
 # HTTP, IP міняється при кожному старті) — тож глибокий шар best-effort.
 #
 # СВІДОМО read-only: лише describe-* / sts get-caller-identity / read-only SSH.
-# НІКОЛИ не start/stop/create/update/delete — пауза й підйом живуть у runbook/stop-env.md.
+# НІКОЛИ не start/stop/create/update/delete — пауза це ./deploy/stop.sh, підйом
+# ./deploy/start.sh (покроково й із застереженнями — runbook/stop-env.md).
 #
 # Приклади:
 #   ./deploy/status.sh            # повний статус + спроба SSH-health
