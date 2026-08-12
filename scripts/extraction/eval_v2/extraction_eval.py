@@ -19,6 +19,8 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
 
+from dotenv import load_dotenv  # noqa: E402
+
 from eval_common.clients import build_eval_llm  # noqa: E402
 from eval_common.judge import Judge, LLMJudge, fingerprint_prompt  # noqa: E402
 from eval_common.models import (  # noqa: E402
@@ -238,6 +240,10 @@ async def _measure_determinism(
 
 
 async def _main(limit: int, concurrency: int) -> None:
+    # build_eval_llm читає ключі з os.environ, а не з Settings — без цього прогін
+    # падає на «Missing API key», хоча ключі лежать у .env
+    load_dotenv(PROJECT_ROOT / ".env")
+
     cases = load_eval_dataset(DATASET_PATH)
     if limit:
         cases = cases[:limit]
