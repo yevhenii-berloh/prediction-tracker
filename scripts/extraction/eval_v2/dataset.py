@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from extraction.eval_v2.eval_models import PostInput
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
-DATASET_PATH = PROJECT_ROOT / "scripts" / "data" / "extraction" / "eval_dataset_2026-08-08.json"
+DATASET_PATH = PROJECT_ROOT / "scripts" / "data" / "extraction" / "eval_dataset_2026-08-12.json"
 
 STRATA = ("prefilter", "random")
 
