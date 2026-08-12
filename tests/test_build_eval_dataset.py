@@ -6,8 +6,73 @@ from extraction.build_eval_dataset import (
     build_payload,
     load_excluded_v1_ids,
     post_id_for,
-    split_strata,
+    sample_channel,
 )
+
+
+class RecordingExtractor:
+    """Записує, які пости бачив детектор, і кого визнав позитивним."""
+
+    def __init__(self, positive_ids: set[str]) -> None:
+        self._positive = positive_ids
+        self.seen: list[str] = []
+
+    async def extract(self, *, text, person_id, document_id, person_name, published_date):
+        self.seen.append(document_id)
+        return ["prediction"] if document_id in self._positive else []
+
+
+def _candidates(n: int) -> list[dict]:
+    posts = []
+    for i in range(n):
+        posts.append(
+            {"id": f"p{i:03d}", "author": "A", "text": "t", "published_date": "2026-06-01"}
+        )
+    return posts
+
+
+async def test_random_slice_is_never_shown_to_the_detector():
+    """Випадкова strata має бути незаймана: інакше вона анти-фільтрована."""
+    candidates = _candidates(40)
+    extractor = RecordingExtractor({p["id"] for p in candidates})
+
+    posts = await sample_channel(extractor, candidates, target=10, seed=1)
+
+    random_ids = {p["id"] for p in posts if p["stratum"] == "random"}
+    assert random_ids
+    assert not (random_ids & set(extractor.seen))
+
+
+async def test_strata_hit_the_seventy_thirty_split():
+    candidates = _candidates(60)
+    extractor = RecordingExtractor({p["id"] for p in candidates})
+
+    posts = await sample_channel(extractor, candidates, target=10, seed=1)
+
+    assert sum(1 for p in posts if p["stratum"] == "prefilter") == 7
+    assert sum(1 for p in posts if p["stratum"] == "random") == 3
+
+
+async def test_shortfall_leaves_the_channel_short_rather_than_mixing_strata():
+    """Недобір префільтра не добивається випадковими — інакше strata знову змішані."""
+    candidates = _candidates(40)
+    extractor = RecordingExtractor({"p039"})  # лише один позитивний
+
+    posts = await sample_channel(extractor, candidates, target=10, seed=1)
+
+    assert sum(1 for p in posts if p["stratum"] == "prefilter") == 1
+    assert sum(1 for p in posts if p["stratum"] == "random") == 3
+    assert len(posts) == 4  # менше за target, і це навмисно
+
+
+async def test_sampling_is_deterministic_for_a_seed():
+    candidates = _candidates(40)
+    positives = {p["id"] for p in candidates}
+
+    first = await sample_channel(RecordingExtractor(positives), candidates, 10, seed=5)
+    second = await sample_channel(RecordingExtractor(positives), candidates, 10, seed=5)
+
+    assert [p["id"] for p in first] == [p["id"] for p in second]
 
 
 def test_excluded_ids_come_from_the_v1_artifact(tmp_path):
@@ -31,21 +96,6 @@ def test_empty_exclusion_list_fails_loud(tmp_path):
 
 def test_post_id_matches_the_corpus_format():
     assert post_id_for("@O_Arestovich_official", 7683) == "O_Arestovich_official_7683"
-
-
-def test_split_strata_respects_the_ratio():
-    prefilter, random_part = split_strata(list(range(100)), prefilter_share=0.7, seed=1)
-
-    assert len(prefilter) == 70
-    assert len(random_part) == 30
-    assert not set(prefilter) & set(random_part)
-
-
-def test_split_strata_is_deterministic_for_a_seed():
-    first, _ = split_strata(list(range(50)), seed=7)
-    second, _ = split_strata(list(range(50)), seed=7)
-
-    assert first == second
 
 
 def test_payload_counts_authors_and_strata():

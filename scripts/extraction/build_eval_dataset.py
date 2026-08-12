@@ -19,6 +19,8 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
 
+from dotenv import load_dotenv  # noqa: E402
+
 from eval_common.clients import build_eval_llm  # noqa: E402
 from prophet_checker.analysis.extractor import PredictionExtractor  # noqa: E402
 from prophet_checker.models.domain import PersonSource, SourceType  # noqa: E402
@@ -55,16 +57,6 @@ def load_excluded_v1_ids(path: Path = V1_OUTPUTS) -> set[str]:
 def post_id_for(channel: str, message_id: int) -> str:
     """Формат id корпусу: O_Arestovich_official_7683."""
     return f"{channel.lstrip('@')}_{message_id}"
-
-
-def split_strata(
-    items: list, prefilter_share: float = PREFILTER_SHARE, seed: int = 42
-) -> tuple[list, list]:
-    """Ділить відібране на дві strata. Випадкова частина — проти сліпої зони детектора."""
-    shuffled = list(items)
-    random.Random(seed).shuffle(shuffled)
-    cut = round(len(shuffled) * prefilter_share)
-    return shuffled[:cut], shuffled[cut:]
 
 
 def _count_by(posts: list[dict], field: str) -> dict[str, int]:
@@ -142,19 +134,46 @@ async def _has_prediction(extractor: PredictionExtractor, post: dict) -> bool:
 
 async def _pick_prefiltered(
     extractor: PredictionExtractor, candidates: list[dict], target: int
-) -> tuple[list[dict], list[dict]]:
-    """Гонить детектор по кандидатах, доки не набере target позитивних; решта — на random."""
+) -> list[dict]:
+    """Гонить детектор по кандидатах, доки не набере target позитивних."""
     picked: list[dict] = []
-    rest: list[dict] = []
-    for index, post in enumerate(candidates):
+    for post in candidates:
         if len(picked) >= target:
-            rest.extend(candidates[index:])
             break
         if await _has_prediction(extractor, post):
             picked.append(post)
-            continue
-        rest.append(post)
-    return picked, rest
+    return picked
+
+
+async def sample_channel(
+    extractor: PredictionExtractor, candidates: list[dict], target: int, seed: int
+) -> list[dict]:
+    """~30% випадкових і ~70% через префільтр — саме в такому порядку.
+
+    Випадкова частина береться ПЕРШОЮ, з незайманого пулу: якщо спершу ганяти
+    детектор, у залишку осідають лише пости, які він відкинув, і «випадкова»
+    strata стає анти-фільтрованою — рівно навпаки до того, навіщо вона є.
+    """
+    shuffled = list(candidates)
+    random.Random(seed).shuffle(shuffled)
+
+    n_prefilter = round(target * PREFILTER_SHARE)
+    n_random = target - n_prefilter
+    random_slice = shuffled[:n_random]
+    prefiltered = await _pick_prefiltered(extractor, shuffled[n_random:], n_prefilter)
+
+    if len(prefiltered) < n_prefilter:
+        # добивати випадковими не можна: це знову змішало б strata
+        logger.warning(
+            "префільтр дав %d із %d — канал недобирає постів", len(prefiltered), n_prefilter
+        )
+
+    posts = []
+    for post in random_slice:
+        posts.append({**post, "stratum": "random"})
+    for post in prefiltered:
+        posts.append({**post, "stratum": "prefilter"})
+    return posts
 
 
 async def collect_channel(
@@ -164,28 +183,14 @@ async def collect_channel(
     excluded: set[str],
     seed: int,
 ) -> list[dict]:
-    """~70% постів через префільтр-детектор, ~30% випадкових без жодного фільтра."""
     channel, author, target = channel_spec
     candidates = await _fetch_candidates(
         source, channel, author, target * CANDIDATE_MULTIPLIER, excluded
     )
-    random.Random(seed).shuffle(candidates)
-
-    prefiltered, rest = await _pick_prefiltered(
-        extractor, candidates, round(target * PREFILTER_SHARE)
-    )
-    n_random = target - len(prefiltered)
-
-    posts = []
-    for post in prefiltered:
-        posts.append({**post, "stratum": "prefilter"})
-    for post in rest[:n_random]:
-        posts.append({**post, "stratum": "random"})
+    posts = await sample_channel(extractor, candidates, target, seed)
+    n_prefilter = sum(1 for post in posts if post["stratum"] == "prefilter")
     logger.info(
-        "channel %s: prefilter=%d random=%d",
-        channel,
-        len(prefiltered),
-        len(posts) - len(prefiltered),
+        "channel %s: prefilter=%d random=%d", channel, n_prefilter, len(posts) - n_prefilter
     )
     return posts
 
@@ -214,6 +219,10 @@ async def _collect_all(seed: int, excluded: set[str]) -> list[dict]:
 
 
 async def _main(seed: int, out_path: Path) -> None:
+    # build_eval_llm читає ключі з os.environ, а не з Settings — без цього префільтр
+    # падає на «Missing API key», хоча ключ лежить у .env
+    load_dotenv(PROJECT_ROOT / ".env")
+
     excluded = load_excluded_v1_ids()
     logger.info("виключено %d контамінованих постів v1", len(excluded))
 
