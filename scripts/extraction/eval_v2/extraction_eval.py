@@ -60,10 +60,11 @@ logger = logging.getLogger(__name__)
 
 OUT_DIR = PROJECT_ROOT / "scripts" / "outputs" / "extraction_eval_v2"
 
-BASELINE_MODEL = "gemini/gemini-3.1-flash-lite-preview"
+# Прод ганяє id `-preview`, але 2026-08-12 перевірено: це той самий модель-сервінг
+# (30/30 ідентичних витягів, ті самі токени й ціна). Базлайном береться GA-id.
+BASELINE_MODEL = "gemini/gemini-3.1-flash-lite"
 PARTICIPANTS = [
     BASELINE_MODEL,
-    "gemini/gemini-3.1-flash-lite",
     "deepseek/deepseek-v4-flash",
     "openai/gpt-5.4-nano",
     "gemini/gemini-3.5-flash-lite",
@@ -73,7 +74,6 @@ JUDGE_MODEL = "anthropic/claude-opus-5"
 
 # $/1M токенів, звірено з прайс-сторінками провайдерів 2026-08-08
 PRICES = {
-    "gemini/gemini-3.1-flash-lite-preview": (0.25, 1.50),
     "gemini/gemini-3.1-flash-lite": (0.25, 1.50),
     "deepseek/deepseek-v4-flash": (0.14, 0.28),
     "openai/gpt-5.4-nano": (0.20, 1.25),
