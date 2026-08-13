@@ -66,6 +66,8 @@ PARTICIPANTS = [
     "gemini/gemini-3.1-flash-lite",
     "deepseek/deepseek-v4-flash",
     "openai/gpt-5.4-nano",
+    "gemini/gemini-3.5-flash-lite",
+    "openai/gpt-5.4-mini",
 ]
 JUDGE_MODEL = "anthropic/claude-opus-5"
 
@@ -75,6 +77,8 @@ PRICES = {
     "gemini/gemini-3.1-flash-lite": (0.25, 1.50),
     "deepseek/deepseek-v4-flash": (0.14, 0.28),
     "openai/gpt-5.4-nano": (0.20, 1.25),
+    "gemini/gemini-3.5-flash-lite": (0.30, 2.50),
+    "openai/gpt-5.4-mini": (0.75, 4.50),
 }
 
 
