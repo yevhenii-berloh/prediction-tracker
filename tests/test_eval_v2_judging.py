@@ -62,6 +62,51 @@ async def test_empty_claim_list_still_asks_about_missed():
     assert reference_size(judgement) == 1  # мовчання всіх ≠ порожній reference set
 
 
+class DeadTransportJudge:
+    """Rate limit / таймаут: LiteLLM вичерпав ретраї й кинув не-парсерну помилку."""
+
+    id = "dead"
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def assess(self, prompt: str, *, system: str) -> str:
+        self.calls += 1
+        raise RuntimeError("rate limit exceeded")
+
+
+async def test_transport_failure_does_not_lose_the_post():
+    judge = DeadTransportJudge()
+
+    judgement = await judge_post("p1", "текст", [_claim(0), _claim(1)], judge)
+
+    assert judgement.post_id == "p1"
+    assert len(judgement.verdicts) == 2  # пост живий, вердикт на кожен claim
+    assert judgement.judge_errors == 3  # два перевірні + missed
+    assert judge.calls == 3
+
+
+async def test_sentinel_is_unmeasured_not_a_hallucination():
+    """Сентинел означає «не суджено», а не «модель збрехала» — інакше збій судді
+    вибиває кандидата по blocking-gate hallucination_rate."""
+    judgement = await judge_post("p1", "текст", [_claim(0)], DeadTransportJudge())
+    verdict = judgement.verdicts[0]
+
+    assert verdict.measured is False
+    assert verdict.reason == "judge-unavailable"  # не відповів узагалі
+    assert verdict.is_hallucinated is False
+    assert verdict.is_valid is False
+    assert verdict.is_over_extraction is False
+
+
+async def test_measured_verdict_stays_measured():
+    judge = ScriptedJudge([_VALID, '{"missed": []}'])
+
+    judgement = await judge_post("p1", "текст", [_claim(0)], judge)
+
+    assert judgement.verdicts[0].measured is True
+
+
 async def test_unparsable_check_becomes_sentinel_and_is_counted():
     judge = ScriptedJudge(["суддя щось намолов", '{"missed": []}'])
 
@@ -69,7 +114,8 @@ async def test_unparsable_check_becomes_sentinel_and_is_counted():
 
     assert judgement.judge_errors == 1
     assert judgement.verdicts[0].is_valid is False
-    assert judgement.verdicts[0].reason == "judge-unparsable"
+    assert judgement.verdicts[0].reason == "judge-unparsable"  # відповів сміттям
+    assert judgement.verdicts[0].measured is False
     assert reference_size(judgement) == 0
 
 

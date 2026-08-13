@@ -11,6 +11,7 @@ def _score(
     reference,
     hallucinated=0,
     over_extracted=0,
+    unmeasured=0,
     author="Арестович",
     stratum="prefilter",
 ):
@@ -25,6 +26,7 @@ def _score(
                 valid=valid,
                 hallucinated=hallucinated,
                 over_extracted=over_extracted,
+                unmeasured=unmeasured,
                 covered=covered,
             )
         },
@@ -70,6 +72,29 @@ def test_hallucination_and_over_extraction_share_the_extracted_denominator():
 
     assert metrics.hallucination_rate == 0.25
     assert metrics.over_extraction_rate == 0.25
+
+
+def test_unmeasured_claims_leave_the_denominator():
+    """4 витягнутих, 2 не суджено → precision рахується з 2, а не з 4."""
+    scores = [
+        _score("p1", extracted=4, valid=1, covered=1, reference=2, unmeasured=2),
+    ]
+
+    metrics = aggregate(scores, ["a"])["a"]
+
+    assert metrics.precision == 0.5
+
+
+def test_post_where_nothing_was_judged_drops_out_of_precision():
+    scores = [
+        _score("p1", extracted=3, valid=0, covered=0, reference=0, unmeasured=3),
+        _score("p2", extracted=2, valid=2, covered=2, reference=2),
+    ]
+
+    metrics = aggregate(scores, ["a"])["a"]
+
+    assert metrics.precision == 1.0  # p1 не тягне середнє вниз
+    assert metrics.hallucination_rate == 0.0
 
 
 def test_slices_by_author_and_stratum():

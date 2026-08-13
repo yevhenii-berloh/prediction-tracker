@@ -50,10 +50,12 @@ class _Bucket:
         self.n_posts += 1
         # Пост із нулем витягнутих виходить із precision-подібних метрик: ділити нема на що.
         # З coverage він НЕ виходить — мовчання це провал покриття, а не ідеальна точність.
-        if row.extracted:
-            self.precision.append(row.valid / row.extracted)
-            self.hallucination.append(row.hallucinated / row.extracted)
-            self.over_extraction.append(row.over_extracted / row.extracted)
+        # Не суджені claims теж виходять зі знаменника: збій судді не має псувати модель.
+        judged = row.extracted - row.unmeasured
+        if judged > 0:
+            self.precision.append(row.valid / judged)
+            self.hallucination.append(row.hallucinated / judged)
+            self.over_extraction.append(row.over_extracted / judged)
         if reference_size:
             self.coverage.append(row.covered / reference_size)
 

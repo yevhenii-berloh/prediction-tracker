@@ -97,6 +97,22 @@ async def test_unparsable_clustering_leaves_claims_separate():
     assert len(claims) == 2
 
 
+async def test_transport_failure_in_clustering_leaves_claims_separate():
+    """Кластеризація — перший виклик судді на пості; її збій не має вбивати пост."""
+
+    class DeadTransportJudge:
+        id = "dead"
+
+        async def assess(self, prompt: str, *, system: str) -> str:
+            raise RuntimeError("rate limit exceeded")
+
+    by_model = {"a": [_prediction("Перше")], "b": [_prediction("Друге")]}
+
+    claims = await pool_claims("p1", "текст", by_model, DeadTransportJudge())
+
+    assert len(claims) == 2
+
+
 async def test_claim_ids_are_unique_within_a_post():
     judge = FakeJudge('{"clusters": [[0], [1], [2]]}')
     by_model = {"a": [_prediction("Перше"), _prediction("Друге"), _prediction("Третє")]}

@@ -60,7 +60,9 @@ async def _cluster_groups(post_text: str, entries: list[dict], judge: Judge) -> 
     try:
         raw = await judge.assess(prompt, system=CLUSTER_SYSTEM)
         return parse_cluster_response(raw)
-    except (ValueError, KeyError, TypeError):
+    # Кластеризація — перший виклик судді на пості; транспортний збій тут не має
+    # вбивати пост, тож ловимо Exception, а не лише помилки розбору.
+    except Exception:
         logger.exception("кластеризація не розібралась — claims лишаються окремими")
         return [[index] for index in range(len(entries))]
 

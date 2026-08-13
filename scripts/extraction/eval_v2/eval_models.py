@@ -42,11 +42,15 @@ class ClaimVerdict(BaseModel):
     passes_rubric: bool
     truncated: bool = False
     reason: str = ""
+    # False = суддя не відповів. «Не суджено» ≠ «модель збрехала»: інакше збій
+    # судді вибивав би кандидата по blocking-gate hallucination_rate.
+    measured: bool = True
 
     @property
     def is_valid(self) -> bool:
         return (
-            self.claim_grounded
+            self.measured
+            and self.claim_grounded
             and self.situation_grounded
             and self.passes_rubric
             and not self.truncated
@@ -54,10 +58,14 @@ class ClaimVerdict(BaseModel):
 
     @property
     def is_hallucinated(self) -> bool:
+        if not self.measured:
+            return False
         return not self.claim_grounded or not self.situation_grounded
 
     @property
     def is_over_extraction(self) -> bool:
+        if not self.measured:
+            return False
         return self.claim_grounded and self.situation_grounded and not self.passes_rubric
 
 
@@ -82,6 +90,7 @@ class ModelPostScore(BaseModel):
     hallucinated: int
     over_extracted: int
     covered: int
+    unmeasured: int = 0  # claims цієї моделі, які суддя не оцінив — виходять зі знаменника
 
 
 class PostScore(BaseModel):

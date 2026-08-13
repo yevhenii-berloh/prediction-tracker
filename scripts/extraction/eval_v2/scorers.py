@@ -13,11 +13,14 @@ from extraction.eval_v2.judging import reference_size
 
 
 def _empty_tally() -> dict[str, int]:
-    return {"valid": 0, "hallucinated": 0, "over_extracted": 0, "covered": 0}
+    return {"valid": 0, "hallucinated": 0, "over_extracted": 0, "covered": 0, "unmeasured": 0}
 
 
 def _apply_verdict(row: dict[str, int], verdict: ClaimVerdict) -> None:
     """Один вердикт лягає на одну модель. Вердикт спільний — тому й хвороба v1 не вертається."""
+    if not verdict.measured:
+        row["unmeasured"] += 1
+        return
     if verdict.is_hallucinated:
         row["hallucinated"] += 1
     if verdict.is_over_extraction:
@@ -61,6 +64,7 @@ def score_post(
             hallucinated=row["hallucinated"],
             over_extracted=row["over_extracted"],
             covered=row["covered"],
+            unmeasured=row["unmeasured"],
         )
 
     return PostScore(

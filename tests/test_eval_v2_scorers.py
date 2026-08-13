@@ -102,6 +102,33 @@ def test_verdict_for_an_unknown_claim_is_ignored():
     assert score.per_model["a"].valid == 1
 
 
+def test_unmeasured_claim_is_counted_apart_and_scores_nothing():
+    judgement = PostJudgement(
+        post_id="p1",
+        claims=[
+            PooledClaim(claim_id="p1:0", claim_text="c0", models=["a"]),
+            PooledClaim(claim_id="p1:1", claim_text="c1", models=["a"]),
+        ],
+        verdicts=[
+            _verdict("p1:0"),
+            ClaimVerdict(
+                claim_id="p1:1",
+                claim_grounded=False,
+                situation_grounded=False,
+                passes_rubric=False,
+                measured=False,
+            ),
+        ],
+        missed=[],
+    )
+
+    score = score_post(judgement, _POST, ["a"], {"a": 2})
+
+    assert score.per_model["a"].valid == 1
+    assert score.per_model["a"].hallucinated == 0  # не суджене ≠ галюцинація
+    assert score.per_model["a"].unmeasured == 1
+
+
 def test_author_and_stratum_travel_with_the_score():
     judgement = PostJudgement(post_id="p1", claims=[], verdicts=[], missed=[])
 

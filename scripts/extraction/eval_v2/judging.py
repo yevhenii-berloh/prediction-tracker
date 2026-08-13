@@ -17,17 +17,28 @@ from extraction.eval_v2.judge_prompts import (
 
 logger = logging.getLogger(__name__)
 
-_JUDGE_FAILURES = (ValueError, KeyError, TypeError)
+# Ловимо Exception, а не три типи: транспортний збій (rate limit, таймаут) має
+# деградувати так само, як нерозбірлива відповідь — сентинелом на claim, а не
+# втратою всього поста. CancelledError успадковує BaseException і проходить далі.
+_JUDGE_FAILURES = Exception
 
 
-def _sentinel(claim_id: str) -> ClaimVerdict:
-    """Непарсибельна відповідь → claim не зараховується нікому, але пост живе далі."""
+_PARSE_FAILURES = (ValueError, KeyError, TypeError)
+
+
+def _sentinel(claim_id: str, reason: str) -> ClaimVerdict:
+    """Суддя не відповів → claim не суджено: ні валідний, ні галюцинація.
+
+    Причина розрізняє «відповів, але сміттям» і «не відповів узагалі» — лікуються
+    вони по-різному: перше промптом, друге ретраями чи паузою.
+    """
     return ClaimVerdict(
         claim_id=claim_id,
         claim_grounded=False,
         situation_grounded=False,
         passes_rubric=False,
-        reason="judge-unparsable",
+        reason=reason,
+        measured=False,
     )
 
 
@@ -38,9 +49,12 @@ async def _check_claim(
     try:
         raw = await judge.assess(prompt, system=CHECK_SYSTEM)
         return parse_check_response(raw, claim.claim_id), 0
-    except _JUDGE_FAILURES:
+    except _PARSE_FAILURES:
         logger.exception("перевірний вердикт не розібрався: claim=%s", claim.claim_id)
-        return _sentinel(claim.claim_id), 1
+        return _sentinel(claim.claim_id, "judge-unparsable"), 1
+    except _JUDGE_FAILURES:
+        logger.exception("суддя недоступний: claim=%s", claim.claim_id)
+        return _sentinel(claim.claim_id, "judge-unavailable"), 1
 
 
 async def _ask_missed(

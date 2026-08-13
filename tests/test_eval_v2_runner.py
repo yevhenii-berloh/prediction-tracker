@@ -93,7 +93,8 @@ async def test_every_card_carries_detail():
         assert card.detail is not None
 
 
-async def test_a_post_the_judge_kills_does_not_kill_the_run():
+async def test_a_dead_judge_leaves_posts_unmeasured_not_penalised():
+    """Суддя лежить: пости лишаються в прогоні, але нічого не зараховують моделям."""
     cases = [_case("p1"), _case("p2")]
     by_model = {"base": {"p1": _result("Ціни зростуть"), "p2": _result("Курс впаде")}}
 
@@ -101,7 +102,26 @@ async def test_a_post_the_judge_kills_does_not_kill_the_run():
 
     assert len(scores) == 2
     assert len(judgements) == 2
-    assert all(j.claims == [] or j.verdicts == [] for j in judgements)
+    for judgement in judgements:
+        assert judgement.claims  # пулінг вижив через singleton-фолбек
+        assert all(not v.measured for v in judgement.verdicts)
+        assert judgement.judge_errors > 0
+    for score in scores:
+        row = score.per_model["base"]
+        assert row.hallucinated == 0  # збій судді не робить із моделі брехуна
+        assert row.unmeasured >= 1
+
+
+async def test_a_dead_judge_produces_no_precision_at_all():
+    cases = [_case("p1")]
+    by_model = {"base": {"p1": _result("Ціни зростуть")}}
+
+    scores, judgements = await judge_all_posts(cases, by_model, BrokenJudge(), concurrency=1)
+    report = build_report(cases, scores, judgements, ["base"], "base", "broken")
+
+    metrics = report.metrics.per_model["base"]
+    assert metrics.precision is None  # не 0.0 — вимірювання не відбулося
+    assert metrics.hallucination_rate is None
 
 
 async def test_model_that_extracted_nothing_still_appears_in_the_report():
