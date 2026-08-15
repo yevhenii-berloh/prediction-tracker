@@ -100,14 +100,14 @@ async def run_participants(
 
     async def run_one(case: EvalCase) -> ExtractionResult:
         post = case.input
-        predictions = await extractor.extract(
+        outcome = await extractor.extract(
             text=post.text,
             person_id=post.author,
             document_id=post.post_id,
             person_name=post.author,
             published_date=post.published_date,
         )
-        return ExtractionResult(predictions=predictions)
+        return ExtractionResult(predictions=outcome.predictions, failed=outcome.failed)
 
     runs = await run_cases(cases, run_one, concurrency=concurrency)
     results: dict[str, ExtractionResult] = {}
@@ -148,10 +148,15 @@ async def judge_all_posts(
             post_id=run.case.id, claims=[], verdicts=[], missed=[], judge_errors=1
         )
         counts = {}
+        failed_models: set[str] = set()
         for model_id in model_ids:
             counts[model_id] = len(_claims_of(by_model, model_id, run.case.id))
+            result = by_model[model_id].get(run.case.id)
+            # Немає запису або failed=True — модель цього поста не обробила
+            if result is None or result.failed:
+                failed_models.add(model_id)
         judgements.append(judgement)
-        scores.append(score_post(judgement, run.case.input, model_ids, counts))
+        scores.append(score_post(judgement, run.case.input, model_ids, counts, failed_models))
     return scores, judgements
 
 

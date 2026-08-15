@@ -125,8 +125,12 @@ async def test_a_dead_judge_produces_no_precision_at_all():
 
 
 async def test_model_that_extracted_nothing_still_appears_in_the_report():
+    """Справжнє мовчання: виклик відпрацював і повернув порожньо."""
     cases = [_case("p1")]
-    by_model = {"base": {"p1": _result("Ціни зростуть")}, "silent": {}}
+    by_model = {
+        "base": {"p1": _result("Ціни зростуть")},
+        "silent": {"p1": ExtractionResult(predictions=[])},
+    }
     judge = ScriptedJudge([_VALID, '{"missed": []}'])
 
     scores, judgements = await judge_all_posts(cases, by_model, judge, concurrency=1)
@@ -134,6 +138,33 @@ async def test_model_that_extracted_nothing_still_appears_in_the_report():
 
     assert report.metrics.per_model["silent"].coverage == 0.0  # мовчання = провал покриття
     assert report.metrics.per_model["silent"].precision is None  # ділити нема на що
+
+
+async def test_model_whose_extraction_failed_is_not_scored_as_silent():
+    """Той самий нуль claims, але з failed=True — і це вже не провал покриття."""
+    cases = [_case("p1")]
+    by_model = {
+        "base": {"p1": _result("Ціни зростуть")},
+        "broken": {"p1": ExtractionResult(predictions=[], failed=True)},
+    }
+    judge = ScriptedJudge([_VALID, '{"missed": []}'])
+
+    scores, judgements = await judge_all_posts(cases, by_model, judge, concurrency=1)
+    report = build_report(cases, scores, judgements, ["base", "broken"], "base", "scripted")
+
+    assert report.metrics.per_model["broken"].coverage is None  # не 0.0
+    assert scores[0].per_model["broken"].extraction_failed is True
+
+
+async def test_missing_result_counts_as_a_failed_extraction():
+    """Немає запису = прогін не дав результату; це збій, а не мовчання."""
+    cases = [_case("p1")]
+    by_model = {"base": {"p1": _result("Ціни зростуть")}, "absent": {}}
+    judge = ScriptedJudge([_VALID, '{"missed": []}'])
+
+    scores, _ = await judge_all_posts(cases, by_model, judge, concurrency=1)
+
+    assert scores[0].per_model["absent"].extraction_failed is True
 
 
 async def test_determinism_and_cost_land_on_the_metrics():

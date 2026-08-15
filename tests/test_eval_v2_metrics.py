@@ -12,6 +12,7 @@ def _score(
     hallucinated=0,
     over_extracted=0,
     unmeasured=0,
+    extraction_failed=False,
     coverage_measurable=True,
     author="Арестович",
     stratum="prefilter",
@@ -29,6 +30,7 @@ def _score(
                 hallucinated=hallucinated,
                 over_extracted=over_extracted,
                 unmeasured=unmeasured,
+                extraction_failed=extraction_failed,
                 covered=covered,
             )
         },
@@ -109,6 +111,31 @@ def test_unmeasurable_coverage_post_leaves_coverage_but_keeps_precision():
 
     assert metrics.coverage == 1.0  # p1 не тягне coverage вниз недостовірним нулем
     assert metrics.precision == 0.75  # (0.5 + 1.0) / 2 — precision по p1 усе ще валідна
+
+
+def test_failed_extraction_scores_nothing_at_all():
+    """Збій API — не мовчання моделі: пост виходить і з coverage, і з precision."""
+    scores = [
+        _score("p1", extracted=0, valid=0, covered=0, reference=4, extraction_failed=True),
+        _score("p2", extracted=2, valid=2, covered=2, reference=2),
+    ]
+
+    metrics = aggregate(scores, ["a"])["a"]
+
+    assert metrics.coverage == 1.0  # p1 не зарахований як провал покриття
+    assert metrics.precision == 1.0
+
+
+def test_silence_still_costs_coverage_when_extraction_worked():
+    """Контрольна пара до попереднього тесту: справжнє мовчання карається."""
+    scores = [
+        _score("p1", extracted=0, valid=0, covered=0, reference=4),
+        _score("p2", extracted=2, valid=2, covered=2, reference=2),
+    ]
+
+    metrics = aggregate(scores, ["a"])["a"]
+
+    assert metrics.coverage == 0.5
 
 
 def test_slices_by_author_and_stratum():

@@ -22,6 +22,9 @@ class ExtractionResult(BaseModel):
     """EvalRun.result — те, що прод-екстрактор витяг із поста."""
 
     predictions: list[Prediction]
+    # True = виклик упав. Мовчання моделі й збій API — різні речі: перше
+    # чесно карається по coverage, друге не має карати нікого.
+    failed: bool = False
 
 
 class PooledClaim(BaseModel):
@@ -102,6 +105,7 @@ class ModelPostScore(BaseModel):
     over_extracted: int
     covered: int
     unmeasured: int = 0  # claims цієї моделі, які суддя не оцінив — виходять зі знаменника
+    extraction_failed: bool = False  # екстрактор упав на цьому пості → пост не міряємо
 
 
 class PostScore(BaseModel):

@@ -49,12 +49,14 @@ def score_post(
     post: PostInput,
     model_ids: list[str],
     extracted_counts: dict[str, int],
+    failed_models: set[str] | None = None,
 ) -> PostScore:
     """Вердикт на унікальний claim проєктується на кожну модель, що його дала (крок 6)."""
     tally = {model_id: _empty_tally() for model_id in model_ids}
     claims = {claim.claim_id: claim for claim in judgement.claims}
     _project(judgement, claims, tally)
 
+    failed = failed_models or set()
     per_model = {}
     for model_id in model_ids:
         row = tally[model_id]
@@ -65,6 +67,7 @@ def score_post(
             over_extracted=row["over_extracted"],
             covered=row["covered"],
             unmeasured=row["unmeasured"],
+            extraction_failed=model_id in failed,
         )
 
     return PostScore(
