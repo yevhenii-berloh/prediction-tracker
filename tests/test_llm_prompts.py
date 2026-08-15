@@ -66,8 +66,26 @@ def test_parse_extraction_response_bare_empty_array():
 
 
 def test_parse_extraction_response_invalid_json():
-    predictions = parse_extraction_response("not json at all")
-    assert predictions == []
+    """Нерозбірлива відповідь — не «нічого не знайдено»."""
+    with pytest.raises(ValueError):
+        parse_extraction_response("not json at all")
+
+
+def test_parse_extraction_response_rejects_a_dict_without_predictions():
+    """Систематична розбіжність ключа інакше тихо оцінює модель у нуль назавжди."""
+    with pytest.raises(ValueError):
+        parse_extraction_response(json.dumps({"claims": [{"claim_text": "x"}]}))
+
+
+def test_parse_extraction_response_rejects_a_scalar():
+    with pytest.raises(ValueError):
+        parse_extraction_response(json.dumps("просто рядок"))
+
+
+def test_parse_extraction_response_keeps_both_empty_forms():
+    """Порожньо — валідна відповідь в обох конвертах."""
+    assert parse_extraction_response(json.dumps({"predictions": []})) == []
+    assert parse_extraction_response(json.dumps([])) == []
 
 
 def test_parse_extraction_response_strips_markdown_code_fence():

@@ -499,15 +499,23 @@ def validate_situation(situation: str | None) -> bool:
 
 
 def parse_extraction_response(response: str) -> list[dict]:
+    """Розібрати відповідь екстрактора. Кидає ValueError на нечитабельній формі.
+
+    Порожній результат і нерозбірлива відповідь — різні речі. Поки обидві були
+    `[]`, модель зі зламаним конвертом виглядала як модель, що нічого не знайшла:
+    саме так gemini-3.5-flash-lite дістав coverage 0.000 на смоуку 2026-08-12.
+    """
     try:
         data = json.loads(_strip_code_fence(response))
-        # Конверт плаває навіть у межах однієї моделі: той самий gemini-3.5-flash-lite
-        # на тому самому пості віддає то {"predictions": [...]}, то голий масив.
-        if isinstance(data, list):
-            return data
-        return data.get("predictions", [])
-    except (json.JSONDecodeError, AttributeError, TypeError):
-        return []
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"відповідь екстрактора не є JSON: {exc}") from exc
+
+    # Конверт плаває навіть у межах однієї моделі — обидві форми легітимні
+    if isinstance(data, list):
+        return data
+    if isinstance(data, dict) and "predictions" in data:
+        return data["predictions"]
+    raise ValueError(f"невідома форма відповіді екстрактора: {type(data).__name__}")
 
 
 def get_extraction_system() -> str:
