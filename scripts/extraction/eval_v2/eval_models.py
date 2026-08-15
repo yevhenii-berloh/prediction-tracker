@@ -151,6 +151,16 @@ class ModelMetrics(BaseModel):
     by_stratum: dict[str, SliceMetrics] = {}
 
 
+class RunHealth(BaseModel):
+    """Скільки прогону зламалось. Без цього зламаний прогін читається як чистий."""
+
+    n_posts: int
+    judge_errors: int = 0
+    posts_with_judge_errors: int = 0
+    posts_coverage_unmeasurable: int = 0
+    extraction_failures: dict[str, int] = {}  # model_id → скільки постів не обробив
+
+
 class ExtractionMetrics(BaseModel):
     """Metrics-сабтайп консумера — те, що лягає в EvalReport.metrics."""
 
@@ -159,3 +169,4 @@ class ExtractionMetrics(BaseModel):
     winner: str | None = None
     decided_by: str | None = None
     flags: list[str] = []
+    health: RunHealth | None = None

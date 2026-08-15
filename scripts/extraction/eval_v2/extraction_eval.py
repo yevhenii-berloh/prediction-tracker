@@ -45,6 +45,7 @@ from extraction.eval_v2.eval_models import (  # noqa: E402
     PostJudgement,
     PostScore,
 )
+from extraction.eval_v2.health import health_flags, run_health  # noqa: E402
 from extraction.eval_v2.judge_prompts import (  # noqa: E402
     CHECK_SYSTEM,
     CLUSTER_SYSTEM,
@@ -177,6 +178,8 @@ def build_report(
         metrics.cost_per_post = (costs or {}).get(model_id)
 
     metrics = select(per_model, baseline_id, NOISE_BAND)
+    metrics.health = run_health(scores, judgements)
+    metrics.flags.extend(health_flags(metrics.health))
 
     scored_runs = []
     for case, judgement, score in zip(cases, judgements, scores, strict=True):
@@ -274,7 +277,13 @@ async def _main(limit: int, concurrency: int) -> None:
         cases, scores, judgements, PARTICIPANTS, BASELINE_MODEL, JUDGE_MODEL, determinism, costs
     )
     write_report(report, OUT_DIR)
+    health = report.metrics.health
     print(f"winner={report.metrics.winner} decided_by={report.metrics.decided_by}")
+    print(
+        f"health: {health.n_posts} постів, судді збоїв {health.judge_errors} "
+        f"на {health.posts_with_judge_errors} постах, "
+        f"coverage недостовірний на {health.posts_coverage_unmeasurable}"
+    )
     for flag in report.metrics.flags:
         print(f"  flag: {flag}")
     print(f"report → {OUT_DIR}/report.md")

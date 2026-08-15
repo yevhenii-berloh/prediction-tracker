@@ -167,6 +167,32 @@ async def test_missing_result_counts_as_a_failed_extraction():
     assert scores[0].per_model["absent"].extraction_failed is True
 
 
+async def test_report_carries_run_health():
+    cases = [_case("p1")]
+    by_model = {"base": {"p1": _result("Ціни зростуть")}}
+    judge = ScriptedJudge([_VALID, '{"missed": []}'])
+
+    scores, judgements = await judge_all_posts(cases, by_model, judge, concurrency=1)
+    report = build_report(cases, scores, judgements, ["base"], "base", "scripted")
+
+    assert report.metrics.health is not None
+    assert report.metrics.health.n_posts == 1
+    assert report.metrics.health.judge_errors == 0
+
+
+async def test_a_broken_run_is_flagged_not_decision_grade():
+    """Після кроків A–B збої нікого не карають — тож зламаний прогін мусить
+    хоча б назвати себе зламаним, інакше він читається як чистий."""
+    cases = [_case("p1"), _case("p2")]
+    by_model = {"base": {"p1": _result("Ціни зростуть"), "p2": _result("Курс впаде")}}
+
+    scores, judgements = await judge_all_posts(cases, by_model, BrokenJudge(), concurrency=1)
+    report = build_report(cases, scores, judgements, ["base"], "base", "broken")
+
+    assert any("decision-grade" in flag for flag in report.metrics.flags)
+    assert report.metrics.health.posts_with_judge_errors == 2
+
+
 async def test_determinism_and_cost_land_on_the_metrics():
     cases = [_case("p1")]
     by_model = {"base": {"p1": _result("Ціни зростуть")}}
