@@ -74,6 +74,13 @@ class MissedClaim(BaseModel):
     reason: str = ""
 
 
+class PoolResult(BaseModel):
+    """Вихід пулінгу: унікальні claims плюс факт, чи кластеризація взагалі відпрацювала."""
+
+    claims: list[PooledClaim]
+    clustering_failed: bool = False
+
+
 class PostJudgement(BaseModel):
     """Усе, що суддя сказав про один пост — іде в ScoreCard.detail."""
 
@@ -82,6 +89,10 @@ class PostJudgement(BaseModel):
     verdicts: list[ClaimVerdict]
     missed: list[MissedClaim]
     judge_errors: int = 0
+    # Кластеризація впала → дублікати лишились окремими claims, reference set завищений
+    clustering_failed: bool = False
+    # missed-виклик впав → reference set занижений, а отже coverage завищений
+    missed_measured: bool = True
 
 
 class ModelPostScore(BaseModel):
@@ -99,6 +110,8 @@ class PostScore(BaseModel):
     stratum: str
     reference_size: int
     per_model: dict[str, ModelPostScore]
+    # False = reference set цього поста не заслуговує довіри, coverage по ньому не рахуємо
+    coverage_measurable: bool = True
 
 
 class GateSpec(BaseModel):

@@ -136,8 +136,8 @@ async def judge_all_posts(
         claims_by_model = {}
         for model_id in model_ids:
             claims_by_model[model_id] = _claims_of(by_model, model_id, case.id)
-        claims = await pool_claims(case.id, post.text, claims_by_model, judge)
-        return await judge_post(case.id, post.text, claims, judge)
+        pooled = await pool_claims(case.id, post.text, claims_by_model, judge)
+        return await judge_post(case.id, post.text, pooled, judge)
 
     runs = await run_cases(cases, run_one, concurrency=concurrency)
 

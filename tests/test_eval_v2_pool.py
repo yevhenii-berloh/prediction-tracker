@@ -43,7 +43,9 @@ async def test_exact_duplicates_merge_without_the_judge():
     judge = CountingJudge('{"clusters": [[0]]}')
     by_model = {"a": [_prediction("Ціни зростуть")], "b": [_prediction("ціни зростуть!")]}
 
-    claims = await pool_claims("p1", "текст", by_model, judge)
+    pooled = await pool_claims("p1", "текст", by_model, judge)
+
+    claims = pooled.claims
 
     assert len(claims) == 1
     assert sorted(claims[0].models) == ["a", "b"]
@@ -54,7 +56,9 @@ async def test_judge_clusters_non_identical_claims():
     judge = FakeJudge('{"clusters": [[0, 1]]}')
     by_model = {"a": [_prediction("Ціни зростуть")], "b": [_prediction("Буде зростання цін")]}
 
-    claims = await pool_claims("p1", "текст", by_model, judge)
+    pooled = await pool_claims("p1", "текст", by_model, judge)
+
+    claims = pooled.claims
 
     assert len(claims) == 1
     assert sorted(claims[0].models) == ["a", "b"]
@@ -65,7 +69,9 @@ async def test_judge_keeps_negation_apart():
     judge = FakeJudge('{"clusters": [[0], [1]]}')
     by_model = {"a": [_prediction("Ціни зростуть")], "b": [_prediction("Ціни не зростуть")]}
 
-    claims = await pool_claims("p1", "текст", by_model, judge)
+    pooled = await pool_claims("p1", "текст", by_model, judge)
+
+    claims = pooled.claims
 
     assert len(claims) == 2
 
@@ -73,7 +79,9 @@ async def test_judge_keeps_negation_apart():
 async def test_no_claims_skips_the_judge_entirely():
     judge = CountingJudge("не мало викликатись")
 
-    claims = await pool_claims("p1", "текст", {"a": [], "b": []}, judge)
+    pooled = await pool_claims("p1", "текст", {"a": [], "b": []}, judge)
+
+    claims = pooled.claims
 
     assert claims == []
     assert judge.calls == 0
@@ -83,7 +91,9 @@ async def test_claim_missing_from_clusters_survives_as_singleton():
     judge = FakeJudge('{"clusters": [[0]]}')  # суддя загубив індекс 1
     by_model = {"a": [_prediction("Перше")], "b": [_prediction("Друге")]}
 
-    claims = await pool_claims("p1", "текст", by_model, judge)
+    pooled = await pool_claims("p1", "текст", by_model, judge)
+
+    claims = pooled.claims
 
     assert len(claims) == 2
 
@@ -92,7 +102,9 @@ async def test_unparsable_clustering_leaves_claims_separate():
     judge = FakeJudge("суддя щось намолов")
     by_model = {"a": [_prediction("Перше")], "b": [_prediction("Друге")]}
 
-    claims = await pool_claims("p1", "текст", by_model, judge)
+    pooled = await pool_claims("p1", "текст", by_model, judge)
+
+    claims = pooled.claims
 
     assert len(claims) == 2
 
@@ -108,16 +120,19 @@ async def test_transport_failure_in_clustering_leaves_claims_separate():
 
     by_model = {"a": [_prediction("Перше")], "b": [_prediction("Друге")]}
 
-    claims = await pool_claims("p1", "текст", by_model, DeadTransportJudge())
+    pooled = await pool_claims("p1", "текст", by_model, DeadTransportJudge())
 
-    assert len(claims) == 2
+    assert len(pooled.claims) == 2
+    assert pooled.clustering_failed is True  # reference set після фолбеку завищений
 
 
 async def test_claim_ids_are_unique_within_a_post():
     judge = FakeJudge('{"clusters": [[0], [1], [2]]}')
     by_model = {"a": [_prediction("Перше"), _prediction("Друге"), _prediction("Третє")]}
 
-    claims = await pool_claims("p1", "текст", by_model, judge)
+    pooled = await pool_claims("p1", "текст", by_model, judge)
+
+    claims = pooled.claims
 
     assert len({c.claim_id for c in claims}) == 3
     assert all(c.claim_id.startswith("p1:") for c in claims)
@@ -127,6 +142,8 @@ async def test_empty_claim_text_is_dropped():
     judge = FakeJudge('{"clusters": [[0]]}')
     by_model = {"a": [_prediction("   "), _prediction("Ціни зростуть")]}
 
-    claims = await pool_claims("p1", "текст", by_model, judge)
+    pooled = await pool_claims("p1", "текст", by_model, judge)
+
+    claims = pooled.claims
 
     assert [c.claim_text for c in claims] == ["Ціни зростуть"]

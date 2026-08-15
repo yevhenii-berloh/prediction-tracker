@@ -12,6 +12,7 @@ def _score(
     hallucinated=0,
     over_extracted=0,
     unmeasured=0,
+    coverage_measurable=True,
     author="Арестович",
     stratum="prefilter",
 ):
@@ -20,6 +21,7 @@ def _score(
         author=author,
         stratum=stratum,
         reference_size=reference,
+        coverage_measurable=coverage_measurable,
         per_model={
             "a": ModelPostScore(
                 extracted=extracted,
@@ -95,6 +97,18 @@ def test_post_where_nothing_was_judged_drops_out_of_precision():
 
     assert metrics.precision == 1.0  # p1 не тягне середнє вниз
     assert metrics.hallucination_rate == 0.0
+
+
+def test_unmeasurable_coverage_post_leaves_coverage_but_keeps_precision():
+    scores = [
+        _score("p1", extracted=2, valid=1, covered=0, reference=4, coverage_measurable=False),
+        _score("p2", extracted=2, valid=2, covered=2, reference=2),
+    ]
+
+    metrics = aggregate(scores, ["a"])["a"]
+
+    assert metrics.coverage == 1.0  # p1 не тягне coverage вниз недостовірним нулем
+    assert metrics.precision == 0.75  # (0.5 + 1.0) / 2 — precision по p1 усе ще валідна
 
 
 def test_slices_by_author_and_stratum():

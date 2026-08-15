@@ -7,7 +7,7 @@ import re
 from eval_common.judge import Judge
 from prophet_checker.models.domain import Prediction
 
-from extraction.eval_v2.eval_models import PooledClaim
+from extraction.eval_v2.eval_models import PooledClaim, PoolResult
 from extraction.eval_v2.judge_prompts import (
     CLUSTER_SYSTEM,
     build_cluster_prompt,
@@ -51,20 +51,27 @@ def _merge_exact(by_model: dict[str, list[Prediction]]) -> list[dict]:
     return list(merged.values())
 
 
-async def _cluster_groups(post_text: str, entries: list[dict], judge: Judge) -> list[list[int]]:
-    """Групи індексів від судді; при збої кожен claim лишається окремим."""
+async def _cluster_groups(
+    post_text: str, entries: list[dict], judge: Judge
+) -> tuple[list[list[int]], bool]:
+    """Групи індексів від судді; при збої кожен claim лишається окремим.
+
+    Другим значенням повертає факт збою: сам фолбек безпечний, але reference set
+    після нього завищений (дублікати не злились), тож coverage на цьому пості
+    рахувати не можна.
+    """
     if len(entries) < 2:
-        return [[index] for index in range(len(entries))]
+        return [[index] for index in range(len(entries))], False
 
     prompt = build_cluster_prompt(post_text, [entry["claim_text"] for entry in entries])
     try:
         raw = await judge.assess(prompt, system=CLUSTER_SYSTEM)
-        return parse_cluster_response(raw)
+        return parse_cluster_response(raw), False
     # Кластеризація — перший виклик судді на пості; транспортний збій тут не має
     # вбивати пост, тож ловимо Exception, а не лише помилки розбору.
     except Exception:
         logger.exception("кластеризація не розібралась — claims лишаються окремими")
-        return [[index] for index in range(len(entries))]
+        return [[index] for index in range(len(entries))], True
 
 
 def _add_missing_singletons(groups: list[list[int]], total: int) -> list[list[int]]:
@@ -94,13 +101,14 @@ async def pool_claims(
     post_text: str,
     by_model: dict[str, list[Prediction]],
     judge: Judge,
-) -> list[PooledClaim]:
+) -> PoolResult:
     """Claims усіх учасників по одному посту → множина унікальних claims (крок 3)."""
     entries = _merge_exact(by_model)
     if not entries:
-        return []
+        return PoolResult(claims=[], clustering_failed=False)
 
-    groups = _add_missing_singletons(await _cluster_groups(post_text, entries, judge), len(entries))
+    raw_groups, clustering_failed = await _cluster_groups(post_text, entries, judge)
+    groups = _add_missing_singletons(raw_groups, len(entries))
 
     claims: list[PooledClaim] = []
     for position, group in enumerate(groups):
@@ -115,4 +123,4 @@ async def pool_claims(
                 models=_models_of(members),
             )
         )
-    return claims
+    return PoolResult(claims=claims, clustering_failed=clustering_failed)

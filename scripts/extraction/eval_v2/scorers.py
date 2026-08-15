@@ -73,4 +73,20 @@ def score_post(
         stratum=post.stratum,
         reference_size=reference_size(judgement),
         per_model=per_model,
+        coverage_measurable=_coverage_measurable(judgement),
     )
+
+
+def _coverage_measurable(judgement: PostJudgement) -> bool:
+    """Чи заслуговує reference set цього поста довіри.
+
+    Три способи зіпсувати його непомітно: провалений missed-виклик занижує
+    множину (coverage завищується), провалена кластеризація завищує її
+    (дублікати не злились), а не суджений claim не може в неї потрапити взагалі.
+    У всіх трьох випадках чесніше не рахувати coverage, ніж рахувати не те.
+    """
+    if not judgement.missed_measured:
+        return False
+    if judgement.clustering_failed:
+        return False
+    return all(verdict.measured for verdict in judgement.verdicts)

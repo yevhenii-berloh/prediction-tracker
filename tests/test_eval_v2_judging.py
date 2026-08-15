@@ -1,4 +1,4 @@
-from extraction.eval_v2.eval_models import PooledClaim
+from extraction.eval_v2.eval_models import PooledClaim, PoolResult
 from extraction.eval_v2.judging import judge_post, reference_size
 
 
@@ -39,7 +39,7 @@ def _claim(index: int) -> PooledClaim:
 async def test_reference_set_is_valid_claims_plus_missed():
     judge = ScriptedJudge([_VALID, _NOT_RUBRIC, '{"missed": [{"text": "ще одне"}]}'])
 
-    judgement = await judge_post("p1", "текст", [_claim(0), _claim(1)], judge)
+    judgement = await judge_post("p1", "текст", PoolResult(claims=[_claim(0), _claim(1)]), judge)
 
     assert reference_size(judgement) == 2  # один валідний + один missed
 
@@ -47,7 +47,7 @@ async def test_reference_set_is_valid_claims_plus_missed():
 async def test_ungrounded_claim_stays_out_of_the_reference_set():
     judge = ScriptedJudge([_UNGROUNDED, '{"missed": []}'])
 
-    judgement = await judge_post("p1", "текст", [_claim(0)], judge)
+    judgement = await judge_post("p1", "текст", PoolResult(claims=[_claim(0)]), judge)
 
     assert judgement.verdicts[0].is_hallucinated is True
     assert reference_size(judgement) == 0
@@ -56,7 +56,7 @@ async def test_ungrounded_claim_stays_out_of_the_reference_set():
 async def test_empty_claim_list_still_asks_about_missed():
     judge = ScriptedJudge(['{"missed": [{"text": "усі проґавили"}]}'])
 
-    judgement = await judge_post("p1", "текст", [], judge)
+    judgement = await judge_post("p1", "текст", PoolResult(claims=[]), judge)
 
     assert judgement.verdicts == []
     assert reference_size(judgement) == 1  # мовчання всіх ≠ порожній reference set
@@ -78,7 +78,7 @@ class DeadTransportJudge:
 async def test_transport_failure_does_not_lose_the_post():
     judge = DeadTransportJudge()
 
-    judgement = await judge_post("p1", "текст", [_claim(0), _claim(1)], judge)
+    judgement = await judge_post("p1", "текст", PoolResult(claims=[_claim(0), _claim(1)]), judge)
 
     assert judgement.post_id == "p1"
     assert len(judgement.verdicts) == 2  # пост живий, вердикт на кожен claim
@@ -89,7 +89,9 @@ async def test_transport_failure_does_not_lose_the_post():
 async def test_sentinel_is_unmeasured_not_a_hallucination():
     """Сентинел означає «не суджено», а не «модель збрехала» — інакше збій судді
     вибиває кандидата по blocking-gate hallucination_rate."""
-    judgement = await judge_post("p1", "текст", [_claim(0)], DeadTransportJudge())
+    judgement = await judge_post(
+        "p1", "текст", PoolResult(claims=[_claim(0)]), DeadTransportJudge()
+    )
     verdict = judgement.verdicts[0]
 
     assert verdict.measured is False
@@ -102,7 +104,7 @@ async def test_sentinel_is_unmeasured_not_a_hallucination():
 async def test_measured_verdict_stays_measured():
     judge = ScriptedJudge([_VALID, '{"missed": []}'])
 
-    judgement = await judge_post("p1", "текст", [_claim(0)], judge)
+    judgement = await judge_post("p1", "текст", PoolResult(claims=[_claim(0)]), judge)
 
     assert judgement.verdicts[0].measured is True
 
@@ -110,7 +112,7 @@ async def test_measured_verdict_stays_measured():
 async def test_unparsable_check_becomes_sentinel_and_is_counted():
     judge = ScriptedJudge(["суддя щось намолов", '{"missed": []}'])
 
-    judgement = await judge_post("p1", "текст", [_claim(0)], judge)
+    judgement = await judge_post("p1", "текст", PoolResult(claims=[_claim(0)]), judge)
 
     assert judgement.judge_errors == 1
     assert judgement.verdicts[0].is_valid is False
@@ -122,7 +124,7 @@ async def test_unparsable_check_becomes_sentinel_and_is_counted():
 async def test_unparsable_missed_call_does_not_kill_the_post():
     judge = ScriptedJudge([_VALID, "знову не json"])
 
-    judgement = await judge_post("p1", "текст", [_claim(0)], judge)
+    judgement = await judge_post("p1", "текст", PoolResult(claims=[_claim(0)]), judge)
 
     assert judgement.missed == []
     assert judgement.judge_errors == 1
@@ -132,7 +134,7 @@ async def test_unparsable_missed_call_does_not_kill_the_post():
 async def test_each_call_type_uses_its_own_system_prompt():
     judge = ScriptedJudge([_VALID, '{"missed": []}'])
 
-    await judge_post("p1", "текст", [_claim(0)], judge)
+    await judge_post("p1", "текст", PoolResult(claims=[_claim(0)]), judge)
 
     assert len(set(judge.systems)) == 2  # перевірний і missed — різні системні промпти
 
@@ -140,6 +142,6 @@ async def test_each_call_type_uses_its_own_system_prompt():
 async def test_verdicts_keep_claim_ids():
     judge = ScriptedJudge([_VALID, _VALID, '{"missed": []}'])
 
-    judgement = await judge_post("p1", "текст", [_claim(0), _claim(1)], judge)
+    judgement = await judge_post("p1", "текст", PoolResult(claims=[_claim(0), _claim(1)]), judge)
 
     assert [v.claim_id for v in judgement.verdicts] == ["p1:0", "p1:1"]

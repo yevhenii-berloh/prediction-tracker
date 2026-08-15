@@ -46,7 +46,9 @@ class _Bucket:
         self.over_extraction: list[float] = []
         self.n_posts = 0
 
-    def add(self, row: ModelPostScore, reference_size: int) -> None:
+    def add(
+        self, row: ModelPostScore, reference_size: int, coverage_measurable: bool = True
+    ) -> None:
         self.n_posts += 1
         # Пост із нулем витягнутих виходить із precision-подібних метрик: ділити нема на що.
         # З coverage він НЕ виходить — мовчання це провал покриття, а не ідеальна точність.
@@ -56,7 +58,7 @@ class _Bucket:
             self.precision.append(row.valid / judged)
             self.hallucination.append(row.hallucinated / judged)
             self.over_extraction.append(row.over_extracted / judged)
-        if reference_size:
+        if reference_size and coverage_measurable:
             self.coverage.append(row.covered / reference_size)
 
     def slice_metrics(self) -> SliceMetrics:
@@ -80,9 +82,10 @@ def _collect(scores: list[PostScore], model_id: str) -> tuple[_Bucket, dict, dic
         row = score.per_model.get(model_id)
         if row is None:
             continue
-        overall.add(row, score.reference_size)
-        by_author.setdefault(score.author, _Bucket()).add(row, score.reference_size)
-        by_stratum.setdefault(score.stratum, _Bucket()).add(row, score.reference_size)
+        measurable = score.coverage_measurable
+        overall.add(row, score.reference_size, measurable)
+        by_author.setdefault(score.author, _Bucket()).add(row, score.reference_size, measurable)
+        by_stratum.setdefault(score.stratum, _Bucket()).add(row, score.reference_size, measurable)
 
     return overall, by_author, by_stratum
 

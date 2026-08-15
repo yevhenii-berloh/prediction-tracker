@@ -5,7 +5,13 @@ import logging
 
 from eval_common.judge import Judge
 
-from extraction.eval_v2.eval_models import ClaimVerdict, MissedClaim, PooledClaim, PostJudgement
+from extraction.eval_v2.eval_models import (
+    ClaimVerdict,
+    MissedClaim,
+    PooledClaim,
+    PoolResult,
+    PostJudgement,
+)
 from extraction.eval_v2.judge_prompts import (
     CHECK_SYSTEM,
     MISSED_SYSTEM,
@@ -70,9 +76,10 @@ async def _ask_missed(
 
 
 async def judge_post(
-    post_id: str, post_text: str, claims: list[PooledClaim], judge: Judge
+    post_id: str, post_text: str, pooled: PoolResult, judge: Judge
 ) -> PostJudgement:
     """Три перевірні питання на унікальний claim + один виклик на пост про пропущене."""
+    claims = pooled.claims
     verdicts: list[ClaimVerdict] = []
     errors = 0
     for claim in claims:
@@ -87,6 +94,8 @@ async def judge_post(
         verdicts=verdicts,
         missed=missed,
         judge_errors=errors + missed_failed,
+        clustering_failed=pooled.clustering_failed,
+        missed_measured=missed_failed == 0,
     )
 
 

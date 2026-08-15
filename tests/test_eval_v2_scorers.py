@@ -129,6 +129,57 @@ def test_unmeasured_claim_is_counted_apart_and_scores_nothing():
     assert score.per_model["a"].unmeasured == 1
 
 
+def _judgement(**kwargs) -> PostJudgement:
+    base = {
+        "post_id": "p1",
+        "claims": [PooledClaim(claim_id="p1:0", claim_text="c", models=["a"])],
+        "verdicts": [_verdict("p1:0")],
+        "missed": [],
+    }
+    return PostJudgement(**{**base, **kwargs})
+
+
+def test_coverage_is_measurable_on_a_clean_judgement():
+    score = score_post(_judgement(), _POST, ["a"], {"a": 1})
+
+    assert score.coverage_measurable is True
+
+
+def test_failed_missed_call_makes_coverage_unmeasurable():
+    """reference set занижений → coverage завищився б для всіх."""
+    score = score_post(_judgement(missed_measured=False), _POST, ["a"], {"a": 1})
+
+    assert score.coverage_measurable is False
+
+
+def test_failed_clustering_makes_coverage_unmeasurable():
+    """Дублікати не злились → reference set завищений, і асиметрично."""
+    score = score_post(_judgement(clustering_failed=True), _POST, ["a"], {"a": 1})
+
+    assert score.coverage_measurable is False
+
+
+def test_any_unmeasured_verdict_makes_coverage_unmeasurable():
+    unmeasured = ClaimVerdict(
+        claim_id="p1:1",
+        claim_grounded=False,
+        situation_grounded=False,
+        passes_rubric=False,
+        measured=False,
+    )
+    judgement = _judgement(
+        claims=[
+            PooledClaim(claim_id="p1:0", claim_text="c0", models=["a"]),
+            PooledClaim(claim_id="p1:1", claim_text="c1", models=["a"]),
+        ],
+        verdicts=[_verdict("p1:0"), unmeasured],
+    )
+
+    score = score_post(judgement, _POST, ["a"], {"a": 2})
+
+    assert score.coverage_measurable is False
+
+
 def test_author_and_stratum_travel_with_the_score():
     judgement = PostJudgement(post_id="p1", claims=[], verdicts=[], missed=[])
 
