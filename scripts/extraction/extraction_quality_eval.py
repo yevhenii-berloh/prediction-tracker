@@ -220,14 +220,14 @@ async def run_stage1_extraction(
         async def process(post: dict) -> tuple[str, list[dict], str | None]:
             async with sem:
                 try:
-                    preds = await extractor.extract(
+                    outcome = await extractor.extract(
                         text=post["text"],
                         person_id=post["person_name"],
                         document_id=post["id"],
                         person_name=post["person_name"],
                         published_date=post["published_at"],
                     )
-                    result = post["id"], [_serialize_prediction(p) for p in preds], None
+                    result = post["id"], [_serialize_prediction(p) for p in outcome.predictions], None
                 except Exception as e:
                     logger.exception(
                         "Extraction failed for %s on %s", model_id, post["id"]

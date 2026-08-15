@@ -66,13 +66,14 @@ class IngestionOrchestrator:
         try:
             async for raw_doc in source.collect(ps, since=ps.last_collected_at, limit=limit):
                 report.posts_seen += 1
-                predictions = await self._extractor.extract(
+                outcome = await self._extractor.extract(
                     text=raw_doc.raw_text,
                     person_id=raw_doc.person_id,
                     document_id=raw_doc.id,
                     person_name=ps.source_identifier,
                     published_date=raw_doc.published_at.date().isoformat(),
                 )
+                predictions = outcome.predictions
                 if predictions:
                     report.posts_with_predictions += 1
                     if self._embedder is not None:

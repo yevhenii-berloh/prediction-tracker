@@ -121,17 +121,17 @@ async def collect_extractor_negatives(
             break
         tried += 1
         try:
-            preds = await extractor.extract(
+            outcome = await extractor.extract(
                 text=p["text"], person_id=p["person_name"], document_id=p["id"],
                 person_name=p["person_name"], published_date=p["published_at"],
             )
         except Exception as exc:
             print(f"  skip {p['id']}: {type(exc).__name__}: {exc}", flush=True)
             continue
-        if not preds:
+        if not outcome.predictions:
             published = str(p["published_at"])[:10]
             negatives.append(_post_entry(p["id"], published, False, "extractor_pool", []))
-        print(f"  [neg {len(negatives)}/{n}] tried={tried} {p['id']}: {len(preds)} claims", flush=True)
+        print(f"  [neg {len(negatives)}/{n}] tried={tried} {p['id']}: {len(outcome.predictions)} claims", flush=True)
     return negatives
 
 

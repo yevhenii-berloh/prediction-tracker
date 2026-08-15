@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from prophet_checker.ingestion import IngestionOrchestrator
 from prophet_checker.models.domain import (
+    ExtractionOutcome,
     PersonSource,
     Prediction,
     PredictionStatus,
@@ -68,7 +69,7 @@ async def test_end_to_end_three_posts_with_mocked_llm():
     )
 
     extractor = MagicMock()
-    extractor.extract = AsyncMock(side_effect=[[p1, p2], [], [p3]])
+    extractor.extract = AsyncMock(side_effect=[ExtractionOutcome(predictions=[p1, p2]), ExtractionOutcome(), ExtractionOutcome(predictions=[p3])])
     embedder = MagicMock()
     embedder.embed = AsyncMock(return_value=[0.1] * 1536)
 
@@ -122,7 +123,7 @@ async def test_halt_recovery_resumes_from_last_cursor():
     )
 
     cycle1_extract = MagicMock()
-    cycle1_extract.extract = AsyncMock(side_effect=[[pred], RuntimeError("LLM down")])
+    cycle1_extract.extract = AsyncMock(side_effect=[ExtractionOutcome(predictions=[pred]), RuntimeError("LLM down")])
     embedder = MagicMock()
     embedder.embed = AsyncMock(return_value=[0.1] * 1536)
 
@@ -142,7 +143,7 @@ async def test_halt_recovery_resumes_from_last_cursor():
     assert updated[0].last_collected_at == datetime(2024, 1, 2, tzinfo=UTC)
 
     cycle2_extract = MagicMock()
-    cycle2_extract.extract = AsyncMock(side_effect=[[pred], [pred]])
+    cycle2_extract.extract = AsyncMock(side_effect=[ExtractionOutcome(predictions=[pred]), ExtractionOutcome(predictions=[pred])])
 
     orch2 = IngestionOrchestrator(
         session_factory=_stub_session_factory(),

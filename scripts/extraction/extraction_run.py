@@ -70,14 +70,14 @@ async def run_extraction(model_id: str, posts: list[dict], min_interval: float) 
     total_kept = 0
 
     for post in posts:
-        preds = await extractor.extract(
+        outcome = await extractor.extract(
             text=post["text"],
             person_id=post["person_name"],
             document_id=post["id"],
             person_name=post["person_name"],
             published_date=post["published_at"],
         )
-        claims = [serialize_v2_prediction(p) for p in preds]
+        claims = [serialize_v2_prediction(p) for p in outcome.predictions]
         total_kept += len(claims)
         extractions.append({
             "post_id": post["id"],

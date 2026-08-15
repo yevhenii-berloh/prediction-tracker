@@ -271,19 +271,19 @@ async def run_extraction(chunks: list[Chunk], meta: VideoMeta, llm: MeteredLLM) 
     result = DensityResult(chunks_total=len(chunks))
 
     for idx, chunk in enumerate(chunks):
-        predictions = await extractor.extract(
+        outcome = await extractor.extract(
             text=chunk.text,
             person_id="poc",
             document_id=f"yt:{meta.video_id}:{idx}",
             person_name=meta.title,
             published_date=published,
         )
-        if not predictions:
+        if not outcome.predictions:
             continue
         result.chunks_with_predictions += 1
-        result.predictions_total += len(predictions)
+        result.predictions_total += len(outcome.predictions)
         if len(result.examples) < 5:
-            result.examples.append(f"[{deeplink(meta.video_id, chunk.start)}] {predictions[0].claim_text}")
+            result.examples.append(f"[{deeplink(meta.video_id, chunk.start)}] {outcome.predictions[0].claim_text}")
     return result
 
 

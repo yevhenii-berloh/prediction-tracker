@@ -70,14 +70,14 @@ async def main() -> None:
     extractions = []
     total_claims = 0
     for i, post in enumerate(posts, 1):
-        preds = await extractor.extract(
+        outcome = await extractor.extract(
             text=post["text"],
             person_id=post["person_name"],
             document_id=post["id"],
             person_name=post["person_name"],
             published_date=post["published_at"],
         )
-        claims = [serialize_claim(p) for p in preds]
+        claims = [serialize_claim(p) for p in outcome.predictions]
         total_claims += len(claims)
         extractions.append({
             "post_id": post["id"],

@@ -10,7 +10,11 @@ from prophet_checker.llm.prompts import (
     parse_extraction_response,
     validate_situation,
 )
-from prophet_checker.models.domain import Prediction, PredictionStatus
+from prophet_checker.models.domain import (
+    ExtractionOutcome,
+    Prediction,
+    PredictionStatus,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +33,7 @@ class PredictionExtractor:
         document_id: str,
         person_name: str,
         published_date: str,
-    ) -> list[Prediction]:
+    ) -> ExtractionOutcome:
         try:
             prompt = build_extraction_prompt(
                 text=text,
@@ -39,13 +43,13 @@ class PredictionExtractor:
             response = await self._llm.complete(
                 prompt, system=self._system_prompt or get_extraction_system()
             )
-        except Exception:
+        except Exception as exc:
             logger.exception("LLM call failed during extraction")
-            return []
+            return ExtractionOutcome(failed=True, error=type(exc).__name__)
 
         raw_predictions = parse_extraction_response(response)
         if not raw_predictions:
-            return []
+            return ExtractionOutcome()
 
         predictions: list[Prediction] = []
         for raw in raw_predictions:
@@ -94,4 +98,4 @@ class PredictionExtractor:
                 )
             )
 
-        return predictions
+        return ExtractionOutcome(predictions=predictions)

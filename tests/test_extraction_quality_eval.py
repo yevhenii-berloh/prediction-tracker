@@ -398,16 +398,23 @@ def test_aggregate_metrics_handles_parse_error():
 import asyncio
 from datetime import date
 
+from prophet_checker.models.domain import ExtractionOutcome, Prediction
+
 from extraction.extraction_quality_eval import run_stage1_extraction
 
 
-def _fake_pred(claim: str, topic: str = "війна") -> MagicMock:
-    """Create a Prediction-like object with the fields Stage 1 reads."""
-    p = MagicMock()
-    p.claim_text = claim
-    p.prediction_date = date(2024, 1, 15)
-    p.target_date = date(2024, 6, 1)
-    p.topic = topic
+def _fake_pred(claim: str, topic: str = "війна") -> Prediction:
+    """Справжній Prediction: ExtractionOutcome типізований, MagicMock не пройде валідацію."""
+    p = Prediction(
+        id="x",
+        document_id="d",
+        person_id="p",
+        claim_text=claim,
+        situation="s",
+        prediction_date=date(2024, 1, 15),
+        target_date=date(2024, 6, 1),
+        topic=topic,
+    )
     return p
 
 
@@ -422,7 +429,7 @@ def _make_factory(claim_map: dict[str, dict[str, list[str]]]):
 
         async def fake_extract(*, document_id, **kwargs):
             claims = claim_map.get(model_id, {}).get(document_id, [])
-            return [_fake_pred(c) for c in claims]
+            return ExtractionOutcome(predictions=[_fake_pred(c) for c in claims])
 
         extractor.extract = AsyncMock(side_effect=fake_extract)
         return extractor

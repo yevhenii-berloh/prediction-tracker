@@ -34,7 +34,7 @@ async def test_extract_returns_predictions():
     llm = make_llm(LLM_RESPONSE_ONE)
     extractor = PredictionExtractor(llm)
 
-    predictions = await extractor.extract(
+    outcome = await extractor.extract(
         text="Контрнаступ почнеться влітку 2023 року",
         person_id="person-1",
         document_id="doc-10",
@@ -42,8 +42,8 @@ async def test_extract_returns_predictions():
         published_date="2023-01-15",
     )
 
-    assert len(predictions) == 1
-    p = predictions[0]
+    assert len(outcome.predictions) == 1
+    p = outcome.predictions[0]
     assert isinstance(p, Prediction)
     assert p.claim_text == "Контрнаступ почнеться влітку 2023 року"
     assert p.status == PredictionStatus.UNRESOLVED
@@ -56,11 +56,11 @@ async def test_extract_returns_predictions():
     assert p.embedding is None
 
 
-async def test_extract_no_predictions():
+async def test_extract_no_predictions_is_not_a_failure():
     llm = make_llm(LLM_RESPONSE_NONE)
     extractor = PredictionExtractor(llm)
 
-    predictions = await extractor.extract(
+    outcome = await extractor.extract(
         text="Сьогодні гарна погода.",
         person_id="person-1",
         document_id="doc-10",
@@ -68,15 +68,15 @@ async def test_extract_no_predictions():
         published_date="2023-01-15",
     )
 
-    assert predictions == []
+    assert outcome.predictions == []
 
 
-async def test_extract_llm_error_returns_empty():
+async def test_extract_llm_error_is_marked_failed():
     llm = MagicMock()
     llm.complete = AsyncMock(side_effect=Exception("LLM unavailable"))
     extractor = PredictionExtractor(llm)
 
-    predictions = await extractor.extract(
+    outcome = await extractor.extract(
         text="Щось станеться завтра.",
         person_id="person-1",
         document_id="doc-10",
@@ -84,7 +84,9 @@ async def test_extract_llm_error_returns_empty():
         published_date="2023-01-15",
     )
 
-    assert predictions == []
+    assert outcome.predictions == []
+    assert outcome.failed is True  # збій виклику ≠ «передбачень немає»
+    assert outcome.error == "Exception"
 
 
 async def test_extract_drops_prediction_with_empty_situation():
@@ -95,12 +97,13 @@ async def test_extract_drops_prediction_with_empty_situation():
     }]})
     llm = make_llm(response)
     extractor = PredictionExtractor(llm)
-    predictions = await extractor.extract(
+    outcome = await extractor.extract(
         text="Реальний пост: Війна закінчиться скоро, я впевнений.",
         person_id="p1", document_id="d1", person_name="Арестович",
         published_date="2023-01-15",
     )
-    assert predictions == []
+    assert outcome.predictions == []
+    assert outcome.failed is False  # відповідь прийшла, просто нічого не лишилось
 
 
 async def test_extract_drops_prediction_with_missing_situation():
@@ -110,12 +113,12 @@ async def test_extract_drops_prediction_with_missing_situation():
     }]})
     llm = make_llm(response)
     extractor = PredictionExtractor(llm)
-    predictions = await extractor.extract(
+    outcome = await extractor.extract(
         text="Реальний пост без situation.",
         person_id="p1", document_id="d1", person_name="Арестович",
         published_date="2023-01-15",
     )
-    assert predictions == []
+    assert outcome.predictions == []
 
 
 async def test_extract_uses_production_system_prompt_by_default():

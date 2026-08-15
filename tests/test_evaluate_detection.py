@@ -13,6 +13,9 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from datetime import date
+
+from prophet_checker.models.domain import ExtractionOutcome, Prediction
 
 from extraction.detection_eval import (
     classify_post,
@@ -107,10 +110,22 @@ def test_compute_metrics_raises_on_mismatched_lengths():
 # so compute_metrics() never sees error rows.
 
 
+
+def _fake_prediction() -> Prediction:
+    """Мінімальний валідний Prediction — ExtractionOutcome типізований, object() не пройде."""
+    return Prediction(
+        id="x",
+        document_id="d",
+        person_id="p",
+        claim_text="щось станеться",
+        situation="s",
+        prediction_date=date(2026, 1, 1),
+    )
+
 async def test_classify_post_yes_when_extractor_returns_predictions():
     """Extractor returns ≥1 prediction → classify_post returns True."""
     mock_extractor = MagicMock()
-    mock_extractor.extract = AsyncMock(return_value=[object()])  # 1 fake prediction
+    mock_extractor.extract = AsyncMock(return_value=ExtractionOutcome(predictions=[_fake_prediction()]))
     post = {
         "id": "p1",
         "person_name": "Арестович",
@@ -124,7 +139,7 @@ async def test_classify_post_yes_when_extractor_returns_predictions():
 async def test_classify_post_no_when_extractor_returns_empty():
     """Extractor returns empty list → classify_post returns False (NOT None)."""
     mock_extractor = MagicMock()
-    mock_extractor.extract = AsyncMock(return_value=[])
+    mock_extractor.extract = AsyncMock(return_value=ExtractionOutcome())
     post = {
         "id": "p1",
         "person_name": "Арестович",
@@ -152,7 +167,7 @@ async def test_classify_post_none_on_extractor_error():
 async def test_classify_post_forwards_all_required_args_to_extractor():
     """classify_post must pass all 5 args to extractor.extract() — silent bridge bugs."""
     mock_extractor = MagicMock()
-    mock_extractor.extract = AsyncMock(return_value=[])
+    mock_extractor.extract = AsyncMock(return_value=ExtractionOutcome())
     post = {
         "id": "O_Arestovich_official_6808",
         "person_name": "Арестович",
@@ -198,7 +213,8 @@ async def test_run_evaluation_computes_metrics_from_mixed_results():
     ]
 
     def fake_extract(*, text, **kw):
-        return [object()] if "prediction" in text else []
+        preds = [_fake_prediction()] if "prediction" in text else []
+        return ExtractionOutcome(predictions=preds)
 
     def make_extractor(model_id):
         m = MagicMock()
@@ -235,7 +251,7 @@ async def test_run_evaluation_filters_by_author():
 
     def make_extractor(model_id):
         m = MagicMock()
-        m.extract = AsyncMock(return_value=[])  # always NO
+        m.extract = AsyncMock(return_value=ExtractionOutcome())  # always NO
         return m
 
     report = await run_evaluation_for_model(
@@ -263,7 +279,7 @@ async def test_run_evaluation_handles_error_rows_separately():
     def fake_extract(*, document_id, **kw):
         if document_id in ("p3", "p4"):
             raise RuntimeError(f"API down for {document_id}")
-        return []
+        return ExtractionOutcome()
 
     def make_extractor(model_id):
         m = MagicMock()
@@ -305,7 +321,8 @@ async def test_run_evaluation_report_contains_fp_fn_lists_with_text_previews():
     def fake_extract(*, document_id, **kw):
         # fp1: predict YES (→ false positive)
         # fn1: predict NO (→ false negative)
-        return [object()] if document_id == "fp1" else []
+        preds = [_fake_prediction()] if document_id == "fp1" else []
+        return ExtractionOutcome(predictions=preds)
 
     def make_extractor(model_id):
         m = MagicMock()

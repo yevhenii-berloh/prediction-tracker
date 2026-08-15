@@ -93,6 +93,19 @@ class Prediction(BaseModel):
     last_verify_error_at: datetime | None = None
 
 
+class ExtractionOutcome(BaseModel):
+    """Результат екстракції з одного документа.
+
+    `failed=True` відрізняє «виклик не вдався» від «передбачень немає» — раніше
+    обидва випадки поверталися порожнім списком, тож інжест рухав курсор повз
+    пост, який ніхто не прочитав, і передбачення губилось безповоротно.
+    """
+
+    predictions: list[Prediction] = []
+    failed: bool = False
+    error: str | None = None  # тип винятку, не повідомлення й не payload
+
+
 class VectorMatch(BaseModel):
     prediction_id: str
     distance: float  # cosine-distance: менше = ближче

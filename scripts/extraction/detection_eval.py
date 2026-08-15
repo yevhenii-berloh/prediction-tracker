@@ -176,14 +176,14 @@ async def classify_post(extractor, post: dict) -> bool | None:
         None   if extractor raised (API down, malformed response, etc.)
     """
     try:
-        predictions = await extractor.extract(
+        outcome = await extractor.extract(
             text=post["text"],
             person_id=post["person_name"],
             document_id=post["id"],
             person_name=post["person_name"],
             published_date=post["published_at"],
         )
-        return len(predictions) > 0
+        return len(outcome.predictions) > 0
     except Exception:
         logger.exception("Extractor failed on post %s", post.get("id"))
         return None

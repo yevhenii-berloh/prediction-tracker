@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from prophet_checker.ingestion import CycleReport
 from prophet_checker.ingestion.orchestrator import IngestionOrchestrator
 from prophet_checker.models.domain import (
+    ExtractionOutcome,
     PersonSource,
     Prediction,
     RawDocument,
@@ -32,7 +33,7 @@ def _stub_session_factory():
 
 def _make_extractor(predictions: list[Prediction]):
     extractor = MagicMock()
-    extractor.extract = AsyncMock(return_value=predictions)
+    extractor.extract = AsyncMock(return_value=ExtractionOutcome(predictions=predictions))
     return extractor
 
 
@@ -71,7 +72,7 @@ async def test_embeds_claim_plus_situation():
         prediction_date=date(2024, 1, 1),
     )
     extractor = MagicMock()
-    extractor.extract = AsyncMock(return_value=[pred])
+    extractor.extract = AsyncMock(return_value=ExtractionOutcome(predictions=[pred]))
     embedder = _make_embedder()
     factory, _ = _stub_session_factory()
 
@@ -136,7 +137,7 @@ async def test_run_cycle_processes_posts_in_one_channel():
         claim_text="claim",
         prediction_date=date(2024, 1, 1),
     )
-    extractor.extract = AsyncMock(side_effect=[[pred], [], [pred, pred]])
+    extractor.extract = AsyncMock(side_effect=[ExtractionOutcome(predictions=[pred]), ExtractionOutcome(), ExtractionOutcome(predictions=[pred, pred])])
     embedder = _make_embedder()
     factory, _ = _stub_session_factory()
 
@@ -351,7 +352,7 @@ async def test_one_channel_halt_does_not_block_others():
         prediction_date=date(2024, 1, 1),
     )
     extractor = MagicMock()
-    extractor.extract = AsyncMock(side_effect=[RuntimeError("LLM down"), [pred]])
+    extractor.extract = AsyncMock(side_effect=[RuntimeError("LLM down"), ExtractionOutcome(predictions=[pred])])
     embedder = _make_embedder()
     factory, _ = _stub_session_factory()
 
@@ -454,7 +455,7 @@ async def test_cycle_report_aggregates_counts():
         prediction_date=date(2024, 1, 1),
     )
     extractor = MagicMock()
-    extractor.extract = AsyncMock(side_effect=[[pred, pred], [], [pred]])
+    extractor.extract = AsyncMock(side_effect=[ExtractionOutcome(predictions=[pred, pred]), ExtractionOutcome(), ExtractionOutcome(predictions=[pred])])
     embedder = _make_embedder()
     factory, _ = _stub_session_factory()
 
@@ -535,7 +536,7 @@ async def test_run_cycle_persists_raw_documents():
         prediction_date=date(2024, 1, 1),
     )
     extractor = MagicMock()
-    extractor.extract = AsyncMock(side_effect=[[pred], []])
+    extractor.extract = AsyncMock(side_effect=[ExtractionOutcome(predictions=[pred]), ExtractionOutcome()])
     factory, _ = _stub_session_factory()
 
     orchestrator = IngestionOrchestrator(
@@ -640,7 +641,7 @@ async def test_run_cycle_skips_embedding_when_no_embedder():
         prediction_date=date(2024, 1, 1),
     )
     extractor = MagicMock()
-    extractor.extract = AsyncMock(side_effect=[[pred]])
+    extractor.extract = AsyncMock(side_effect=[ExtractionOutcome(predictions=[pred])])
     factory, _ = _stub_session_factory()
 
     orchestrator = IngestionOrchestrator(
