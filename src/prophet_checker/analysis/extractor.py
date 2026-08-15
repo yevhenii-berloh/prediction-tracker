@@ -47,55 +47,66 @@ class PredictionExtractor:
             logger.exception("LLM call failed during extraction")
             return ExtractionOutcome(failed=True, error=type(exc).__name__)
 
-        raw_predictions = parse_extraction_response(response)
+        try:
+            raw_predictions = parse_extraction_response(response)
+        except ValueError:
+            # extract() лишається тотальною: інжест ловить failed, а не виняток
+            logger.exception("Unparsable extraction response for %s", document_id)
+            return ExtractionOutcome(failed=True, error="UnparsableResponse")
+
         if not raw_predictions:
             return ExtractionOutcome()
 
         predictions: list[Prediction] = []
         for raw in raw_predictions:
-            claim = raw.get("claim_text", "").strip()
-            if not claim:
-                continue
-
-            situation = raw.get("situation")
-            if not validate_situation(situation):
-                logger.warning(
-                    "Drop prediction — missing/empty situation: %r", claim[:60]
-                )
-                continue
-
-            # Parse optional target_date
-            target_date: date | None = None
-            raw_target = raw.get("target_date")
-            if raw_target:
-                try:
-                    target_date = date.fromisoformat(raw_target)
-                except (ValueError, TypeError):
-                    target_date = None
-
-            # Parse prediction_date (fall back to published_date)
-            raw_pred_date = raw.get("prediction_date") or published_date
-            try:
-                prediction_date = date.fromisoformat(raw_pred_date)
-            except (ValueError, TypeError):
-                prediction_date = date.fromisoformat(published_date)
-
-            predictions.append(
-                Prediction(
-                    id=str(uuid4()),
-                    person_id=person_id,
-                    document_id=document_id,
-                    claim_text=claim,
-                    situation=situation,
-                    prediction_date=prediction_date,
-                    target_date=target_date,
-                    topic=raw.get("topic", ""),
-                    status=PredictionStatus.UNRESOLVED,
-                    confidence=0.0,
-                    evidence_url=None,
-                    evidence_text=None,
-                    embedding=None,
-                )
-            )
+            prediction = _build_prediction(raw, person_id, document_id, published_date)
+            if prediction is not None:
+                predictions.append(prediction)
 
         return ExtractionOutcome(predictions=predictions)
+
+
+def _parse_date(value: str | None, fallback: str) -> date:
+    try:
+        return date.fromisoformat(value or fallback)
+    except (ValueError, TypeError):
+        return date.fromisoformat(fallback)
+
+
+def _parse_optional_date(value: str | None) -> date | None:
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except (ValueError, TypeError):
+        return None
+
+
+def _build_prediction(
+    raw: dict, person_id: str, document_id: str, published_date: str
+) -> Prediction | None:
+    """Один сирий запис → Prediction. None, якщо запис не проходить контракт."""
+    claim = raw.get("claim_text", "").strip()
+    if not claim:
+        return None
+
+    situation = raw.get("situation")
+    if not validate_situation(situation):
+        logger.warning("Drop prediction — missing/empty situation: %r", claim[:60])
+        return None
+
+    return Prediction(
+        id=str(uuid4()),
+        person_id=person_id,
+        document_id=document_id,
+        claim_text=claim,
+        situation=situation,
+        prediction_date=_parse_date(raw.get("prediction_date"), published_date),
+        target_date=_parse_optional_date(raw.get("target_date")),
+        topic=raw.get("topic", ""),
+        status=PredictionStatus.UNRESOLVED,
+        confidence=0.0,
+        evidence_url=None,
+        evidence_text=None,
+        embedding=None,
+    )

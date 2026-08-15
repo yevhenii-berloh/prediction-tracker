@@ -141,3 +141,39 @@ async def test_extract_uses_system_prompt_override():
         person_name="Арестович", published_date="2023-01-15",
     )
     assert llm.complete.call_args.kwargs["system"] == "CUSTOM PROMPT"
+
+
+async def test_unparsable_response_is_a_failure_not_an_empty_result():
+    llm = MagicMock()
+    llm.complete = AsyncMock(return_value="це не json")
+    extractor = PredictionExtractor(llm)
+
+    outcome = await extractor.extract(
+        text="текст",
+        person_id="p",
+        document_id="d",
+        person_name="Арестович",
+        published_date="2026-06-01",
+    )
+
+    assert outcome.failed is True
+    assert outcome.error == "UnparsableResponse"
+    assert outcome.predictions == []
+
+
+async def test_extract_never_raises_on_a_broken_payload():
+    """Інжест покладається на тотальність extract(): виняток звідси став би
+    «halted at step=processing» і сховав справжню причину."""
+    llm = MagicMock()
+    llm.complete = AsyncMock(return_value='{"claims": []}')
+    extractor = PredictionExtractor(llm)
+
+    outcome = await extractor.extract(
+        text="текст",
+        person_id="p",
+        document_id="d",
+        person_name="Арестович",
+        published_date="2026-06-01",
+    )
+
+    assert outcome.failed is True
