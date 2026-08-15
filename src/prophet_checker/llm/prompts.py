@@ -501,6 +501,10 @@ def validate_situation(situation: str | None) -> bool:
 def parse_extraction_response(response: str) -> list[dict]:
     try:
         data = json.loads(_strip_code_fence(response))
+        # Конверт плаває навіть у межах однієї моделі: той самий gemini-3.5-flash-lite
+        # на тому самому пості віддає то {"predictions": [...]}, то голий масив.
+        if isinstance(data, list):
+            return data
         return data.get("predictions", [])
     except (json.JSONDecodeError, AttributeError, TypeError):
         return []

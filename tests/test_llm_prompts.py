@@ -43,6 +43,28 @@ def test_parse_extraction_response_no_predictions():
     assert predictions == []
 
 
+def test_parse_extraction_response_accepts_a_bare_array():
+    """gemini-3.5-flash-lite віддає то конверт, то голий масив — на тому самому пості."""
+    response = json.dumps(
+        [
+            {
+                "claim_text": "Казахстан перейде на латиницю",
+                "situation": "мовна політика",
+                "topic": "політика",
+            }
+        ]
+    )
+
+    predictions = parse_extraction_response(response)
+
+    assert len(predictions) == 1
+    assert predictions[0]["claim_text"] == "Казахстан перейде на латиницю"
+
+
+def test_parse_extraction_response_bare_empty_array():
+    assert parse_extraction_response(json.dumps([])) == []
+
+
 def test_parse_extraction_response_invalid_json():
     predictions = parse_extraction_response("not json at all")
     assert predictions == []
