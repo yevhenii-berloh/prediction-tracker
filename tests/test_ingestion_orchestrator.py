@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from prophet_checker.analysis.extractor import PredictionExtractor
 from prophet_checker.ingestion import CycleReport
 from prophet_checker.ingestion.orchestrator import IngestionOrchestrator
 from prophet_checker.models.domain import (
@@ -137,7 +138,13 @@ async def test_run_cycle_processes_posts_in_one_channel():
         claim_text="claim",
         prediction_date=date(2024, 1, 1),
     )
-    extractor.extract = AsyncMock(side_effect=[ExtractionOutcome(predictions=[pred]), ExtractionOutcome(), ExtractionOutcome(predictions=[pred, pred])])
+    extractor.extract = AsyncMock(
+        side_effect=[
+            ExtractionOutcome(predictions=[pred]),
+            ExtractionOutcome(),
+            ExtractionOutcome(predictions=[pred, pred]),
+        ]
+    )
     embedder = _make_embedder()
     factory, _ = _stub_session_factory()
 
@@ -455,7 +462,9 @@ async def test_one_channel_halt_does_not_block_others():
         prediction_date=date(2024, 1, 1),
     )
     extractor = MagicMock()
-    extractor.extract = AsyncMock(side_effect=[RuntimeError("LLM down"), ExtractionOutcome(predictions=[pred])])
+    extractor.extract = AsyncMock(
+        side_effect=[RuntimeError("LLM down"), ExtractionOutcome(predictions=[pred])]
+    )
     embedder = _make_embedder()
     factory, _ = _stub_session_factory()
 
@@ -558,7 +567,13 @@ async def test_cycle_report_aggregates_counts():
         prediction_date=date(2024, 1, 1),
     )
     extractor = MagicMock()
-    extractor.extract = AsyncMock(side_effect=[ExtractionOutcome(predictions=[pred, pred]), ExtractionOutcome(), ExtractionOutcome(predictions=[pred])])
+    extractor.extract = AsyncMock(
+        side_effect=[
+            ExtractionOutcome(predictions=[pred, pred]),
+            ExtractionOutcome(),
+            ExtractionOutcome(predictions=[pred]),
+        ]
+    )
     embedder = _make_embedder()
     factory, _ = _stub_session_factory()
 
@@ -639,7 +654,9 @@ async def test_run_cycle_persists_raw_documents():
         prediction_date=date(2024, 1, 1),
     )
     extractor = MagicMock()
-    extractor.extract = AsyncMock(side_effect=[ExtractionOutcome(predictions=[pred]), ExtractionOutcome()])
+    extractor.extract = AsyncMock(
+        side_effect=[ExtractionOutcome(predictions=[pred]), ExtractionOutcome()]
+    )
     factory, _ = _stub_session_factory()
 
     orchestrator = IngestionOrchestrator(
@@ -760,3 +777,44 @@ async def test_run_cycle_skips_embedding_when_no_embedder():
 
     assert len(prediction_repo._predictions) == 1
     assert prediction_repo._predictions[0].embedding is None
+
+
+async def test_unparsable_response_halts_the_channel_like_any_failure():
+    """Наскрізна перевірка: нерозбірлива відповідь LLM доходить до курсора."""
+    person_source = PersonSource(
+        id="ps1",
+        person_id="p1",
+        source_type=SourceType.TELEGRAM,
+        source_identifier="@arestovich",
+        last_collected_at=datetime(2024, 1, 1, tzinfo=UTC),
+    )
+    doc = RawDocument(
+        id="tg:arestovich:1",
+        person_id="p1",
+        source_type=SourceType.TELEGRAM,
+        url="https://t.me/arestovich/1",
+        published_at=datetime(2024, 1, 5, tzinfo=UTC),
+        raw_text="Тут є передбачення, але модель віддала чужий конверт",
+    )
+    source_repo = FakeSourceRepo()
+    await source_repo.save_person_source(person_source)
+    llm = MagicMock()
+    llm.complete = AsyncMock(return_value='{"claims": [{"claim_text": "щось"}]}')
+    factory, _ = _stub_session_factory()
+
+    orchestrator = IngestionOrchestrator(
+        session_factory=factory,
+        source_repo=source_repo,
+        prediction_repo=FakePredictionRepo(),
+        extractor=PredictionExtractor(llm),
+        embedder=_make_embedder(),
+        sources={SourceType.TELEGRAM: MockSource([doc])},
+    )
+
+    report = await orchestrator.run_cycle()
+
+    ch = report.channels_processed[0]
+    assert ch.posts_failed == 1
+    assert "UnparsableResponse" in (ch.error or "")
+    updated = await source_repo.get_person_sources("p1")
+    assert updated[0].last_collected_at == datetime(2024, 1, 1, tzinfo=UTC)

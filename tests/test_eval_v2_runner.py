@@ -212,3 +212,21 @@ async def test_determinism_and_cost_land_on_the_metrics():
 
     assert report.metrics.per_model["base"].determinism == 0.9
     assert report.metrics.per_model["base"].cost_per_post == 0.0012
+
+
+async def test_unparsable_model_is_unmeasurable_not_silent():
+    """Модель зі зламаним конвертом не карається по coverage і видно у health."""
+    cases = [_case("p1")]
+    by_model = {
+        "base": {"p1": _result("Ціни зростуть")},
+        "broken_envelope": {"p1": ExtractionResult(predictions=[], failed=True)},
+    }
+    judge = ScriptedJudge([_VALID, '{"missed": []}'])
+
+    scores, judgements = await judge_all_posts(cases, by_model, judge, concurrency=1)
+    report = build_report(
+        cases, scores, judgements, ["base", "broken_envelope"], "base", "scripted"
+    )
+
+    assert report.metrics.per_model["broken_envelope"].coverage is None
+    assert report.metrics.health.extraction_failures["broken_envelope"] == 1
