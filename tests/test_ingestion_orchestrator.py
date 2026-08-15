@@ -207,6 +207,109 @@ async def test_empty_predictions_advances_cursor_without_save():
     assert updated[0].last_collected_at == datetime(2024, 1, 5, tzinfo=UTC)
 
 
+async def test_failed_extraction_does_not_advance_the_cursor():
+    """Головне: пост, який ніхто не прочитав, мусить повернутись наступним циклом.
+
+    Раніше збій екстракції повертав [], і гілка «немає передбачень» рухала курсор
+    повз пост — передбачення губилось безповоротно, без сліду в звіті.
+    """
+    person_source = PersonSource(
+        id="ps1",
+        person_id="p1",
+        source_type=SourceType.TELEGRAM,
+        source_identifier="@arestovich",
+        last_collected_at=datetime(2024, 1, 1, tzinfo=UTC),
+    )
+    doc = RawDocument(
+        id="tg:arestovich:1",
+        person_id="p1",
+        source_type=SourceType.TELEGRAM,
+        url="https://t.me/arestovich/1",
+        published_at=datetime(2024, 1, 5, tzinfo=UTC),
+        raw_text="Тут точно є передбачення, але екстрактор ліг",
+    )
+    source_repo = FakeSourceRepo()
+    await source_repo.save_person_source(person_source)
+    prediction_repo = FakePredictionRepo()
+    extractor = MagicMock()
+    extractor.extract = AsyncMock(
+        return_value=ExtractionOutcome(failed=True, error="RateLimitError")
+    )
+    factory, _ = _stub_session_factory()
+
+    orchestrator = IngestionOrchestrator(
+        session_factory=factory,
+        source_repo=source_repo,
+        prediction_repo=prediction_repo,
+        extractor=extractor,
+        embedder=_make_embedder(),
+        sources={SourceType.TELEGRAM: MockSource([doc])},
+    )
+
+    report = await orchestrator.run_cycle()
+
+    ch = report.channels_processed[0]
+    assert ch.posts_failed == 1
+    assert ch.error is not None  # збій видно у звіті, а не лише в логах
+    updated = await source_repo.get_person_sources("p1")
+    assert updated[0].last_collected_at == datetime(2024, 1, 1, tzinfo=UTC)  # курсор не рухався
+
+
+async def test_failed_extraction_halts_the_channel_before_later_posts():
+    """Інакше пізніший успішний пост перестрибує курсор через невдалий."""
+    person_source = PersonSource(
+        id="ps1",
+        person_id="p1",
+        source_type=SourceType.TELEGRAM,
+        source_identifier="@arestovich",
+        last_collected_at=datetime(2024, 1, 1, tzinfo=UTC),
+    )
+    docs = [
+        RawDocument(
+            id=f"tg:arestovich:{i}",
+            person_id="p1",
+            source_type=SourceType.TELEGRAM,
+            url=f"https://t.me/arestovich/{i}",
+            published_at=datetime(2024, 1, day, tzinfo=UTC),
+            raw_text="текст",
+        )
+        for i, day in ((1, 5), (2, 6))
+    ]
+    pred = Prediction(
+        id="pred-1",
+        document_id="x",
+        person_id="p1",
+        claim_text="claim",
+        situation="context",
+        prediction_date=date(2024, 1, 1),
+    )
+    source_repo = FakeSourceRepo()
+    await source_repo.save_person_source(person_source)
+    extractor = MagicMock()
+    extractor.extract = AsyncMock(
+        side_effect=[
+            ExtractionOutcome(failed=True, error="RateLimitError"),
+            ExtractionOutcome(predictions=[pred]),
+        ]
+    )
+    factory, _ = _stub_session_factory()
+
+    orchestrator = IngestionOrchestrator(
+        session_factory=factory,
+        source_repo=source_repo,
+        prediction_repo=FakePredictionRepo(),
+        extractor=extractor,
+        embedder=_make_embedder(),
+        sources={SourceType.TELEGRAM: MockSource(docs)},
+    )
+
+    await orchestrator.run_cycle()
+
+    assert extractor.extract.call_count == 1  # другий пост не чіпали
+    updated = await source_repo.get_person_sources("p1")
+    assert updated[0].last_collected_at == datetime(2024, 1, 1, tzinfo=UTC)
+
+
 async def test_embed_failure_halts_channel_no_save():
     person_source = PersonSource(
         id="ps1",

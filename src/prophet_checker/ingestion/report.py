@@ -9,6 +9,7 @@ class ChannelReport(BaseModel):
     person_source_id: str
     posts_seen: int = 0
     posts_with_predictions: int = 0
+    posts_failed: int = 0  # екстракція впала — курсор не рухаємо, пост повернеться
     predictions_extracted: int = 0
     cursor_advanced_to: datetime | None = None
     error: str | None = None

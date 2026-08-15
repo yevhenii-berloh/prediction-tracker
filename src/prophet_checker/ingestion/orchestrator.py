@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
 from prophet_checker.analysis.embedding_text import embedding_text
 from prophet_checker.ingestion.report import ChannelReport, CycleReport
-from prophet_checker.models.domain import PersonSource, SourceType
+from prophet_checker.models.domain import PersonSource, Prediction, RawDocument, SourceType
 from prophet_checker.sources.base import Source
 from prophet_checker.storage.interfaces import (
     PredictionRepository,
@@ -52,6 +52,76 @@ class IngestionOrchestrator:
             channels_processed=channels,
         )
 
+    async def _process_post(
+        self, ps: PersonSource, raw_doc: RawDocument, report: ChannelReport
+    ) -> bool:
+        """Обробити один пост. False = зупинити канал, не рухаючи курсор.
+
+        Курсор — це позначка часу, і рухається він per-post. Тому «просто не рухати
+        його на збої» не працює: наступний успішний пост має пізнішу дату й перестрибне
+        невдалий. Єдиний спосіб не загубити пост — спинити канал саме на ньому.
+        """
+        outcome = await self._extractor.extract(
+            text=raw_doc.raw_text,
+            person_id=raw_doc.person_id,
+            document_id=raw_doc.id,
+            person_name=ps.source_identifier,
+            published_date=raw_doc.published_at.date().isoformat(),
+        )
+        if outcome.failed:
+            report.posts_failed += 1
+            report.error = f"halted at post={raw_doc.id}: extraction failed ({outcome.error})"
+            logger.warning("ingestion %s: екстракція впала на %s", ps.id, raw_doc.id)
+            return False
+
+        predictions = outcome.predictions
+        if predictions:
+            report.posts_with_predictions += 1
+            await self._embed_all(predictions)
+            await self._save_post(ps, raw_doc, predictions)
+            report.predictions_extracted += len(predictions)
+        else:
+            await self._advance_cursor(ps, raw_doc)
+        report.cursor_advanced_to = raw_doc.published_at
+        return True
+
+    async def _embed_all(self, predictions: list[Prediction]) -> None:
+        if self._embedder is None:
+            return
+        for p in predictions:
+            p.embedding = await self._embedder.embed(embedding_text(p))
+
+    async def _save_post(
+        self, ps: PersonSource, raw_doc: RawDocument, predictions: list[Prediction]
+    ) -> None:
+        async with self._session_factory() as session:
+            async with session.begin():
+                await self._source_repo.save_document(raw_doc, session=session)
+                for p in predictions:
+                    await self._prediction_repo.save(p, session=session)
+                await self._source_repo.update_source_cursor(
+                    ps.id, raw_doc.published_at, session=session
+                )
+
+    async def _advance_cursor(self, ps: PersonSource, raw_doc: RawDocument) -> None:
+        async with self._session_factory() as session:
+            async with session.begin():
+                await self._source_repo.update_source_cursor(
+                    ps.id, raw_doc.published_at, session=session
+                )
+
+    def _log_progress(self, ps: PersonSource, report: ChannelReport) -> None:
+        if report.posts_seen % self._log_every:
+            return
+        logger.info(
+            "ingestion %s: seen=%d with_predictions=%d extracted=%d failed=%d",
+            ps.id,
+            report.posts_seen,
+            report.posts_with_predictions,
+            report.predictions_extracted,
+            report.posts_failed,
+        )
+
     async def _process_channel(self, ps: PersonSource, limit: int | None = None) -> ChannelReport:
         report = ChannelReport(
             person_source_id=ps.id,
@@ -66,43 +136,10 @@ class IngestionOrchestrator:
         try:
             async for raw_doc in source.collect(ps, since=ps.last_collected_at, limit=limit):
                 report.posts_seen += 1
-                outcome = await self._extractor.extract(
-                    text=raw_doc.raw_text,
-                    person_id=raw_doc.person_id,
-                    document_id=raw_doc.id,
-                    person_name=ps.source_identifier,
-                    published_date=raw_doc.published_at.date().isoformat(),
-                )
-                predictions = outcome.predictions
-                if predictions:
-                    report.posts_with_predictions += 1
-                    if self._embedder is not None:
-                        for p in predictions:
-                            p.embedding = await self._embedder.embed(embedding_text(p))
-                    async with self._session_factory() as session:
-                        async with session.begin():
-                            await self._source_repo.save_document(raw_doc, session=session)
-                            for p in predictions:
-                                await self._prediction_repo.save(p, session=session)
-                            await self._source_repo.update_source_cursor(
-                                ps.id, raw_doc.published_at, session=session
-                            )
-                    report.predictions_extracted += len(predictions)
-                else:
-                    async with self._session_factory() as session:
-                        async with session.begin():
-                            await self._source_repo.update_source_cursor(
-                                ps.id, raw_doc.published_at, session=session
-                            )
-                report.cursor_advanced_to = raw_doc.published_at
-                if report.posts_seen % self._log_every == 0:
-                    logger.info(
-                        "ingestion %s: seen=%d with_predictions=%d extracted=%d",
-                        ps.id,
-                        report.posts_seen,
-                        report.posts_with_predictions,
-                        report.predictions_extracted,
-                    )
+                processed = await self._process_post(ps, raw_doc, report)
+                if not processed:
+                    break  # курсор лишається на місці — пост повернеться наступним циклом
+                self._log_progress(ps, report)
         except Exception as exc:
             report.error = f"halted at step=processing: {exc}"
         logger.info(
