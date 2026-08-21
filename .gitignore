@@ -25,5 +25,5 @@ uv.lock
 .coverage
 .pytest_cache/
 
-# YouTube PoC — downloaded audio blobs (~96 MB, re-derivable in one run)
-scripts/youtube_poc/artifacts/poc_work/
+# YouTube PoC — run output: audio blobs (~96 MB) + transcripts/chunks, re-derivable in one run
+scripts/youtube_poc/artifacts/

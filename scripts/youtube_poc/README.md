@@ -1,152 +1,159 @@
-# YouTube PoC — покроковий флоу
+# YouTube PoC — step-by-step flow
 
-Викидні de-risking скрипти, якими перевіряли, чи варто підключати YouTube як джерело.
-**Висновки й вердикти — у [`docs/youtube-source/`](../../docs/youtube-source/).** Тут — що саме
-робилося, у якому порядку і як це повторити.
+Throwaway de-risking scripts used to decide whether YouTube is worth adding as a source.
+**Conclusions and verdicts live in [`docs/youtube-source/`](../../docs/youtube-source/).** This file
+records what was done, in which order, and how to repeat it.
 
-Два незалежні експерименти:
+Two independent experiments:
 
-- **PoC-A** (`poc_youtube.py`) — качаємо аудіо самі, транскрибуємо, ріжемо, витягуємо прогнози. **Обраний шлях.**
-- **PoC-B** (`poc_gemini_video.py`) — віддаємо YouTube-URL прямо в Gemini, аудіо не чіпаємо. **Відхилено.**
+- **PoC-A** (`poc_youtube.py`) — download the audio ourselves, transcribe it, cut it into chunks, extract predictions. **The chosen path.**
+- **PoC-B** (`poc_gemini_video.py`) — hand the YouTube URL straight to Gemini, never touch the audio. **Rejected.**
 
-Обидва пишуть у `artifacts/`. Аудіо-блоби (`artifacts/poc_work/`, ~96 MB) у git не йдуть — вони
-відтворюються одним запуском за ~18 с.
+Both write into `artifacts/`. The audio blobs (`artifacts/poc_work/`, ~96 MB) are not committed to git —
+one run recreates them in ~18 s.
 
 ---
 
-## PoC-A — покроково
+## PoC-A — step by step
 
-### Що взагалі перевіряли
+### What was actually being tested
 
-Не «як написати YouTubeSource», а **чи воно того варте**. Три невідомі, кожна могла вбити ідею:
+Not "how to write a YouTubeSource", but **whether it is worth it at all**. Three unknowns, each of which
+could kill the idea:
 
-- YouTube банить datacenter-IP — а чи качається з локальної машини?
-- Чи достатньо чистий авто-транскрипт для ru/uk мовлення?
-- Який відсоток сегментів реально містить прогнози? (у Telegram ~6%)
+- YouTube bans datacenter IPs — but does the download work from a local machine?
+- Is the auto transcript clean enough for ru/uk speech?
+- What share of segments really contains predictions? (in Telegram it is ~6%)
 
-### Наскрізний потік — 7 кроків
+### End-to-end flow — 7 steps
 
-Нумерація одна: порядок **виконання**. Кроки 1-5 — Фаза A, кроки 6-7 — Фаза B.
+One numbering, in **execution** order. Steps 1-5 are Phase A, steps 6-7 are Phase B.
 
 ```bash
-# Фаза A — кроки 1-5
+# Phase A — steps 1-5
 uv run --with yt-dlp --with groq python scripts/youtube_poc/poc_youtube.py \
     --url "https://www.youtube.com/watch?v=dtAbQYffGhg" --lang auto
 
-# Фаза B — та сама команда, кроки 1-7
+# Phase B — the same command, steps 1-7
 ... --extract
 ```
 
-1. **`yt-dlp`** дістає метадані (`id`, `title`, `upload_date`, `duration`) і качає **лише аудіо-доріжку**
-   (`format: bestaudio`). Прапорець `noplaylist` обов'язковий — URL містить `&list=...`, інакше
-   поїде весь пліейліст.
-2. **`ffmpeg`** перекодовує в 16 kHz mono opus 24k — щоб влізти в ліміт файлу Groq (19.5 MB замість 79).
+1. **`yt-dlp`** fetches the metadata (`id`, `title`, `upload_date`, `duration`) and downloads **the audio
+   track only** (`format: bestaudio`). The `noplaylist` flag is mandatory — the URL carries `&list=...`,
+   without it the whole playlist is downloaded.
+2. **`ffmpeg`** re-encodes to 16 kHz mono opus 24k — to fit the Groq file limit (19.5 MB instead of 79).
 3. **Groq `whisper-large-v3-turbo`**, `response_format=verbose_json`, `timestamp_granularities=["segment"]`
-   → сегменти з таймкодами. Мова параметром `--lang` (`auto` для змішаного ru/uk).
-   `_segments_as_dicts()` зводить відповідь SDK до `{"start", "end", "text"}`.
-4. **`segment_transcript()`** склеює whisper-сегменти в чанки ~750 слів (≈5 хв мовлення), не ріжучи
-   речень, і несе start-таймкод кожного чанка. **Вхід цього кроку — вихід кроку 3.**
-5. Пише `artifacts/poc_transcript_full.txt` і `artifacts/poc_chunks.md` (з дип-лінками `?t=`).
+   → timed segments. The language comes from `--lang` (`auto` for mixed ru/uk).
+   `_segments_as_dicts()` reduces the SDK response to `{"start", "end", "text"}`.
+4. **`segment_transcript()`** glues whisper segments into chunks of ~750 words (≈5 min of speech) without
+   cutting sentences, and carries the start timestamp of each chunk. **Its input is the output of step 3.**
+5. Writes `artifacts/poc_transcript_full.txt` and `artifacts/poc_chunks.md` (with `?t=` deep links).
 
-   ⏸ **Пауза — транскрипт читається очима.** Поганий транскрипт = далі йти немає сенсу.
+   ⏸ **Pause — the transcript is read by eye.** A bad transcript means there is no point in going further.
 
-6. Кожен чанк проганяється через **справжній `PredictionExtractor`** проєкту. Щоб не дублювати логіку,
-   але й виміряти гроші, скрипт підсовує йому `MeteredLLM` — обгортку з тим самим контрактом
-   `.complete()`, що додатково накопичує `litellm.completion_cost()` і токени.
-7. Рахує % чанків із прогнозами і друкує cost-розбивку: транскрипція (з тривалості аудіо × ставка Groq)
-   + extraction (реальний cost із LiteLLM), нормалізовано на годину відео + проєкція на місяць.
+6. Every chunk is run through the project's **real `PredictionExtractor`**. To avoid duplicating the logic
+   while still measuring the money, the script hands it a `MeteredLLM` — a wrapper with the same
+   `.complete()` contract that additionally accumulates `litellm.completion_cost()` and tokens.
+7. Computes the share of chunks that contain predictions and prints the cost breakdown: transcription
+   (audio duration × the Groq rate) + extraction (real cost from LiteLLM), normalized per hour of video
+   plus a monthly projection.
 
-### Перевірка чистої логіки (не крок пайплайну)
+### Checking the pure logic (not a pipeline step)
 
 ```bash
 uv run python scripts/youtube_poc/poc_youtube.py --selftest
 ```
 
-Ганяє `segment_transcript()` — бюджет слів, межі речень, порожній вхід, перенос start-таймкоду.
+Exercises `segment_transcript()` — the word budget, sentence boundaries, empty input, carrying the start
+timestamp.
 
-Що він **не** покриває, і це важливо: тест працює на **вигаданих** сегментах, тобто на контракті
-Whisper, вгаданому з документації Groq. Місток від реальної відповіді SDK до цієї форми —
-`_segments_as_dicts()` — тестом не покритий. Якби Groq віддав іншу структуру, тест лишався б зеленим,
-а пайплайн зламаним. **Контракт із Whisper де-ризикнув реальний прогін, не цей тест.**
+What it does **not** cover, and this matters: the test runs on **invented** segments, that is, on the
+Whisper contract as guessed from the Groq documentation. The bridge from the real SDK response to that
+shape — `_segments_as_dicts()` — is not covered by the test. If Groq returned a different structure, the
+test would stay green while the pipeline was broken. **The Whisper contract was de-risked by the real run,
+not by this test.**
 
-### Результат PoC-A
+### PoC-A result
 
-| Що | Значення |
+| What | Value |
 |---|---|
-| Анти-бот | 79 MB за 18 с, бану немає |
-| Якість транскрипту | повна пунктуація, речення цілі |
-| Щільність | **6/22 чанки = 27.3%** (11 прогнозів) проти ~6% у Telegram |
-| Вартість | **$0.053/год відео** end-to-end |
+| Anti-bot | 79 MB in 18 s, no ban |
+| Transcript quality | full punctuation, sentences intact |
+| Density | **6/22 chunks = 27.3%** (11 predictions) vs ~6% in Telegram |
+| Cost | **$0.053 per hour of video** end-to-end |
 
 ---
 
-## PoC-B — покроково
+## PoC-B — step by step
 
-Тут нумерація — **порядок дослідження**, а не пайплайну: пайплайну в PoC-B нема, є один API-виклик
-на вікно відео.
+Here the numbering is the **order of investigation**, not a pipeline: PoC-B has no pipeline, it has one API
+call per video window.
 
-### Крок 1. Розрізнити кнопку і API
+### Step 1. Tell the button apart from the API
 
-YouTube показує юзеру «Ask about this video». Це **UI, не API** — програмно означало б автоматизацію
-браузера, тобто та сама анти-бот поверхня. Але Gemini API приймає YouTube-URL напряму
-(`fileData.file_uri`), і тоді відео качає Google.
+YouTube shows the user an "Ask about this video" button. That is **UI, not an API** — using it
+programmatically would mean browser automation, that is, the same anti-bot surface. But the Gemini API
+accepts a YouTube URL directly (`fileData.file_uri`), and then Google downloads the video.
 
-### Крок 2. Зробити експеримент чесним
+### Step 2. Make the experiment fair
 
-Скрипт імпортує **той самий** `EXTRACTION_SYSTEM` і **той самий** `parse_extraction_response`
-з `prophet_checker.llm.prompts`, і бере ту саму модель. Відрізняється рівно одне — **модальність
-входу** (відео проти тексту). Інакше порівнювали б промпти, а не підходи.
+The script imports **the same** `EXTRACTION_SYSTEM` and **the same** `parse_extraction_response` from
+`prophet_checker.llm.prompts`, and uses the same model. Exactly one thing differs — the **input modality**
+(video instead of text). Otherwise we would be comparing prompts, not approaches.
 
-### Крок 3. Знайти межу механіки
+### Step 3. Find the limit of the mechanism
 
-Перший прогін впав із `500 INTERNAL`. Діагностика по черзі:
+The first run failed with `500 INTERNAL`. Diagnosis, one probe at a time:
 
-| Проба | Результат |
+| Probe | Result |
 |---|---|
-| Коротке відео 19 с | ✅ OK (1703 токени) — механізм працює |
-| Повне відео 1.79 год | ❌ `500 INTERNAL`, відтворено двічі |
-| Кліпи 10 / 30 / 60 хв через `video_metadata` offsets | ✅ усі OK |
+| Short 19 s video | ✅ OK (1703 tokens) — the mechanism works |
+| Full 1.79 h video | ❌ `500 INTERNAL`, reproduced twice |
+| Clips of 10 / 30 / 60 min via `video_metadata` offsets | ✅ all OK |
 
-Тобто впирається не контекст (586k < 1M), а обробка довгого відео. Кліпування — робочий обхід.
+So the wall is not the context (586k < 1M) but the processing of a long video. Clipping is a working
+workaround.
 
-### Крок 4. Head-to-head
+### Step 4. Head-to-head
 
 ```bash
 uv run --with google-genai python scripts/youtube_poc/poc_gemini_video.py \
     --url "https://www.youtube.com/watch?v=dtAbQYffGhg"
 
-# менші вікна — перевірка, чи розмір кліпа винен у низькому recall
+# smaller windows — check whether the clip size is to blame for the low recall
 ... --clip-seconds 600 --duration 3600
 ```
 
-Скрипт ріже відео на вікна, шле кожне окремим запитом, зводить прогнози й токени докупи, а потім
-**перевіряє кожен таймкод**: показує поруч текст із транскрипту Whisper (`artifacts/poc_chunks.md`)
-на тому ж місці. Так видно, чи клейм справді там звучить.
+The script cuts the video into windows, sends each one as a separate request, merges the predictions and
+the tokens, and then **checks every timestamp**: next to each prediction it shows the text from the Whisper
+transcript (`artifacts/poc_chunks.md`) at the same position. That makes it visible whether the claim is
+really spoken there.
 
-### Результат PoC-B
+### PoC-B result
 
-| Конфігурація | Прогнозів |
+| Configuration | Predictions |
 |---|---|
 | PoC-A | **11** |
-| Gemini-direct, вікна 60 хв | 4 (0 за першу годину) |
-| Gemini-direct, вікна 10 хв | 2 за першу годину |
+| Gemini-direct, 60 min windows | 4 (0 in the first hour) |
+| Gemini-direct, 10 min windows | 2 in the first hour |
 
-Відхилено: провал на вичерпності, непослідовна система відліку таймкодів (то абсолютна, то відносна),
-1.6× вартості. Деталі — [`docs/youtube-source/2026-07-23-gemini-direct-poc-b.md`](../../docs/youtube-source/2026-07-23-gemini-direct-poc-b.md).
+Rejected: it fails on completeness, its timestamp frame of reference is inconsistent (sometimes absolute,
+sometimes relative), and it costs 1.6×. Details —
+[`docs/youtube-source/2026-07-23-gemini-direct-poc-b.md`](../../docs/youtube-source/2026-07-23-gemini-direct-poc-b.md).
 
 ---
 
-## Вимоги
+## Requirements
 
-- `ffmpeg` у PATH (PoC-A)
-- `GROQ_API_KEY` і `GEMINI_API_KEY` у `.env` репо — скрипти читають самі, у код не хардкодяться
-- деки ставляться ефемерно через `uv run --with`, у `pyproject.toml` не додавалися (викидний код)
+- `ffmpeg` in PATH (PoC-A)
+- `GROQ_API_KEY` and `GEMINI_API_KEY` in the repo `.env` — the scripts read them themselves, nothing is hardcoded
+- dependencies are installed ephemerally via `uv run --with`, they were not added to `pyproject.toml` (throwaway code)
 
-## Файли в `artifacts/`
+## Files in `artifacts/`
 
-| Файл | Звідки |
+| File | Where it comes from |
 |---|---|
-| `poc_transcript_full.txt` | PoC-A, повний транскрипт Whisper (16 372 слова) |
-| `poc_chunks.md` | PoC-A, 22 чанки з дип-лінками — також ground truth для перевірки таймкодів PoC-B |
-| `poc_report.md` | PoC-A, звіт першого прогону (канонічні висновки — у `docs/youtube-source/`) |
-| `poc_gemini_raw_*.json` | PoC-B, сирі відповіді по кожному вікну (`_0`, `_600`… = start-offset) |
+| `poc_transcript_full.txt` | PoC-A, the full Whisper transcript (16,372 words) |
+| `poc_chunks.md` | PoC-A, 22 chunks with deep links — also the ground truth for checking PoC-B timestamps |
+| `poc_report.md` | PoC-A, report of the first run (the canonical conclusions are in `docs/youtube-source/`) |
+| `poc_gemini_raw_*.json` | PoC-B, raw responses per window (`_0`, `_600`… = start offset) |
