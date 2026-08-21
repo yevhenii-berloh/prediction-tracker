@@ -1,3 +1,4 @@
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -6,8 +7,8 @@ class Settings(BaseSettings):
     db_ssl_mode: str = (
         "disable"  # disable | require | verify-full; require на RDS (rds.force_ssl=1)
     )
-    llm_provider: str = "openai"
-    llm_model: str = "gpt-4o-mini"
+    llm_provider: str = "deepseek"
+    llm_model: str = "deepseek-v4-flash"
     llm_api_key: str = ""
     gemini_api_key: str = ""
     telegram_bot_token: str = ""
@@ -33,6 +34,14 @@ class Settings(BaseSettings):
         "env_file_encoding": "utf-8",
         "extra": "ignore",  # allow eval-only vars (ANTHROPIC_API_KEY etc.) without schema bloat
     }
+
+    @model_validator(mode="after")
+    def _require_llm_api_key(self) -> "Settings":
+        # Порожній ключ не падає сам: litellm мовчки бере env-змінну провайдера
+        # (OPENAI_API_KEY для openai) — саме так прод і з'їхав на gpt-4o-mini.
+        if not self.llm_api_key:
+            raise ValueError(f"LLM_API_KEY is empty; set it for llm_provider={self.llm_provider!r}")
+        return self
 
 
 def get_settings() -> Settings:

@@ -1,3 +1,6 @@
+import pytest
+from pydantic import ValidationError
+
 from prophet_checker.config import Settings
 
 
@@ -46,3 +49,17 @@ def test_settings_app_host_from_env(monkeypatch):
         telegram_api_hash="hash",
     )
     assert settings.app_host == "0.0.0.0"
+
+
+def test_settings_rejects_empty_llm_api_key(monkeypatch):
+    monkeypatch.delenv("LLM_API_KEY", raising=False)
+    with pytest.raises(ValidationError, match="LLM_API_KEY"):
+        Settings(_env_file=None)
+
+
+def test_settings_defaults_to_deepseek(monkeypatch):
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("LLM_MODEL", raising=False)
+    settings = Settings(_env_file=None, llm_api_key="sk-test")
+    assert settings.llm_provider == "deepseek"
+    assert settings.llm_model == "deepseek-v4-flash"

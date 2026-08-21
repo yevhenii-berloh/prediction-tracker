@@ -74,20 +74,22 @@ async def test_build_orchestrator_skips_telegram_when_source_disabled(monkeypatc
 
 
 async def test_build_bot_disabled_returns_none():
-    settings = Settings(bot_enabled=False)
+    settings = Settings(bot_enabled=False, llm_api_key="sk-test")
     async with AsyncExitStack() as stack:
         assert await build_bot(settings, stack, MagicMock()) is None
 
 
 async def test_build_bot_enabled_without_token_fails_fast():
-    settings = Settings(bot_enabled=True, telegram_bot_token="")
+    settings = Settings(bot_enabled=True, telegram_bot_token="", llm_api_key="sk-test")
     async with AsyncExitStack() as stack:
         with pytest.raises(ValueError, match="telegram_bot_token"):
             await build_bot(settings, stack, MagicMock())
 
 
 async def test_build_bot_registers_stop_on_stack():
-    settings = Settings(bot_enabled=True, telegram_bot_token="123456:TEST-TOKEN")
+    settings = Settings(
+        bot_enabled=True, telegram_bot_token="123456:TEST-TOKEN", llm_api_key="sk-test"
+    )
     fake_runner = MagicMock(spec=BotRunner)
     fake_runner.stop = AsyncMock()
 
