@@ -520,3 +520,30 @@ def test_parse_assessment_raises_on_invalid_strength():
     raw = json.dumps({"prediction_strength": "strong", "prediction_value": "high"})
     with pytest.raises(ValueError, match="invalid prediction_strength"):
         parse_assessment_response_v2(raw)
+
+
+def test_parse_extraction_response_error_carries_the_response_body():
+    """Без тіла відповіді збій нерозбірливий: логи кажуть «не JSON», а що саме — ні."""
+    with pytest.raises(ValueError, match="Вибачте, я не можу"):
+        parse_extraction_response("Вибачте, я не можу опрацювати цей текст.")
+
+
+def test_parse_extraction_response_error_shows_an_empty_response():
+    """Порожня відповідь і прозовий преамбул дають той самий JSONDecodeError — довжина їх розрізняє."""
+    with pytest.raises(ValueError, match="len=0"):
+        parse_extraction_response("")
+
+
+def test_parse_extraction_response_error_truncates_a_long_body():
+    """Логи не місце для 20 КБ відповіді — у повідомлення йде лише голова."""
+    with pytest.raises(ValueError) as exc_info:
+        parse_extraction_response("x" * 1000)
+
+    message = str(exc_info.value)
+    assert "x" * 300 in message
+    assert "x" * 400 not in message
+
+
+def test_parse_extraction_response_unknown_envelope_carries_the_body():
+    with pytest.raises(ValueError, match="claims"):
+        parse_extraction_response(json.dumps({"claims": [{"claim_text": "x"}]}))

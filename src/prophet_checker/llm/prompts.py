@@ -498,6 +498,15 @@ def validate_situation(situation: str | None) -> bool:
     return bool(situation and situation.strip())
 
 
+# Скільки символів відповіді їде в текст помилки. Без них «не JSON» нерозбірливе:
+# порожня відповідь і прозовий преамбул дають однаковий JSONDecodeError на char 0.
+_ERROR_BODY_CHARS = 300
+
+
+def _describe_response(response: str) -> str:
+    return f"len={len(response)} head={response[:_ERROR_BODY_CHARS]!r}"
+
+
 def parse_extraction_response(response: str) -> list[dict]:
     """Розібрати відповідь екстрактора. Кидає ValueError на нечитабельній формі.
 
@@ -508,14 +517,19 @@ def parse_extraction_response(response: str) -> list[dict]:
     try:
         data = json.loads(_strip_code_fence(response))
     except json.JSONDecodeError as exc:
-        raise ValueError(f"відповідь екстрактора не є JSON: {exc}") from exc
+        raise ValueError(
+            f"відповідь екстрактора не є JSON: {exc}; {_describe_response(response)}"
+        ) from exc
 
     # Конверт плаває навіть у межах однієї моделі — обидві форми легітимні
     if isinstance(data, list):
         return data
     if isinstance(data, dict) and "predictions" in data:
         return data["predictions"]
-    raise ValueError(f"невідома форма відповіді екстрактора: {type(data).__name__}")
+    raise ValueError(
+        f"невідома форма відповіді екстрактора: {type(data).__name__}; "
+        f"{_describe_response(response)}"
+    )
 
 
 def get_extraction_system() -> str:
