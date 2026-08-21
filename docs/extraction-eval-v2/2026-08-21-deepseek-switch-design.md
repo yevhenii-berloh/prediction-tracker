@@ -78,7 +78,7 @@ that swallows an unfamiliar response and loses the post.
    and the old `.env`, so this reads the configuration production has been using:
 
    ```bash
-   sudo docker compose -f docker-compose.yml exec app python -c \
+   ./deploy/connect.sh -- python -c \
      "from prophet_checker.config import get_settings; s=get_settings(); print(s.llm_provider, s.llm_model)"
    ```
 
