@@ -70,6 +70,23 @@ async def test_build_orchestrator_skips_telegram_when_source_disabled(monkeypatc
     assert isinstance(orchestrator, IngestionOrchestrator)
 
 
+async def test_build_orchestrator_extractor_runs_at_zero_temperature(monkeypatch):
+    settings = _settings_with_test_env(monkeypatch)
+
+    with (
+        patch("prophet_checker.factory.TelegramClient") as MockTg,
+        patch("prophet_checker.factory.LLMClient") as MockLLM,
+    ):
+        mock_tg_instance = MockTg.return_value
+        mock_tg_instance.start = AsyncMock()
+        mock_tg_instance.disconnect = AsyncMock()
+
+        async with AsyncExitStack() as stack:
+            await build_orchestrator(settings, stack)
+
+    assert MockLLM.call_args.kwargs["temperature"] == 0.0
+
+
 # --- build_bot ---
 
 

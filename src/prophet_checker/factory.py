@@ -40,6 +40,7 @@ async def build_orchestrator(settings: Settings, stack: AsyncExitStack) -> Inges
         provider=settings.llm_provider,
         model=settings.llm_model,
         api_key=settings.llm_api_key,
+        temperature=0.0,  # eval v2 міряв екстракцію на 0.0, дефолт клієнта 0.1
     )
     embedder = None
     if settings.embeddings_enabled:
