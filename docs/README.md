@@ -113,6 +113,7 @@ De-ризик перед реалізацією `YouTubeSource`. PoC зняв т
 |----------|-------------|
 | [`2026-07-23-youtube-poc-findings.md`](youtube-source/2026-07-23-youtube-poc-findings.md) | **PoC-A** (обраний шлях): вердикт по ризиках, реальна вартість ($0.053/год), приклади прогнозів, запропонований дизайн Фази 2, open questions |
 | [`2026-07-23-gemini-direct-poc-b.md`](youtube-source/2026-07-23-gemini-direct-poc-b.md) | **PoC-B** (відхилено): YouTube-URL прямо в Gemini — 2-4 прогнози проти 11 при 1.6× ціни; лишається запасним варіантом |
+| [`2026-08-21-groq-boundary-text-loss.md`](youtube-source/2026-08-21-groq-boundary-text-loss.md) | **Баг Groq**: мовчазна втрата тексту на внутрішніх межах (13.9% на короткому відео, 0.5% на довгому); невидима для сигналів якості; вимога до `TranscriptProvider` у Фазі 2 |
 
 ---
 
