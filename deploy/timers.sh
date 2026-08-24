@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 #
-# timers.sh — стан розкладу інжесту/верифікації на живому AWS-боксі.
+# timers.sh — розклад інжесту/верифікації на живому AWS-боксі: стан, установка, зняття.
 #
 # Резолвить бокс (tag Name=prophet-checker, running) → SSH → systemd. За замовчуванням
 # READ-ONLY: показує, чи заряджені таймери, коли наступний запуск і чим закінчились
-# останні. Побратими: status.sh, logs.sh, refresh.sh.
+# останні. Мутуючі режими (--install/--uninstall) питають підтвердження, -y пропускає.
+# Побратими: status.sh, logs.sh, refresh.sh.
 #
 # Приклади:
 #   ./deploy/timers.sh                 # стан + останні результати (read-only)
 #   ./deploy/timers.sh --tail 25       # більше історії на таймер
+#   ./deploy/timers.sh --install       # залити юніти з deploy/box/ і зарядити таймери
+#   ./deploy/timers.sh --uninstall     # зняти таймери й прибрати юніти
 #   ./deploy/timers.sh --dry-run       # надрукувати план, нічого не робити
 #
 # Конфіг через env (є дефолти): REGION, SSH_KEY, SSH_USER, BOX_TAG, SSH_OPTS, BOX_DIR.
@@ -27,8 +30,9 @@ BOX_DIR="${BOX_DIR:-$HERE/box}"
 MODE="status"
 TAIL="10"
 DRY_RUN=0
+ASSUME_YES=0
 
-usage() { sed -n '3,14p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '3,17p' "$0" | sed 's/^# \{0,1\}//'; }
 die() { echo "ERROR: $*" >&2; exit 2; }
 
 # --- аргументи ---
@@ -36,6 +40,9 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --tail)       shift; TAIL="${1:-}" ;;
     --tail=*)     TAIL="${1#*=}" ;;
+    --install)    MODE="install" ;;
+    --uninstall)  MODE="uninstall" ;;
+    -y|--yes)     ASSUME_YES=1 ;;
     -n|--dry-run) DRY_RUN=1 ;;
     -h|--help)    usage; exit 0 ;;
     *)            echo "unknown arg: $1" >&2; usage; exit 2 ;;
@@ -55,7 +62,32 @@ for u in prophet-ingest prophet-verify; do
   sudo journalctl -u "$u.service" --no-pager -o short-iso -n '"$TAIL"' 2>/dev/null || echo "(нема записів)"
 done'
 
-REMOTE="$REMOTE_STATUS"
+# Юніти їдуть таром у stdin SSH-зʼєднання: текст юнітів лишається в одному місці
+# (deploy/box/) і не може розійтись із тим, що перевіряють тести.
+REMOTE_INSTALL='set -euo pipefail
+tmp="$(mktemp -d)"
+trap "rm -rf $tmp" EXIT
+tar -C "$tmp" -xf -
+sudo install -m 755 "$tmp/prophet-tick.sh" /usr/local/bin/prophet-tick.sh
+sudo install -m 644 "$tmp/prophet-ingest.service" "$tmp/prophet-ingest.timer" \
+  "$tmp/prophet-verify.service" "$tmp/prophet-verify.timer" /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now prophet-ingest.timer prophet-verify.timer
+systemctl list-timers --all --no-pager "prophet-*.timer"'
+
+REMOTE_UNINSTALL='set -uo pipefail
+sudo systemctl disable --now prophet-ingest.timer prophet-verify.timer || true
+sudo rm -f /etc/systemd/system/prophet-ingest.service /etc/systemd/system/prophet-ingest.timer \
+  /etc/systemd/system/prophet-verify.service /etc/systemd/system/prophet-verify.timer \
+  /usr/local/bin/prophet-tick.sh
+sudo systemctl daemon-reload
+echo "юніти прибрано"'
+
+case "$MODE" in
+  status)    REMOTE="$REMOTE_STATUS" ;;
+  install)   REMOTE="$REMOTE_INSTALL" ;;
+  uninstall) REMOTE="$REMOTE_UNINSTALL" ;;
+esac
 
 # --- dry-run: надрукувати й вийти (без AWS/SSH, працює будь-де) ---
 if [ "$DRY_RUN" -eq 1 ]; then
@@ -72,6 +104,11 @@ command -v aws >/dev/null || die "нема aws CLI"
 command -v ssh >/dev/null || die "нема ssh"
 [ -f "$SSH_KEY" ] || die "нема SSH-ключа: $SSH_KEY (задай через SSH_KEY=...)"
 
+if [ "$MODE" = "install" ]; then
+  [ -d "$BOX_DIR" ] || die "нема каталогу з юнітами: $BOX_DIR (задай через BOX_DIR=...)"
+  [ -f "$BOX_DIR/prophet-tick.sh" ] || die "у $BOX_DIR нема prophet-tick.sh"
+fi
+
 # --- резолв боксу (як deploy.sh/logs.sh: describe-instances → id → IP) ---
 BOX="$(aws ec2 describe-instances --region "$REGION" \
   --filters "Name=tag:Name,Values=$BOX_TAG" "Name=instance-state-name,Values=running" \
@@ -85,6 +122,21 @@ IP="$(aws ec2 describe-instances --region "$REGION" --instance-ids "$BOX" \
 { [ -n "$IP" ] && [ "$IP" != "None" ]; } || die "у боксу $BOX нема публічного IP."
 echo "box=$BOX  ip=$IP"
 
+# --- підтвердження для мутуючих режимів ---
+if [ "$MODE" != "status" ] && [ "$ASSUME_YES" -eq 0 ]; then
+  printf 'Режим %s на боксі %s (%s)? [y/N] ' "$MODE" "$BOX" "$IP"
+  read -r ans || ans=""
+  case "$ans" in y|Y|yes|YES|Yes) ;; *) echo "скасовано."; exit 0 ;; esac
+fi
+
 # --- виконання ---
 # shellcheck disable=SC2086
-ssh $SSH_OPTS -i "$SSH_KEY" "$SSH_USER@$IP" "$REMOTE"
+case "$MODE" in
+  install)
+    tar -C "$BOX_DIR" -cf - . | ssh $SSH_OPTS -i "$SSH_KEY" "$SSH_USER@$IP" "$REMOTE"
+    echo "✅ таймери встановлено й заряджено на боксі $BOX ($IP)"
+    ;;
+  *)
+    ssh $SSH_OPTS -i "$SSH_KEY" "$SSH_USER@$IP" "$REMOTE"
+    ;;
+esac

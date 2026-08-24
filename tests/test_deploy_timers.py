@@ -123,3 +123,53 @@ def test_help_does_not_touch_aws_or_ssh(env):
     assert proc.returncode == 0
     assert "timers.sh" in proc.stdout
     assert not env["ssh_log"].exists()
+
+
+def test_install_pushes_units_and_arms_timers(env):
+    stdin_log = env["tmp"] / "ssh_stdin.bin"
+    proc = run_timers(env, "--install", "-y", FAKE_SSH_STDIN=str(stdin_log))
+    assert proc.returncode == 0, proc.stderr
+    remote = _remote(env)
+    assert "install -m 755" in remote
+    assert "/usr/local/bin/prophet-tick.sh" in remote
+    assert "install -m 644" in remote
+    assert "/etc/systemd/system/" in remote
+    assert "systemctl daemon-reload" in remote
+    assert "enable --now prophet-ingest.timer prophet-verify.timer" in remote
+    assert stdin_log.exists() and stdin_log.stat().st_size > 0, "units must be streamed"
+
+
+def test_install_payload_contains_every_box_file(env):
+    stdin_log = env["tmp"] / "ssh_stdin.bin"
+    run_timers(env, "--install", "-y", FAKE_SSH_STDIN=str(stdin_log))
+    payload = stdin_log.read_bytes()
+    for name in (
+        b"prophet-tick.sh",
+        b"prophet-ingest.service",
+        b"prophet-ingest.timer",
+        b"prophet-verify.service",
+        b"prophet-verify.timer",
+    ):
+        assert name in payload, name
+
+
+def test_uninstall_disables_before_removing(env):
+    proc = run_timers(env, "--uninstall", "-y")
+    assert proc.returncode == 0, proc.stderr
+    remote = _remote(env)
+    assert "disable --now" in remote
+    assert "rm -f" in remote
+    assert remote.index("disable --now") < remote.index("rm -f")
+    assert "systemctl daemon-reload" in remote
+
+
+def test_install_without_yes_and_no_input_cancels(env):
+    proc = run_timers(env, "--install", stdin="")
+    assert proc.returncode == 0, proc.stderr
+    assert not env["ssh_log"].exists(), "an unconfirmed install must not SSH"
+
+
+def test_install_with_missing_box_dir_dies(env):
+    proc = run_timers(env, "--install", "-y", BOX_DIR=str(env["tmp"] / "nope"))
+    assert proc.returncode == 2
+    assert not env["ssh_log"].exists()
