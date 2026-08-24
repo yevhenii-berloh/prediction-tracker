@@ -31,12 +31,26 @@
 
 ## Крок 1 — перевірити канал локально
 
-Один пост через справжні Telegram + LLM (~$0.001–0.005). Ловить друкарську помилку в
-хендлі, приватний канал і протухлу сесію **до** того, як платити за бекфіл.
+Ловить друкарську помилку в хендлі, приватний канал і протухлу сесію **до** того, як
+платити за бекфіл. Достатньо однієї стадії — `telegram`: вона резолвить канал через
+Telethon і тягне кілька повідомлень.
 
 ```bash
-.venv/bin/python scripts/ingestion/integration_smoke.py --channel @newauthor --limit 1
+.venv/bin/python scripts/ingestion/integration_smoke.py --channel @newauthor --limit 1 --component telegram
 ```
+
+Успіх = `telegram ... ✓  N messages fetched`.
+
+**Повний смоук (без `--component`) локально впаде на стадії `e2e`** —
+`no source registered for type=telegram`. Це не поломка: у локальному `.env` стоїть
+`TELEGRAM_SOURCE_ENABLED=false`, тож `build_orchestrator` не реєструє Telegram-джерело
+(`factory.py:54`). Прапорець вимкнений навмисне — локальний Telethon-клієнт на тій самій
+`tg_session`, що й бокс, вбиває сесію (`AuthKeyDuplicatedError`, див. `config.py:22`; у
+корені репо лежить `tg_session.session.dead` — це вже траплялось). Стадія `telegram`
+підіймає власний клієнт і цей гейт обходить.
+
+Потрібен саме повний e2e локально — зроби **окрему** сесію (`deploy/make_session.py`) і
+вкажи на неї `TG_SESSION_PATH`. Не вмикай прапорець на спільній `tg_session`.
 
 ## Крок 2 — засіяти Person + Source у прод
 
