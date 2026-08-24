@@ -79,6 +79,9 @@ docker exec prophet_postgres psql -U prophet -d prophet_checker -tA \
   застосовний — вузьке вікно джерела став заздалегідь. Таймаут циклу — `--timeout <сек>`
   (дефолт 900). Побратими: `deploy.sh`, `logs.sh`, `status.sh`.
 
+  Щоденний автоматичний прогін — [`timers.md`](timers.md) (05:00 UTC); ця команда
+  лишається ручним тригером.
+
 Передумови пайплайну: `TELEGRAM_API_ID/HASH` + `tg_session.session` (колектор),
 `GEMINI_API_KEY` (екстракція).
 

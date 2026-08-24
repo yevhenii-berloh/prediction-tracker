@@ -12,6 +12,7 @@
 | [`2026-07-10-rds-migration-plan.md`](2026-07-10-rds-migration-plan.md) | Implementation plan — 9 задач |
 | [`2026-08-24-scheduled-ticks-review-card.md`](2026-08-24-scheduled-ticks-review-card.md) | G1-картка: розклад інжесту/верифікації на боксі |
 | [`2026-08-24-scheduled-ticks-design.md`](2026-08-24-scheduled-ticks-design.md) | Design: systemd-таймери на боксі, flock, `deploy/timers.sh` |
+| [`2026-08-24-scheduled-ticks-plan.md`](2026-08-24-scheduled-ticks-plan.md) | Implementation plan — 7 задач |
 
 Артефакти: `Dockerfile`, `docker-compose.yml` (migrate/app) +
 `docker-compose.override.yml` (локальний Postgres для dev),
