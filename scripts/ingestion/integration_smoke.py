@@ -23,7 +23,7 @@ from prophet_checker.factory import build_orchestrator
 from prophet_checker.models.db import PersonDB, PersonSourceDB
 
 
-EXPECTED_ALEMBIC_HEAD = "cef3b9130690"
+EXPECTED_ALEMBIC_HEAD = "927f4f166d09"
 
 SAMPLE_TEXT = (
     "15 жовтня закінчиться війна, до Києва прибуде делегація НАТО "
