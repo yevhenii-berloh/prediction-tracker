@@ -10,12 +10,15 @@
 | [`2026-07-04-minimal-aws-deploy-plan.md`](2026-07-04-minimal-aws-deploy-plan.md) | Implementation plan — 8 задач |
 | [`2026-07-10-rds-migration-design.md`](2026-07-10-rds-migration-design.md) | Design: RDS-міграція БД (Phase B durability) |
 | [`2026-07-10-rds-migration-plan.md`](2026-07-10-rds-migration-plan.md) | Implementation plan — 9 задач |
+| [`2026-08-24-scheduled-ticks-review-card.md`](2026-08-24-scheduled-ticks-review-card.md) | G1-картка: розклад інжесту/верифікації на боксі |
+| [`2026-08-24-scheduled-ticks-design.md`](2026-08-24-scheduled-ticks-design.md) | Design: systemd-таймери на боксі, flock, `deploy/timers.sh` |
 
 Артефакти: `Dockerfile`, `docker-compose.yml` (migrate/app) +
 `docker-compose.override.yml` (локальний Postgres для dev),
 `deploy/cloudformation/{secrets,data,compute}-stack.yaml`.
 
-Поза скоупом (майбутнє): розклад ingestion, публічний RAG/бот — Phase B/C.
+Поза скоупом (майбутнє): публічний RAG/бот — Phase C. Розклад ingestion/верифікації
+заспецифіковано (картка + design від 2026-08-24), імплементація — окремим планом.
 
 ## Відхилення від плану / знахідки
 
