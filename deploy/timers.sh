@@ -12,6 +12,7 @@
 #   ./deploy/timers.sh --tail 25       # більше історії на таймер
 #   ./deploy/timers.sh --install       # залити юніти з deploy/box/ і зарядити таймери
 #   ./deploy/timers.sh --uninstall     # зняти таймери й прибрати юніти
+#   ./deploy/timers.sh --run ingest    # прогнати один тік просто зараз (МУТУЄ ПРОД)
 #   ./deploy/timers.sh --dry-run       # надрукувати план, нічого не робити
 #
 # Конфіг через env (є дефолти): REGION, SSH_KEY, SSH_USER, BOX_TAG, SSH_OPTS, BOX_DIR.
@@ -31,8 +32,9 @@ MODE="status"
 TAIL="10"
 DRY_RUN=0
 ASSUME_YES=0
+RUN_NAME=""
 
-usage() { sed -n '3,17p' "$0" | sed 's/^# \{0,1\}//'; }
+usage() { sed -n '3,18p' "$0" | sed 's/^# \{0,1\}//'; }
 die() { echo "ERROR: $*" >&2; exit 2; }
 
 # --- аргументи ---
@@ -42,6 +44,8 @@ while [ $# -gt 0 ]; do
     --tail=*)     TAIL="${1#*=}" ;;
     --install)    MODE="install" ;;
     --uninstall)  MODE="uninstall" ;;
+    --run)        MODE="run"; shift; RUN_NAME="${1:-}" ;;
+    --run=*)      MODE="run"; RUN_NAME="${1#*=}" ;;
     -y|--yes)     ASSUME_YES=1 ;;
     -n|--dry-run) DRY_RUN=1 ;;
     -h|--help)    usage; exit 0 ;;
@@ -51,6 +55,13 @@ while [ $# -gt 0 ]; do
 done
 
 printf '%s' "$TAIL" | grep -Eq '^[1-9][0-9]*$' || die "--tail має бути додатнім цілим: '$TAIL'"
+
+if [ "$MODE" = "run" ]; then
+  case "$RUN_NAME" in
+    ingest|verify) ;;
+    *) die "--run приймає лише 'ingest' або 'verify' (дано: '${RUN_NAME:-<порожньо>}')" ;;
+  esac
+fi
 
 # --- віддалений блок: лише читання (list-timers + journalctl) ---
 # Одинарні лапки — нічого не розкривається локально; $TAIL вставляємо конкатенацією.
@@ -83,10 +94,18 @@ sudo rm -f /etc/systemd/system/prophet-ingest.service /etc/systemd/system/prophe
 sudo systemctl daemon-reload
 echo "юніти прибрано"'
 
+# systemctl start на Type=oneshot блокується до кінця циклу, тож журнал після нього
+# уже містить рядок підсумку. Код юніта пробрасуємо назад.
+REMOTE_RUN='set -uo pipefail
+sudo systemctl start prophet-'"$RUN_NAME"'.service; rc=$?
+sudo journalctl -u prophet-'"$RUN_NAME"'.service --no-pager -o short-iso -n 20
+exit $rc'
+
 case "$MODE" in
   status)    REMOTE="$REMOTE_STATUS" ;;
   install)   REMOTE="$REMOTE_INSTALL" ;;
   uninstall) REMOTE="$REMOTE_UNINSTALL" ;;
+  run)       REMOTE="$REMOTE_RUN" ;;
 esac
 
 # --- dry-run: надрукувати й вийти (без AWS/SSH, працює будь-де) ---
@@ -124,7 +143,12 @@ echo "box=$BOX  ip=$IP"
 
 # --- підтвердження для мутуючих режимів ---
 if [ "$MODE" != "status" ] && [ "$ASSUME_YES" -eq 0 ]; then
-  printf 'Режим %s на боксі %s (%s)? [y/N] ' "$MODE" "$BOX" "$IP"
+  if [ "$MODE" = "run" ]; then
+    printf 'Прогнати тік %s на боксі %s (%s)? Пише в прод-БД і палить LLM-гроші. [y/N] ' \
+      "$RUN_NAME" "$BOX" "$IP"
+  else
+    printf 'Режим %s на боксі %s (%s)? [y/N] ' "$MODE" "$BOX" "$IP"
+  fi
   read -r ans || ans=""
   case "$ans" in y|Y|yes|YES|Yes) ;; *) echo "скасовано."; exit 0 ;; esac
 fi

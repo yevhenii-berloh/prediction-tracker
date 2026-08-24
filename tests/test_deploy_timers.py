@@ -173,3 +173,30 @@ def test_install_with_missing_box_dir_dies(env):
     proc = run_timers(env, "--install", "-y", BOX_DIR=str(env["tmp"] / "nope"))
     assert proc.returncode == 2
     assert not env["ssh_log"].exists()
+
+
+@pytest.mark.parametrize("name", ["ingest", "verify"])
+def test_run_starts_the_named_unit_and_tails_it(env, name):
+    proc = run_timers(env, "--run", name, "-y")
+    assert proc.returncode == 0, proc.stderr
+    remote = _remote(env)
+    assert f"systemctl start prophet-{name}.service" in remote
+    assert f"journalctl -u prophet-{name}.service" in remote
+
+
+def test_run_accepts_equals_form(env):
+    run_timers(env, "--run=verify", "-y")
+    assert "systemctl start prophet-verify.service" in _remote(env)
+
+
+def test_run_rejects_an_unknown_name_before_ssh(env):
+    proc = run_timers(env, "--run", "everything", "-y")
+    assert proc.returncode == 2
+    assert "ingest" in proc.stderr and "verify" in proc.stderr
+    assert not env["ssh_log"].exists()
+
+
+def test_run_without_a_name_dies(env):
+    proc = run_timers(env, "--run", "-y")
+    assert proc.returncode == 2
+    assert not env["ssh_log"].exists()
