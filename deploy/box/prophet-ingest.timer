@@ -1,0 +1,12 @@
+[Unit]
+Description=prophet-checker — daily ingestion tick (05:00 UTC)
+
+[Timer]
+OnCalendar=*-*-* 05:00:00 UTC
+# Persistent=false: після паузи env не добиваємо пропущені тіки — інакше підйом
+# боксу відразу палить LLM-гроші (див. design §5).
+Persistent=false
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

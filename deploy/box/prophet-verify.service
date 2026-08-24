@@ -1,0 +1,9 @@
+[Unit]
+Description=prophet-checker — one verification cycle
+After=docker.service
+Wants=docker.service
+
+[Service]
+Type=oneshot
+TimeoutStartSec=2100
+ExecStart=/usr/local/bin/prophet-tick.sh verify http://localhost:8000/verify/run?limit=50 1800

@@ -1,0 +1,10 @@
+[Unit]
+Description=prophet-checker — one ingestion cycle
+After=docker.service
+Wants=docker.service
+
+[Service]
+Type=oneshot
+# Трохи більше за curl -m 3600: зависла спроба не має тримати спільний лок вічно.
+TimeoutStartSec=3900
+ExecStart=/usr/local/bin/prophet-tick.sh ingest http://localhost:8000/ingest/run 3600
