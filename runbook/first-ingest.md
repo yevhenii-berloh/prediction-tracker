@@ -96,7 +96,10 @@ pg \
 # далі знову curl -X POST .../ingest/run  (більше вікно = більше $ і часу)
 ```
 
-Повний backfill: `SET last_collected_at = NULL` — збере ВСЮ історію (~5572 пости, дорого).
+Повний backfill: `SET last_collected_at = '1970-01-01'` — збере ВСЮ історію (~5572 пости,
+дорого). Саме epoch, а **не** `NULL`: колонка NOT NULL, тож `NULL` впаде на констрейнті.
+`TelegramSource` трактує курсор із роком ≤1970 як «без `offset_date`» і читає канал з
+початку (`sources/telegram.py:36`).
 
 ## Пам'ятати
 
