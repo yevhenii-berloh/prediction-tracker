@@ -51,7 +51,7 @@
 - Consumes: nothing (first task).
 - Produces: CLI contract `prophet-tick.sh <name> <url> <timeout-seconds>`, where `name` is `ingest` or `verify`. Exit codes: `0` = HTTP 200 **or** lock busy; `1` = cycle failed; `2` = bad arguments. Env override: `LOCK_FILE` (default `/var/lock/prophet-tick.lock`). Task 2's `ExecStart=` lines and Task 5's `--run` depend on exactly this.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/test_box_tick.py`:
 
@@ -220,12 +220,12 @@ def test_missing_arguments_exit_2(env):
     assert not env["curl_log"].exists()
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `.venv/bin/python -m pytest tests/test_box_tick.py -q`
 Expected: FAIL — every test errors because `deploy/box/prophet-tick.sh` does not exist.
 
-- [ ] **Step 3: Write the script**
+- [x] **Step 3: Write the script**
 
 Create `deploy/box/prophet-tick.sh`:
 
@@ -318,7 +318,7 @@ echo "tick=$name FAILED http=${code:-none} body=$(printf '%s' "$body" | tr '\n' 
 exit 1
 ```
 
-- [ ] **Step 4: Make it executable and run the tests**
+- [x] **Step 4: Make it executable and run the tests**
 
 ```bash
 chmod +x deploy/box/prophet-tick.sh
@@ -327,7 +327,7 @@ chmod +x deploy/box/prophet-tick.sh
 
 Expected: 9 passed (7 tests, one of them parametrized ×3).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add deploy/box/prophet-tick.sh tests/test_box_tick.py
@@ -348,7 +348,7 @@ git commit -m "feat(deploy): тік-скрипт на боксі — flock + POS
 - Consumes: the CLI contract from Task 1 (`prophet-tick.sh <name> <url> <timeout>`).
 - Produces: unit names `prophet-ingest.{service,timer}` and `prophet-verify.{service,timer}`, installed to `/etc/systemd/system/`. Tasks 4 and 5 refer to these names literally.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/test_box_units.py`:
 
@@ -413,12 +413,12 @@ def test_service_start_timeout_exceeds_the_curl_timeout():
         assert int(line[0].split("=", 1)[1]) > curl_timeout, name
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `.venv/bin/python -m pytest tests/test_box_units.py -q`
 Expected: FAIL — `FileNotFoundError` on `deploy/box/prophet-ingest.service`.
 
-- [ ] **Step 3: Write the four unit files**
+- [x] **Step 3: Write the four unit files**
 
 `deploy/box/prophet-ingest.service`:
 
@@ -481,12 +481,12 @@ AccuracySec=1min
 WantedBy=timers.target
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `.venv/bin/python -m pytest tests/test_box_units.py -q`
 Expected: 8 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add deploy/box/prophet-ingest.service deploy/box/prophet-ingest.timer \
@@ -511,7 +511,7 @@ git commit -m "feat(deploy): systemd-юніти розкладу — 05:00 ін�
 
 Note the deliberate flag choice: `-n` means `--dry-run` here (as in `ingest.sh`, `verify.sh`, `refresh.sh`), **not** `--tail` as in `logs.sh`. `--tail` has no short alias.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/test_deploy_timers.py`:
 
@@ -643,12 +643,12 @@ def test_help_does_not_touch_aws_or_ssh(env):
     assert not env["ssh_log"].exists()
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `.venv/bin/python -m pytest tests/test_deploy_timers.py -q`
 Expected: FAIL — `deploy/timers.sh` does not exist.
 
-- [ ] **Step 3: Write the script**
+- [x] **Step 3: Write the script**
 
 Create `deploy/timers.sh`:
 
@@ -743,7 +743,7 @@ echo "box=$BOX  ip=$IP"
 ssh $SSH_OPTS -i "$SSH_KEY" "$SSH_USER@$IP" "$REMOTE_STATUS"
 ```
 
-- [ ] **Step 4: Make it executable and run the tests**
+- [x] **Step 4: Make it executable and run the tests**
 
 ```bash
 chmod +x deploy/timers.sh
@@ -752,7 +752,7 @@ chmod +x deploy/timers.sh
 
 Expected: 7 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add deploy/timers.sh tests/test_deploy_timers.py
@@ -775,7 +775,7 @@ git commit -m "feat(deploy): timers.sh — read-only стан розкладу �
 
 The payload is streamed as a tar over the SSH connection's stdin, so the unit text lives in exactly one place — `deploy/box/` — and cannot drift from what the tests in Task 2 check.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/test_deploy_timers.py`:
 
@@ -830,12 +830,12 @@ def test_install_with_missing_box_dir_dies(env):
     assert not env["ssh_log"].exists()
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `.venv/bin/python -m pytest tests/test_deploy_timers.py -q`
 Expected: FAIL — the new tests fail with `unknown arg: --install` (exit 2).
 
-- [ ] **Step 3: Extend the script**
+- [x] **Step 3: Extend the script**
 
 In `deploy/timers.sh`, add `ASSUME_YES=0` next to the other mode variables:
 
@@ -934,12 +934,12 @@ Finally extend the header comment's examples (the `usage()` window is lines 3–
 #   ./deploy/timers.sh --uninstall     # зняти таймери й прибрати юніти
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `.venv/bin/python -m pytest tests/test_deploy_timers.py -q`
 Expected: 12 passed. If `test_help_does_not_touch_aws_or_ssh` fails, the `usage()` line range no longer covers the header — widen the `sed -n '3,NN p'` window.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add deploy/timers.sh tests/test_deploy_timers.py
@@ -960,7 +960,7 @@ git commit -m "feat(deploy): timers.sh --install/--uninstall — юніти по
 - Consumes: everything from Tasks 3–4.
 - Produces: `--run ingest` / `--run verify` (also `--run=ingest`). Runs `systemctl start prophet-<name>.service`, which blocks until the oneshot finishes, then tails that unit's journal and exits with the unit's own result.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/test_deploy_timers.py`:
 
@@ -994,12 +994,12 @@ def test_run_without_a_name_dies(env):
 
 Note on the last test: `--run -y` consumes `-y` as the name, which is not `ingest`/`verify`, so validation rejects it — the outcome the test asserts.
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `.venv/bin/python -m pytest tests/test_deploy_timers.py -q`
 Expected: FAIL — `unknown arg: --run`.
 
-- [ ] **Step 3: Extend the script**
+- [x] **Step 3: Extend the script**
 
 Add `RUN_NAME=""` next to the other mode variables. Add to the parser, above `-h|--help`:
 
@@ -1053,7 +1053,7 @@ Add the example to the header comment (inside the `usage()` window):
 #   ./deploy/timers.sh --run ingest    # прогнати один тік просто зараз (МУТУЄ ПРОД)
 ```
 
-- [ ] **Step 4: Run the whole suite**
+- [x] **Step 4: Run the whole suite**
 
 ```bash
 .venv/bin/python -m pytest tests/test_deploy_timers.py tests/test_box_tick.py tests/test_box_units.py -q
@@ -1062,7 +1062,7 @@ Add the example to the header comment (inside the `usage()` window):
 
 Expected: the three new files pass (18 tests), and the full suite stays green — no existing test touches `deploy/timers.sh`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add deploy/timers.sh tests/test_deploy_timers.py
@@ -1083,7 +1083,7 @@ git commit -m "feat(deploy): timers.sh --run — форсований тік б�
 - Consumes: the CLI surface from Tasks 3–5.
 - Produces: no code.
 
-- [ ] **Step 1: Write `runbook/timers.md`**
+- [x] **Step 1: Write `runbook/timers.md`**
 
 Follow the shape of `runbook/verify.md`: what it is, the one command, what mutates prod, an error table, config env vars, and a dated "перевірено" footer left empty until Task 7 fills it.
 
@@ -1096,7 +1096,7 @@ Required content:
 - **Env на паузі** — no ticks; on `./deploy/start.sh` the timers resume, missed ticks are **not** replayed.
 - **Після пересоздання боксу** — re-run `./deploy/timers.sh --install`; the units are not in `UserData` on purpose (design §3).
 
-- [ ] **Step 2: Cross-link the sibling runbooks**
+- [x] **Step 2: Cross-link the sibling runbooks**
 
 In `runbook/ingest.md`, in the "На проді (боксі)" block, after the `./deploy/ingest.sh` lines add:
 
@@ -1111,7 +1111,7 @@ In `runbook/verify.md`, after the "Одна команда" block add:
 Щоденний автоматичний прогін (06:00 UTC, `--limit 50`) — [`timers.md`](timers.md).
 ```
 
-- [ ] **Step 3: Update the status docs**
+- [x] **Step 3: Update the status docs**
 
 In `progress.md`:
 - In the Phase 6 table, add a row: `| 25 — розклад інжесту/верифікації (systemd на боксі) | ✅ |`.
@@ -1125,7 +1125,7 @@ In `docs/aws-deploy/README.md`, add the plan row to the document table:
 | [`2026-08-24-scheduled-ticks-plan.md`](2026-08-24-scheduled-ticks-plan.md) | Implementation plan — 7 задач |
 ```
 
-- [ ] **Step 4: Check the links resolve**
+- [x] **Step 4: Check the links resolve**
 
 ```bash
 grep -n "timers.md" runbook/*.md progress.md
@@ -1134,7 +1134,7 @@ ls runbook/timers.md deploy/box/
 
 Expected: `timers.md` referenced from `ingest.md` and `verify.md`, and the file exists.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add runbook/timers.md runbook/ingest.md runbook/verify.md progress.md docs/aws-deploy/README.md
@@ -1155,7 +1155,7 @@ git commit -m "docs(runbook): розклад тіків на боксі — time
 
 **Preconditions:** the env must be up (`./deploy/status.sh` says UP, not PAUSED) — if it is paused, raise it per `runbook/stop-env.md` first. This task spends real LLM money in Step 4.
 
-- [ ] **Step 1: Pre-check the box's assumptions**
+- [x] **Step 1: Pre-check the box's assumptions**
 
 ```bash
 ./deploy/connect.sh --box -- 'command -v flock && systemd-analyze calendar "*-*-* 05:00:00 UTC"'
@@ -1163,7 +1163,7 @@ git commit -m "docs(runbook): розклад тіків на боксі — time
 
 Expected: a path for `flock`, and a calendar expansion with a `Next elapse:` line in UTC. (`--box` runs the command on the host itself, not inside the `app` container.) If `flock` is missing, stop — the design's locking assumption is broken and the plan needs revisiting, not a workaround.
 
-- [ ] **Step 2: Install**
+- [x] **Step 2: Install**
 
 ```bash
 ./deploy/timers.sh --install
@@ -1171,7 +1171,7 @@ Expected: a path for `flock`, and a calendar expansion with a `Next elapse:` lin
 
 Expected: confirmation prompt, then a `list-timers` table showing `prophet-ingest.timer` and `prophet-verify.timer` with `NEXT` times at 05:00 and 06:00 UTC.
 
-- [ ] **Step 3: Verify the units are valid on the box**
+- [x] **Step 3: Verify the units are valid on the box**
 
 ```bash
 ./deploy/connect.sh --box -- 'systemd-analyze verify /etc/systemd/system/prophet-*.service /etc/systemd/system/prophet-*.timer'
@@ -1180,7 +1180,7 @@ Expected: confirmation prompt, then a `list-timers` table showing `prophet-inges
 
 Expected: `systemd-analyze verify` prints nothing (silence is success), and `timers.sh` shows both timers `enabled` with no journal entries yet.
 
-- [ ] **Step 4: Force one cheap real tick**
+- [x] **Step 4: Force one cheap real tick**
 
 Temporarily lower the verify cap so the first real cycle is small: edit `deploy/box/prophet-verify.service` to `?limit=5`, re-install, run it, then restore.
 
@@ -1200,7 +1200,7 @@ git checkout deploy/box/prophet-verify.service
 
 Expected: the last line of `timers.sh` output shows the successful tick, and the units are back to `limit=50`.
 
-- [ ] **Step 5: Record the evidence**
+- [x] **Step 5: Record the evidence**
 
 Append a dated footer to `runbook/timers.md` in the style of `runbook/ingest.md`:
 

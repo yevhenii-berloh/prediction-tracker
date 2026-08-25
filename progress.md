@@ -3,7 +3,7 @@
 Living log: time, cost, deliverables. Оновлюється коли завершується milestone або значуща задача.
 Project-wide джерело правди по статусу; per-track деталі — у `docs/<track>/README.md`.
 
-**Останнє оновлення:** 2026-08-24
+**Останнє оновлення:** 2026-08-25
 
 ---
 
@@ -16,7 +16,7 @@ Project-wide джерело правди по статусу; per-track дета
 | Tests passing | 312 |
 | Tasks completed | M1 (5/5) + M2 (5/5) + M2.5 (eval/data) + Ingestion→production track + Verifier-v2 track (19.5→19.9 + Task 20) + RAG-трек (retrieval → query → generation → eval v2 + answer-contract) |
 | Tasks in flight | — |
-| Tasks queued | Recheck-луп, установка таймерів на бокс, GitHub Actions CI |
+| Tasks queued | Recheck-луп, GitHub Actions CI |
 | AWS cost | розгорнуто й працює (EC2 t3.small + RDS db.t4g.micro); сума не відстежується — Cost Explorer на акаунті вимкнено |
 
 **Активний фокус:** RAG-трек завершено по коду й зведено в `main`: retrieval → query → generation
@@ -31,7 +31,7 @@ recall 1.0, стиль чистий**. **Наступне:** κ-калібрув
 
 **Оновлення 2026-07-18:** деплой більше не queued — система відпрацювала **повний прод-цикл** на AWS:
 інжест 2026-07-15 (2238 документів, канал догнано) → верифікація 2026-07-16 (4116/4116, `failed=0`).
-Деталі й застереження — у Notes. Розклад інжесту/верифікації написаний 2026-08-24 (systemd-таймери на боксі — `runbook/timers.md`); на боксі ще не ввімкнений.
+Деталі й застереження — у Notes. Розклад інжесту/верифікації закрито 2026-08-25: systemd-таймери живуть на боксі (`runbook/timers.md`).
 
 > **Нумерація:** verifier-v2 track має власну внутрішню нумерацію (19.5/19.7/19.8/19.9/20).
 > Її "Task 20" (orchestrator) — це verifier-track задача, не плутати з ранньою backlog-задачею
@@ -102,10 +102,10 @@ Ingestion pipeline + FastAPI HTTP trigger працюють end-to-end (підт�
 |------|--------|
 | 23 — AWS RDS PostgreSQL + pgvector | ✅ живе — інстанс `prophet-data-dbinstance-*` `available`, прод-дані на ньому (перевірено 2026-07-18) |
 | 24 — AWS EC2 + Docker deploy | ✅ живе — бокс `i-0b2811b60cb09de92` `running`, застосунок відповідає |
-| 25 — розклад інжесту/верифікації (systemd-таймери на боксі) | 🟡 код готовий і в тестах; установка на бокс — наступний крок |
+| 25 — розклад інжесту/верифікації (systemd-таймери на боксі) | ✅ живе — встановлено 2026-08-25, перший тік `verified=5 failed=0` |
 | 20 (master-plan) — GitHub Actions CI | 📋 |
 
-Деплой не просто «реалізовано в коді» — він **працює на проді**: три CloudFormation-стеки (`secrets` + `compute` + `data`), EC2 t3.small з Docker Compose, дані на RDS PostgreSQL з pgvector, TLS-конект (`rds.force_ssl=1`), секрети з приватного S3 через IAM, доступ SSH-only. Повний цикл по корпусу пройшов на цій інфрі: інжест 2026-07-15, верифікація 2026-07-16 (див. Notes). Розклад тіків написаний і покритий тестами (05:00 інжест / 06:00 верифікація UTC — [`runbook/timers.md`](runbook/timers.md)), але на живий бокс ще не встановлений — лишається `./deploy/timers.sh --install` і GitHub Actions CI. Деталі: [`docs/aws-deploy/`](docs/aws-deploy/).
+Деплой не просто «реалізовано в коді» — він **працює на проді**: три CloudFormation-стеки (`secrets` + `compute` + `data`), EC2 t3.small з Docker Compose, дані на RDS PostgreSQL з pgvector, TLS-конект (`rds.force_ssl=1`), секрети з приватного S3 через IAM, доступ SSH-only. Повний цикл по корпусу пройшов на цій інфрі: інжест 2026-07-15, верифікація 2026-07-16 (див. Notes). Розклад тіків **працює на боксі** (05:00 інжест / 06:00 верифікація UTC, systemd-таймери — [`runbook/timers.md`](runbook/timers.md)); встановлено 2026-08-25, форсований тік дав `verified=5 failed=0`. Лишається 📋 лише GitHub Actions CI. Деталі: [`docs/aws-deploy/`](docs/aws-deploy/).
 
 ⚠️ **Перед будь-яким `update-stack` на `prophet-compute` запінити AMI** — `LatestAmiId` резолвиться на найновіший AL2023, а живий бокс на старішому, тож апдейт пересоздасть інстанс і вб'є бокс.
 
