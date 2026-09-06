@@ -8,7 +8,7 @@
 | Таймер | Коли | Що робить |
 |--------|------|-----------|
 | `prophet-ingest.timer` | щодня 05:00 UTC | `POST localhost:8000/ingest/run` |
-| `prophet-verify.timer` | щодня 06:00 UTC | `POST localhost:8000/verify/run?limit=50` |
+| `prophet-verify.timer` | щодня 06:00 UTC | `POST localhost:8000/verify/run?limit=500` |
 
 Джерело правди для юнітів — каталог `deploy/box/` у репо. Дизайн і чому саме так:
 [`docs/aws-deploy/2026-08-24-scheduled-ticks-design.md`](../docs/aws-deploy/2026-08-24-scheduled-ticks-design.md).
@@ -31,7 +31,7 @@
 
 Кожен тік (і за розкладом, і через `--run`) пише в **прод-БД** і палить LLM-гроші:
 інжест — по виклику екстракції на кожен новий пост, верифікація — 2 виклики на прогноз.
-Стеля верифікації — `?limit=50` у `deploy/box/prophet-verify.service`; щоб змінити,
+Стеля верифікації — `?limit=500` у `deploy/box/prophet-verify.service` (підняли з 50 2026-09-06; за виміром ~1с на прогноз це ≈500с, у межах `curl -m 1800` і `TimeoutStartSec=2100`); щоб змінити,
 правиш юніт і робиш `--install` заново. Інжест стелі не має: його розмір задає курсор
 `last_collected_at` (див. [`ingest.md`](ingest.md) і `deploy/window.sh`).
 

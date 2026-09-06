@@ -13,7 +13,7 @@ evidence назад. Побратим до [`ingest.md`](ingest.md) — той �
 ./deploy/verify.sh --dry-run       # надрукувати план, нічого не робити
 ```
 
-Щоденний автоматичний прогін (06:00 UTC, `limit=50`) — [`timers.md`](timers.md).
+Щоденний автоматичний прогін (06:00 UTC, `limit=500`) — [`timers.md`](timers.md).
 
 Скрипт резолвить бокс (tag `Name=prophet-checker`, running) → SSH → `curl -X POST
 localhost:8000/verify/run` **на боксі** (порт 8000 лише на localhost боксу) → синхронно
