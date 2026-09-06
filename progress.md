@@ -3,7 +3,7 @@
 Living log: time, cost, deliverables. Оновлюється коли завершується milestone або значуща задача.
 Project-wide джерело правди по статусу; per-track деталі — у `docs/<track>/README.md`.
 
-**Останнє оновлення:** 2026-08-25
+**Останнє оновлення:** 2026-09-06
 
 ---
 
@@ -105,7 +105,7 @@ Ingestion pipeline + FastAPI HTTP trigger працюють end-to-end (підт�
 | 25 — розклад інжесту/верифікації (systemd-таймери на боксі) | ✅ живе — встановлено 2026-08-25, перший тік `verified=5 failed=0` |
 | 20 (master-plan) — GitHub Actions CI | 📋 |
 
-Деплой не просто «реалізовано в коді» — він **працює на проді**: три CloudFormation-стеки (`secrets` + `compute` + `data`), EC2 t3.small з Docker Compose, дані на RDS PostgreSQL з pgvector, TLS-конект (`rds.force_ssl=1`), секрети з приватного S3 через IAM, доступ SSH-only. Повний цикл по корпусу пройшов на цій інфрі: інжест 2026-07-15, верифікація 2026-07-16 (див. Notes). Розклад тіків **працює на боксі** (05:00 інжест / 06:00 верифікація UTC, systemd-таймери — [`runbook/timers.md`](runbook/timers.md)); встановлено 2026-08-25, форсований тік дав `verified=5 failed=0`. Лишається 📋 лише GitHub Actions CI. Деталі: [`docs/aws-deploy/`](docs/aws-deploy/).
+Деплой не просто «реалізовано в коді» — він **працює на проді**: три CloudFormation-стеки (`secrets` + `compute` + `data`), EC2 t3.small з Docker Compose, дані на RDS PostgreSQL з pgvector, TLS-конект (`rds.force_ssl=1`), секрети з приватного S3 через IAM, доступ SSH-only. Повний цикл по корпусу пройшов на цій інфрі: інжест 2026-07-15, верифікація 2026-07-16 (див. Notes). Розклад тіків **працює на боксі** (05:00 інжест / 06:00 верифікація UTC, systemd-таймери — [`runbook/timers.md`](runbook/timers.md)); встановлено 2026-08-25, форсований тік дав `verified=5 failed=0`. **Автономність підтверджена 2026-09-06:** обидва тіки спрацювали самі за розкладом — інжест `channels=3 posts=4 predictions=0`, верифікація `verified=0 failed=0`. Лишається 📋 лише GitHub Actions CI. Деталі: [`docs/aws-deploy/`](docs/aws-deploy/).
 
 ⚠️ **Перед будь-яким `update-stack` на `prophet-compute` запінити AMI** — `LatestAmiId` резолвиться на найновіший AL2023, а живий бокс на старішому, тож апдейт пересоздасть інстанс і вб'є бокс.
 

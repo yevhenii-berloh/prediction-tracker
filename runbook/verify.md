@@ -28,6 +28,20 @@ localhost:8000/verify/run` **на боксі** (порт 8000 лише на loca
 Тому за замовчуванням питає підтвердження (як `deploy.sh`); `-y` пропускає. **Спершу
 став `--limit 5`**, глянь вердикти, тоді запускай на весь бэклог.
 
+## Скільки лишилось у бэклозі
+
+Кандидати живуть у прод-RDS; порахувати їх можна не запускаючи цикл:
+
+```
+./deploy/psql.sh -c "select count(*) filter (where verify_attempts < 5) as eligible, \
+  count(*) filter (where verify_attempts >= 5) as capped_out, count(*) as total \
+  from predictions where status = 'unresolved' and verified_at is null;"
+```
+
+`where` тут дослівно повторює `get_unverified` (`storage/postgres.py`), а розділення на
+`eligible` / `capped_out` — attempt-cap із оркестратора (`verification/orchestrator.py`).
+У цикл піде лише `eligible`.
+
 ## Що потрапляє в цикл
 
 - Кандидати — прогнози без статусу (`get_unverified`) з `verify_attempts < 5` (attempt-cap
