@@ -43,7 +43,7 @@ def test_ingest_unit_matches_the_design_constants():
 def test_verify_unit_carries_the_cost_cap():
     assert (
         "ExecStart=/usr/local/bin/prophet-tick.sh verify "
-        "http://localhost:8000/verify/run?limit=50 1800" in unit("prophet-verify.service")
+        "http://localhost:8000/verify/run?limit=500 1800" in unit("prophet-verify.service")
     )
     assert "OnCalendar=*-*-* 06:00:00 UTC" in unit("prophet-verify.timer")
 

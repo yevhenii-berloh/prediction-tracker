@@ -6,4 +6,4 @@ Wants=docker.service
 [Service]
 Type=oneshot
 TimeoutStartSec=2100
-ExecStart=/usr/local/bin/prophet-tick.sh verify http://localhost:8000/verify/run?limit=50 1800
+ExecStart=/usr/local/bin/prophet-tick.sh verify http://localhost:8000/verify/run?limit=500 1800
